@@ -3,7 +3,7 @@ import {parseGitDiff} from '../../src/utils/diff'
 import {getFixturePath} from '../fixtures/util'
 import * as fs from 'fs'
 
-test('should parse Git diff', async function () {
+test('should parse Git diff from fixture', async function () {
   const path = getFixturePath('test.diff')
   const diffOutput = fs.readFileSync(path, 'utf8')
   const output = parseGitDiff(diffOutput)
@@ -11,54 +11,37 @@ test('should parse Git diff', async function () {
   expect(output).toMatchSnapshot()
 })
 
-test('should handle malformed header line', function () {
-  const diffOutput = `diff --git a/file.txt b/file.txt
+const parseGitDiffTestCases = [
+  {
+    name: 'empty diff',
+    input: '',
+    expected: []
+  },
+  {
+    name: 'malformed header line (line numbers default to 0)',
+    input: `diff --git a/file.txt b/file.txt
 index abcdefg..1234567 100644
 --- a/file.txt
 +++ b/file.txt
 @@ malformed header @@
-+added line`
-
-  const output = parseGitDiff(diffOutput)
-
-  // With malformed header, line numbers default to 0
-  expect(output).toEqual([
-    {
-      filename: 'file.txt',
-      addedLines: [0],
-      deletedLines: []
-    }
-  ])
-})
-
-test('should handle empty diff', function () {
-  const output = parseGitDiff('')
-  expect(output).toEqual([])
-})
-
-test('should handle diff with only deletions', function () {
-  const diffOutput = `diff --git a/file.txt b/file.txt
++added line`,
+    expected: [{filename: 'file.txt', addedLines: [0], deletedLines: []}]
+  },
+  {
+    name: 'diff with only deletions',
+    input: `diff --git a/file.txt b/file.txt
 index abcdefg..1234567 100644
 --- a/file.txt
 +++ b/file.txt
 @@ -1,3 +1,1 @@
  line1
 -deleted line 1
--deleted line 2`
-
-  const output = parseGitDiff(diffOutput)
-
-  expect(output).toEqual([
-    {
-      filename: 'file.txt',
-      addedLines: [],
-      deletedLines: [2, 3]
-    }
-  ])
-})
-
-test('should handle multiple files in diff', function () {
-  const diffOutput = `diff --git a/file1.txt b/file1.txt
+-deleted line 2`,
+    expected: [{filename: 'file.txt', addedLines: [], deletedLines: [2, 3]}]
+  },
+  {
+    name: 'multiple files in diff',
+    input: `diff --git a/file1.txt b/file1.txt
 index abcdefg..1234567 100644
 --- a/file1.txt
 +++ b/file1.txt
@@ -73,20 +56,14 @@ index abcdefg..1234567 100644
 @@ -5,2 +5,3 @@
  line5
 +added in file2
- line6`
+ line6`,
+    expected: [
+      {filename: 'file1.txt', addedLines: [2], deletedLines: []},
+      {filename: 'file2.txt', addedLines: [6], deletedLines: []}
+    ]
+  }
+]
 
-  const output = parseGitDiff(diffOutput)
-
-  expect(output).toEqual([
-    {
-      filename: 'file1.txt',
-      addedLines: [2],
-      deletedLines: []
-    },
-    {
-      filename: 'file2.txt',
-      addedLines: [6],
-      deletedLines: []
-    }
-  ])
+test.each(parseGitDiffTestCases)('parseGitDiff: $name', ({input, expected}) => {
+  expect(parseGitDiff(input)).toEqual(expected)
 })
