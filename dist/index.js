@@ -53905,13 +53905,24 @@ class GithubUtil {
     }
     async getPullRequestDiff() {
         const pull_number = github.context.issue.number;
-        const response = await this.client.rest.pulls.get({
-            ...github.context.repo,
-            pull_number,
-            mediaType: {
-                format: 'diff'
+        let response;
+        try {
+            response = await this.client.rest.pulls.get({
+                ...github.context.repo,
+                pull_number,
+                mediaType: {
+                    format: 'diff'
+                }
+            });
+        }
+        catch (error) {
+            if (isDiffTooLargeError(error)) {
+                core.warning('PR diff is too large for the GitHub API. ' +
+                    'Skipping coverage annotations for this PR.');
+                return {};
             }
-        });
+            throw error;
+        }
         const fileLines = parseGitDiff(response.data);
         const prFiles = {};
         for (const item of fileLines) {
@@ -53950,6 +53961,24 @@ class GithubUtil {
         core.info(`Annotation count: ${annotations.length}`);
         return annotations;
     }
+}
+/**
+ * Check if an error indicates the PR diff is too large.
+ * GitHub API returns 403 or 422 with messages about diff size limits.
+ */
+function isDiffTooLargeError(error) {
+    if (error && typeof error === 'object' && 'status' in error) {
+        const apiError = error;
+        const message = apiError.message?.toLowerCase() || '';
+        if (apiError.status === 403 ||
+            apiError.status === 422 ||
+            apiError.status === 406) {
+            return (message.includes('diff') ||
+                message.includes('too large') ||
+                message.includes('not available'));
+        }
+    }
+    return false;
 }
 
 ;// CONCATENATED MODULE: ./node_modules/@isaacs/balanced-match/dist/esm/index.js

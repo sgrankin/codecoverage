@@ -215,3 +215,59 @@ index abcdefg..1234567 100644
     'src/test.ts': [2]
   })
 })
+
+import * as core from '@actions/core'
+
+const diffTooLargeTestCases = [
+  {
+    name: '403 with diff too large message',
+    error: {status: 403, message: 'Diff is too large to display'}
+  },
+  {
+    name: '422 with too large message',
+    error: {status: 422, message: 'The diff is too large'}
+  },
+  {
+    name: '406 with not available message',
+    error: {status: 406, message: 'Diff not available'}
+  }
+]
+
+test.each(diffTooLargeTestCases)(
+  'getPullRequestDiff handles large diff error: $name',
+  async ({error}) => {
+    const githubUtil = new GithubUtil('1234', 'https://api.github.com')
+
+    ;(githubUtil as any).client = {
+      rest: {
+        pulls: {
+          get: vi.fn().mockRejectedValue(error)
+        }
+      }
+    }
+
+    const result = await githubUtil.getPullRequestDiff()
+
+    expect(result).toEqual({})
+    expect(core.warning).toHaveBeenCalledWith(
+      expect.stringContaining('PR diff is too large')
+    )
+  }
+)
+
+test('getPullRequestDiff throws for other errors', async function () {
+  const githubUtil = new GithubUtil('1234', 'https://api.github.com')
+
+  ;(githubUtil as any).client = {
+    rest: {
+      pulls: {
+        get: vi.fn().mockRejectedValue({status: 500, message: 'Server error'})
+      }
+    }
+  }
+
+  await expect(githubUtil.getPullRequestDiff()).rejects.toEqual({
+    status: 500,
+    message: 'Server error'
+  })
+})

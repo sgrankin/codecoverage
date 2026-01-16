@@ -2,9 +2,9 @@
 
 Future improvements for the codecoverage action.
 
-## Graceful handling of large diffs
+## ~~Graceful handling of large diffs~~ ✅
 
-The GitHub API refuses to return diffs for very large PRs. Currently this causes the job to fail. We should catch this error and fail gracefully with a helpful message instead of crashing.
+Done. The action now catches 403/406/422 errors from the diff API and warns gracefully instead of failing.
 
 ## Use notice instead of warning
 
