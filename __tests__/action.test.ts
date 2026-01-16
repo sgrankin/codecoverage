@@ -348,6 +348,35 @@ test('writes step summary when GITHUB_STEP_SUMMARY is set', async function () {
   expect(core.info).toHaveBeenCalledWith('Step summary written')
 })
 
+test('step summary includes file coverage from parsed coverage file', async function () {
+  const lcovPath = getFixturePath('lcov.info')
+  ;(env as any).GITHUB_STEP_SUMMARY = '/tmp/summary.md'
+  ;(core.getInput as any).mockImplementation((name: string) => {
+    if (name === 'GITHUB_TOKEN') return 'test-token'
+    if (name === 'COVERAGE_FILE_PATH') return lcovPath
+    if (name === 'COVERAGE_FORMAT') return 'lcov'
+    if (name === 'GITHUB_BASE_URL') return 'https://api.github.com'
+    if (name === 'STEP_SUMMARY') return 'true'
+    return ''
+  })
+
+  await play()
+
+  // Verify file info from lcov.info fixture is in the summary
+  // The fixture has 3 files: general.ts (3 lines, 1 hit), github.ts (30 lines, 7 hit), lcov.ts (13 lines, 8 hit)
+  const summaryCall = (fs.appendFileSync as any).mock.calls[0]
+  const summaryContent = summaryCall[1] as string
+
+  expect(summaryContent).toContain('### File Coverage')
+  expect(summaryContent).toContain('src/utils/general.ts')
+  expect(summaryContent).toContain('src/utils/github.ts')
+  expect(summaryContent).toContain('src/utils/lcov.ts')
+  // Check coverage percentages are calculated correctly
+  expect(summaryContent).toContain('33.3%') // general.ts: 1/3
+  expect(summaryContent).toContain('23.3%') // github.ts: 7/30
+  expect(summaryContent).toContain('61.5%') // lcov.ts: 8/13
+})
+
 test('does not write step summary when STEP_SUMMARY is false', async function () {
   const lcovPath = getFixturePath('lcov.info')
   ;(env as any).GITHUB_STEP_SUMMARY = '/tmp/summary.md'
