@@ -40,12 +40,14 @@ const mockGetPullRequestRef = vi.fn().mockReturnValue('feature-branch')
 const mockBuildAnnotations = vi.fn().mockReturnValue([])
 
 vi.mock('../src/utils/github', () => ({
-  GithubUtil: vi.fn().mockImplementation(() => ({
-    annotate: mockAnnotate,
-    getPullRequestDiff: mockGetPullRequestDiff,
-    getPullRequestRef: mockGetPullRequestRef,
-    buildAnnotations: mockBuildAnnotations
-  }))
+  GithubUtil: vi.fn(function () {
+    return {
+      annotate: mockAnnotate,
+      getPullRequestDiff: mockGetPullRequestDiff,
+      getPullRequestRef: mockGetPullRequestRef,
+      buildAnnotations: mockBuildAnnotations
+    }
+  })
 }))
 
 // Mock node:fs - partial mock to only mock appendFileSync
