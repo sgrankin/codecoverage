@@ -49966,8 +49966,9 @@ async function play() {
         });
         core.info('Annotation done');
         // 5. Write step summary
+        const STEP_SUMMARY = core.getInput('STEP_SUMMARY');
         const summaryPath = external_node_process_namespaceObject.env.GITHUB_STEP_SUMMARY;
-        if (summaryPath) {
+        if (summaryPath && STEP_SUMMARY !== 'false') {
             const summary = generateSummary({
                 coveragePercentage,
                 totalLines,

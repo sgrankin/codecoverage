@@ -301,6 +301,7 @@ test('writes step summary when GITHUB_STEP_SUMMARY is set', async function () {
     if (name === 'COVERAGE_FILE_PATH') return lcovPath
     if (name === 'COVERAGE_FORMAT') return 'lcov'
     if (name === 'GITHUB_BASE_URL') return 'https://api.github.com'
+    if (name === 'STEP_SUMMARY') return 'true'
     return ''
   })
 
@@ -311,4 +312,22 @@ test('writes step summary when GITHUB_STEP_SUMMARY is set', async function () {
     expect.stringContaining('Code Coverage Report')
   )
   expect(core.info).toHaveBeenCalledWith('Step summary written')
+})
+
+test('does not write step summary when STEP_SUMMARY is false', async function () {
+  const lcovPath = getFixturePath('lcov.info')
+  ;(env as any).GITHUB_STEP_SUMMARY = '/tmp/summary.md'
+  ;(core.getInput as any).mockImplementation((name: string) => {
+    if (name === 'GITHUB_TOKEN') return 'test-token'
+    if (name === 'COVERAGE_FILE_PATH') return lcovPath
+    if (name === 'COVERAGE_FORMAT') return 'lcov'
+    if (name === 'GITHUB_BASE_URL') return 'https://api.github.com'
+    if (name === 'STEP_SUMMARY') return 'false'
+    return ''
+  })
+
+  await play()
+
+  expect(fs.appendFileSync).not.toHaveBeenCalled()
+  expect(core.info).not.toHaveBeenCalledWith('Step summary written')
 })

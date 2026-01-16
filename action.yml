@@ -21,6 +21,10 @@ inputs:
   DEBUG:
     required: false
     description: "Log debugging information. Comma-separated list of possible values `coverage`, `pr_lines_added`"
+  STEP_SUMMARY:
+    required: false
+    description: "Write a summary to the GitHub Actions step summary. Set to 'false' to disable."
+    default: 'true'
 outputs:
   coverage_percentage:
     description: 'Overall code coverage percentage'
