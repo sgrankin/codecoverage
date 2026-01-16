@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`should parse Git diff 1`] = `
+exports[`should parse Git diff from fixture 1`] = `
 [
   {
     "addedLines": [
