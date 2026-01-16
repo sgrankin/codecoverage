@@ -9115,162 +9115,6 @@ function removeHook(state, name, method) {
 
 /***/ }),
 
-/***/ 7293:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-
-
-var fs = __nccwpck_require__( 9896 );
-var parseString = (__nccwpck_require__(758).parseString);
-
-var parse = {};
-
-var classesFromPackages = function ( packages )
-{
-    var classes = [];
-
-    packages.forEach( function ( packages )
-    {
-        packages.package.forEach( function ( pack )
-        {
-            pack.classes.forEach( function( c )
-            {
-                classes = classes.concat( c.class );
-            } );
-        } );
-    } );
-
-    return classes;
-};
-
-var extractLcovStyleBranches = function ( c ) {
-    var branches = [];
-
-    if ( c.lines && c.lines[0].line )
-    {
-        c.lines[0].line.forEach( function ( l )
-        {
-            if ( l.$.branch == 'true' )
-            {
-                var branchStats = l.$['condition-coverage'].match( /\d+/g );
-                var coveredBranches = Number( branchStats[1] );
-                var totalBranches = Number( branchStats[2] );
-                var leftBranches = totalBranches - coveredBranches;
-
-                var branchNumber = 0;
-
-                for ( let i = 0; i < leftBranches; i++ )
-                {
-                    branches.push( {
-                        line: Number( l.$.number ),
-                        branch: branchNumber,
-                        taken: 0
-                    } );
-                    branchNumber++;
-                }
-
-                for ( let i = 0; i < coveredBranches; i++ )
-                {
-                    branches.push( {
-                        line: Number( l.$.number ),
-                        branch: branchNumber,
-                        taken: 1
-                    } );
-                    branchNumber++;
-                }
-            }
-        });
-    }
-
-    return branches;
-}
-
-var unpackage = function ( packages )
-{
-    var classes = classesFromPackages( packages );
-    return classes.map( function ( c )
-    {
-        var branches = extractLcovStyleBranches( c );
-        var classCov = {
-            title: c.$.name,
-            file: c.$.filename,
-            functions: {
-                found: c.methods && c.methods[ 0 ].method ? c.methods[ 0 ].method.length : 0,
-                hit: 0,
-                details: !c.methods || !c.methods[ 0 ].method ? [] : c.methods[ 0 ].method.map( function ( m )
-                {
-                    return {
-                        name: m.$.name,
-                        line: Number( m.lines[ 0 ].line[ 0 ].$.number ),
-                        hit: Number( m.lines[ 0 ].line[ 0 ].$.hits )
-                    };
-                } )
-            },
-            lines: {
-                found: c.lines && c.lines[ 0 ].line ? c.lines[ 0 ].line.length : 0,
-                hit: 0,
-                details: !c.lines || !c.lines[ 0 ].line ? [] : c.lines[ 0 ].line.map( function ( l )
-                {
-                    return {
-                        line: Number( l.$.number ),
-                        hit: Number( l.$.hits )
-                    };
-                } )
-            },
-            branches: {
-                found: branches.length,
-                hit: branches.filter( function ( br ) { return br.taken > 0; } ).length,
-                details: branches
-            }
-        };
-
-        classCov.functions.hit = classCov.functions.details.reduce( function ( acc, val )
-        {
-            return acc + ( val.hit > 0 ? 1 : 0 );
-        }, 0 );
-
-        classCov.lines.hit = classCov.lines.details.reduce( function ( acc, val )
-        {
-            return acc + ( val.hit > 0 ? 1 : 0 );
-        }, 0 );
-
-        return classCov;
-    } );
-};
-
-parse.parseContent = function ( xml, cb )
-{
-    parseString( xml, function ( err, parseResult )
-    {
-        if( err )
-        {
-            return cb( err );
-        }
-
-        var result = unpackage( parseResult.coverage.packages );
-
-        cb( err, result );
-    } );
-};
-
-parse.parseFile = function( file, cb )
-{
-    fs.readFile( file, "utf8", function ( err, content )
-    {
-        if( err )
-        {
-            return cb( err );
-        }
-
-        parse.parseContent( content, cb );
-    } );
-};
-
-module.exports = parse;
-
-
-/***/ }),
-
 /***/ 4150:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -39313,8 +39157,8 @@ async function parseLCov(lcovPath, workspacePath) {
     return parsed;
 }
 
-// EXTERNAL MODULE: ./node_modules/cobertura-parse/source/index.js
-var source = __nccwpck_require__(7293);
+// EXTERNAL MODULE: ./node_modules/xml2js/lib/xml2js.js
+var xml2js = __nccwpck_require__(758);
 ;// CONCATENATED MODULE: ./src/utils/cobertura.ts
 
 
@@ -39324,17 +39168,39 @@ async function parseCobertura(coberturaPath, workspacePath) {
     if (!coberturaPath) {
         throw Error('No Cobertura XML path provided');
     }
-    const parseContent = external_util_.promisify(source.parseContent);
     const fileRaw = external_fs_.readFileSync(coberturaPath, 'utf8');
-    const parsed = (await parseContent(fileRaw));
-    for (const entry of parsed) {
-        entry.file = external_path_.relative(workspacePath, entry.file);
+    const parseXml = external_util_.promisify(xml2js.parseString);
+    const parsed = (await parseXml(fileRaw));
+    const result = [];
+    const packages = parsed.coverage.packages?.[0]?.package || [];
+    for (const pkg of packages) {
+        const packageName = pkg.$.name;
+        const classes = pkg.classes?.[0]?.class || [];
+        for (const cls of classes) {
+            const filename = cls.$.filename;
+            const lines = cls.lines?.[0]?.line || [];
+            const details = lines.map(line => ({
+                line: parseInt(line.$.number, 10),
+                hit: parseInt(line.$.hits, 10)
+            }));
+            const entry = {
+                title: cls.$.name,
+                file: external_path_.relative(workspacePath, filename),
+                package: packageName,
+                lines: {
+                    found: details.length,
+                    hit: details.filter(d => d.hit > 0).length,
+                    details
+                }
+            };
+            result.push(entry);
+        }
     }
-    return parsed;
+    return result;
 }
 
 // EXTERNAL MODULE: ./node_modules/golang-cover-parse/source/index.js
-var golang_cover_parse_source = __nccwpck_require__(1306);
+var source = __nccwpck_require__(1306);
 ;// CONCATENATED MODULE: external "readline"
 const external_readline_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("readline");
 ;// CONCATENATED MODULE: ./src/utils/gocoverage.ts
@@ -39352,7 +39218,7 @@ async function parseGoCoverage(coveragePath, goModPath) {
     const goModule = await parseGoModFile(goModPath);
     const fileRaw = external_fs_.readFileSync(coveragePath, 'utf8');
     return new Promise((resolve, reject) => {
-        golang_cover_parse_source.parseContent(fileRaw, (err, result) => {
+        source.parseContent(fileRaw, (err, result) => {
             if (err === null) {
                 filterModulePaths(result, goModule);
                 resolve(result);
@@ -54116,6 +53982,38 @@ class GithubUtil {
 
 
 const SUPPORTED_FORMATS = ['lcov', 'cobertura', 'go'];
+/** Extract package name from file path (directory path, or '.' for root) */
+function getPackageFromPath(filePath) {
+    const lastSlash = filePath.lastIndexOf('/');
+    if (lastSlash > 0) {
+        return filePath.substring(0, lastSlash);
+    }
+    return '.';
+}
+/** Group files by package and compute aggregate coverage */
+function groupByPackage(files) {
+    const packageMap = new Map();
+    for (const file of files) {
+        // Use explicit package if available, otherwise derive from path
+        const pkg = file.package ?? getPackageFromPath(file.file);
+        if (!packageMap.has(pkg)) {
+            packageMap.set(pkg, []);
+        }
+        packageMap.get(pkg).push(file);
+    }
+    const packages = [];
+    for (const [pkg, pkgFiles] of packageMap) {
+        const totalLines = pkgFiles.reduce((acc, f) => acc + f.totalLines, 0);
+        const coveredLines = pkgFiles.reduce((acc, f) => acc + f.coveredLines, 0);
+        packages.push({
+            package: pkg,
+            totalLines,
+            coveredLines,
+            files: pkgFiles.sort((a, b) => a.file.localeCompare(b.file))
+        });
+    }
+    return packages.sort((a, b) => a.package.localeCompare(b.package));
+}
 function generateSummary(params) {
     const { coveragePercentage, totalLines, coveredLines, filesAnalyzed, annotationCount, files } = params;
     const uncoveredLines = totalLines - coveredLines;
@@ -54126,14 +54024,15 @@ function generateSummary(params) {
     else if (parseFloat(coveragePercentage) >= 60) {
         statusEmoji = '🟡';
     }
-    // Build file coverage table, sorted by filename
-    const sortedFiles = [...files].sort((a, b) => a.file.localeCompare(b.file));
-    const fileRows = sortedFiles
-        .map(f => {
-        const pct = f.totalLines > 0
-            ? ((f.coveredLines / f.totalLines) * 100).toFixed(1)
+    // Group files by package
+    const packages = groupByPackage(files);
+    // Build package coverage table
+    const packageRows = packages
+        .map(pkg => {
+        const pct = pkg.totalLines > 0
+            ? ((pkg.coveredLines / pkg.totalLines) * 100).toFixed(1)
             : '0.0';
-        return `| ${f.file} | ${f.totalLines.toLocaleString()} | ${f.coveredLines.toLocaleString()} | ${pct}% |`;
+        return `| ${pkg.package} | ${pkg.files.length} | ${pkg.totalLines.toLocaleString()} | ${pkg.coveredLines.toLocaleString()} | ${pct}% |`;
     })
         .join('\n');
     return `## ${statusEmoji} Code Coverage Report
@@ -54148,11 +54047,11 @@ function generateSummary(params) {
 
 ${annotationCount > 0 ? `⚠️ **${annotationCount} annotation${annotationCount === 1 ? '' : 's'}** added for uncovered lines in this PR.` : '✅ No new uncovered lines detected in this PR.'}
 
-### File Coverage
+### Coverage by Package
 
-| File | Total Lines | Covered | Coverage |
-| ---- | ----------- | ------- | -------- |
-${fileRows}
+| Package | Files | Total Lines | Covered | Coverage |
+| ------- | ----- | ----------- | ------- | -------- |
+${packageRows}
 `;
 }
 /** Starting Point of the Github Action*/
@@ -54240,7 +54139,8 @@ async function play() {
             const files = parsedCov.map(entry => ({
                 file: entry.file,
                 totalLines: entry.lines.found,
-                coveredLines: entry.lines.hit
+                coveredLines: entry.lines.hit,
+                package: entry.package
             }));
             const summary = generateSummary({
                 coveragePercentage,

@@ -9,12 +9,14 @@ test('should parse Cobertura XML file', async function () {
 
   expect(output).toHaveLength(2)
   expect(output[0].file).toBe('src/example.ts')
+  expect(output[0].package).toBe('src')
   expect(output[0].lines.found).toBe(5)
   expect(output[0].lines.hit).toBe(3)
   expect(output[0].lines.details).toHaveLength(5)
   expect(output[0].lines.details[2]).toEqual({line: 3, hit: 0})
 
   expect(output[1].file).toBe('src/utils/utils.ts')
+  expect(output[1].package).toBe('src')
   expect(output[1].lines.found).toBe(4)
   expect(output[1].lines.hit).toBe(3)
 })
