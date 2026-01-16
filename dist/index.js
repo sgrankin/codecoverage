@@ -61273,11 +61273,17 @@ class GithubUtil {
                     });
                     continue;
                 }
+                // Filter PR diff lines to only executable lines - whitespace-only
+                // changes or comments shouldn't generate coverage annotations
+                const executablePrLines = prFileLines.filter(line => current.executableLines.has(line));
+                if (executablePrLines.length === 0) {
+                    continue;
+                }
                 // Coalesce both coverage and PR ranges using executable line info
                 // This bridges gaps where non-executable lines (comments, braces)
                 // were either not covered or not modified
                 const coverageRanges = coalesceLineNumbersWithGaps(current.missingLineNumbers, current.executableLines);
-                const prFileRanges = coalesceLineNumbersWithGaps(prFileLines, current.executableLines);
+                const prFileRanges = coalesceLineNumbersWithGaps(executablePrLines, current.executableLines);
                 const uncoveredRanges = intersectLineRanges(coverageRanges, prFileRanges);
                 // Only annotate relevant line ranges
                 for (const uRange of uncoveredRanges) {

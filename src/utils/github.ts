@@ -81,6 +81,15 @@ export class GithubUtil {
           continue
         }
 
+        // Filter PR diff lines to only executable lines - whitespace-only
+        // changes or comments shouldn't generate coverage annotations
+        const executablePrLines = prFileLines.filter(line =>
+          current.executableLines.has(line)
+        )
+        if (executablePrLines.length === 0) {
+          continue
+        }
+
         // Coalesce both coverage and PR ranges using executable line info
         // This bridges gaps where non-executable lines (comments, braces)
         // were either not covered or not modified
@@ -89,7 +98,7 @@ export class GithubUtil {
           current.executableLines
         )
         const prFileRanges = coalesceLineNumbersWithGaps(
-          prFileLines,
+          executablePrLines,
           current.executableLines
         )
         const uncoveredRanges = intersectLineRanges(

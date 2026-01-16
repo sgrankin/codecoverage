@@ -194,6 +194,45 @@ const buildAnnotationsTestCases = [
         message: 'This file has no test coverage'
       }
     ]
+  },
+  {
+    name: 'ignores whitespace-only diff lines (non-executable)',
+    prFiles: {'file.ts': [10, 15, 20, 25]}, // 15, 25 are whitespace/comments
+    coverageFiles: [
+      {
+        fileName: 'file.ts',
+        missingLineNumbers: [10, 20],
+        executableLines: new Set([10, 20]), // only 10, 20 are executable
+        coveredLineCount: 5
+      }
+    ],
+    expected: [
+      {
+        path: 'file.ts',
+        start_line: 10,
+        end_line: 10,
+        message: 'This line is not covered by a test'
+      },
+      {
+        path: 'file.ts',
+        start_line: 20,
+        end_line: 20,
+        message: 'This line is not covered by a test'
+      }
+    ]
+  },
+  {
+    name: 'skips file when all diff lines are non-executable',
+    prFiles: {'file.ts': [5, 10, 15]}, // all whitespace/comments
+    coverageFiles: [
+      {
+        fileName: 'file.ts',
+        missingLineNumbers: [1, 2, 3],
+        executableLines: new Set([1, 2, 3]), // none of the diff lines are executable
+        coveredLineCount: 10
+      }
+    ],
+    expected: []
   }
 ]
 
