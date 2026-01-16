@@ -70,7 +70,6 @@ test('exits early when not a pull request', async function () {
   expect(core.info).toHaveBeenCalledWith(
     'Pull request not detected. Exiting early.'
   )
-
   ;(github.context as any).eventName = originalEventName
 })
 
@@ -85,7 +84,7 @@ test('throws error for unsupported coverage format', async function () {
   await play()
 
   expect(core.setFailed).toHaveBeenCalledWith(
-    'COVERAGE_FORMAT must be one of lcov,clover,cobertura,go'
+    'COVERAGE_FORMAT must be one of lcov,cobertura,go'
   )
 })
 
@@ -109,24 +108,6 @@ test('processes lcov coverage file successfully', async function () {
   expect(mockGetPullRequestDiff).toHaveBeenCalled()
   expect(mockBuildAnnotations).toHaveBeenCalled()
   expect(mockAnnotate).toHaveBeenCalled()
-})
-
-test('processes clover coverage file successfully', async function () {
-  const cloverPath = getFixturePath('clover.xml')
-
-  ;(core.getInput as any).mockImplementation((name: string) => {
-    if (name === 'GITHUB_TOKEN') return 'test-token'
-    if (name === 'COVERAGE_FILE_PATH') return cloverPath
-    if (name === 'COVERAGE_FORMAT') return 'clover'
-    if (name === 'GITHUB_BASE_URL') return 'https://api.github.com'
-    return ''
-  })
-
-  await play()
-
-  expect(core.info).toHaveBeenCalledWith('Performing Code Coverage Analysis')
-  expect(core.info).toHaveBeenCalledWith('Filter done')
-  expect(core.info).toHaveBeenCalledWith('Annotation done')
 })
 
 test('processes cobertura coverage file successfully', async function () {
@@ -190,7 +171,6 @@ test('handles debug option for coverage', async function () {
   mockGetPullRequestDiff.mockResolvedValue({
     'src/file.ts': [{start_line: 1, end_line: 10}]
   })
-
   ;(core.getInput as any).mockImplementation((name: string) => {
     if (name === 'GITHUB_TOKEN') return 'test-token'
     if (name === 'COVERAGE_FILE_PATH') return lcovPath

@@ -30,7 +30,6 @@
   "dependencies": {
     "@actions/core": "^1.11.1",
     "@actions/github": "^6.0.1",
-    "@cvrg-report/clover-json": "ggilder/clover-json#include-path",
     "cobertura-parse": "^1.0.5",
     "golang-cover-parse": "^2.0",
     "lcov-parse": "^1.0.0",
