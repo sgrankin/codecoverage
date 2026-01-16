@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+<!DOCTYPE coverage SYSTEM "http://cobertura.sourceforge.net/xml/coverage-04.dtd">
+<coverage line-rate="0" branch-rate="0" version="1.0" timestamp="1234567890">
+  <packages>
+    <package name="empty-pkg" line-rate="0">
+      <classes>
+      </classes>
+    </package>
+  </packages>
+</coverage>
