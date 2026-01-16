@@ -49911,7 +49911,11 @@ async function play() {
         // Sum up lines.found for each entry in parsedCov
         const totalLines = parsedCov.reduce((acc, entry) => acc + entry.lines.found, 0);
         const coveredLines = parsedCov.reduce((acc, entry) => acc + entry.lines.hit, 0);
-        core.info(`Parsing done. ${parsedCov.length} files parsed. Total lines: ${totalLines}. Covered lines: ${coveredLines}.`);
+        const coveragePercentage = totalLines > 0 ? ((coveredLines / totalLines) * 100).toFixed(2) : '0.00';
+        core.info(`Parsing done. ${parsedCov.length} files parsed. Total lines: ${totalLines}. Covered lines: ${coveredLines}. Coverage: ${coveragePercentage}%`);
+        // Set outputs for coverage stats
+        core.setOutput('coverage_percentage', coveragePercentage);
+        core.setOutput('files_analyzed', parsedCov.length);
         // 2. Filter Coverage By File Name
         const coverageByFile = filterCoverageByFile(parsedCov);
         core.info('Filter done');
@@ -49928,6 +49932,7 @@ async function play() {
             core.info(`PR lines added: ${JSON.stringify(pullRequestFiles)}`);
         }
         const annotations = githubUtil.buildAnnotations(coverageByFile, pullRequestFiles);
+        core.setOutput('annotation_count', annotations.length);
         // 4. Annotate in github
         await githubUtil.annotate({
             referenceCommitHash: githubUtil.getPullRequestRef(),

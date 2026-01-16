@@ -24,6 +24,14 @@ All processing is done within Github Actions, no data is sent to an external ser
 | `COVERAGE_FORMAT`    | **no**   | `lcov`                   | Format of coverage file. May be `lcov`, `cobertura`, or `go`                                          |
 | `DEBUG`              | **no**   | -                        | Log debugging information. Comma-separated list of possible values `coverage`, `pr_lines_added`       |
 
+## Outputs
+
+| Key                   | Description                                                    |
+| --------------------- | -------------------------------------------------------------- |
+| `coverage_percentage` | Overall code coverage percentage (e.g., `85.50`)               |
+| `files_analyzed`      | Number of files with coverage data                             |
+| `annotation_count`    | Number of annotations created for uncovered lines in the PR    |
+
 ## Usage
 
 Add the action to your workflow file like so, replacing the file path and

@@ -7,7 +7,8 @@ import {getFixturePath} from './fixtures/util'
 vi.mock('@actions/core', () => ({
   getInput: vi.fn(),
   info: vi.fn(),
-  setFailed: vi.fn()
+  setFailed: vi.fn(),
+  setOutput: vi.fn()
 }))
 
 // Mock @actions/github
@@ -187,6 +188,34 @@ test('handles debug option for coverage', async function () {
   expect(core.info).toHaveBeenCalledWith(
     expect.stringContaining('PR lines added:')
   )
+})
+
+test('sets output values for coverage stats', async function () {
+  const lcovPath = getFixturePath('lcov.info')
+
+  ;(core.getInput as any).mockImplementation((name: string) => {
+    if (name === 'GITHUB_TOKEN') return 'test-token'
+    if (name === 'COVERAGE_FILE_PATH') return lcovPath
+    if (name === 'COVERAGE_FORMAT') return 'lcov'
+    if (name === 'GITHUB_BASE_URL') return 'https://api.github.com'
+    return ''
+  })
+
+  mockBuildAnnotations.mockReturnValue([
+    {
+      path: 'test.ts',
+      start_line: 1,
+      end_line: 1,
+      annotation_level: 'warning',
+      message: 'test'
+    }
+  ])
+
+  await play()
+
+  expect(core.setOutput).toHaveBeenCalledWith('coverage_percentage', '34.78')
+  expect(core.setOutput).toHaveBeenCalledWith('files_analyzed', 3)
+  expect(core.setOutput).toHaveBeenCalledWith('annotation_count', 1)
 })
 
 test('handles error gracefully', async function () {
