@@ -33,3 +33,11 @@ This is a GitHub Action for annotating PRs with lines missing test coverage.
 - `lcov` (default)
 - `cobertura`
 - `go`
+
+## Specifications
+
+The `specs/` directory contains design documentation. When making significant changes:
+
+- **Update existing specs** if modifying related functionality
+- **Create new specs** for major features or architectural decisions
+- Keep specs as living documentation that explains *why* decisions were made
