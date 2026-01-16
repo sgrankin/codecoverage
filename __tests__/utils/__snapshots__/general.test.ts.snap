@@ -3,6 +3,11 @@
 exports[`filterCoverageByFile 1`] = `
 [
   {
+    "executableLines": Set {
+      2,
+      3,
+      4,
+    },
     "fileName": "src/utils/general.ts",
     "missingLineNumbers": [
       3,
@@ -10,6 +15,38 @@ exports[`filterCoverageByFile 1`] = `
     ],
   },
   {
+    "executableLines": Set {
+      1,
+      2,
+      4,
+      5,
+      7,
+      11,
+      12,
+      14,
+      18,
+      19,
+      28,
+      29,
+      33,
+      34,
+      35,
+      36,
+      37,
+      39,
+      40,
+      44,
+      56,
+      57,
+      64,
+      65,
+      67,
+      68,
+      69,
+      70,
+      82,
+      83,
+    },
     "fileName": "src/utils/github.ts",
     "missingLineNumbers": [
       12,
@@ -38,6 +75,21 @@ exports[`filterCoverageByFile 1`] = `
     ],
   },
   {
+    "executableLines": Set {
+      1,
+      2,
+      3,
+      5,
+      6,
+      7,
+      9,
+      10,
+      11,
+      14,
+      15,
+      18,
+      19,
+    },
     "fileName": "src/utils/lcov.ts",
     "missingLineNumbers": [
       6,

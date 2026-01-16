@@ -5,6 +5,7 @@ import {
   CoverageFile,
   LineRange,
   coalesceLineNumbers,
+  coalesceLineNumbersWithGaps,
   intersectLineRanges
 } from './general'
 import {Octokit} from 'octokit'
@@ -116,7 +117,10 @@ export class GithubUtil {
       // Only annotate relevant files
       const prFileRanges = pullRequestFiles[current.fileName]
       if (prFileRanges) {
-        const coverageRanges = coalesceLineNumbers(current.missingLineNumbers)
+        const coverageRanges = coalesceLineNumbersWithGaps(
+          current.missingLineNumbers,
+          current.executableLines
+        )
         const uncoveredRanges = intersectLineRanges(
           coverageRanges,
           prFileRanges
