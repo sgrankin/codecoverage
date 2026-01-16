@@ -14,11 +14,9 @@ Done. Switched to `core.notice()` for annotations.
 
 Done. Files with zero coverage now get a single "This file has no test coverage" notice on line 1 instead of annotating every uncovered line.
 
-## Use @actions/glob for file globbing
+## ~~Use @actions/glob for file globbing~~ ✅
 
-Replace the current globbing implementation with `@actions/glob` from the GitHub Actions toolkit. This is the standard library for glob patterns in Actions and would reduce dependencies.
-
-See: https://github.com/actions/toolkit/tree/main/packages/glob
+Done. Replaced `glob` package with `@actions/glob` from the GitHub Actions toolkit.
 
 ## Use @actions/core.summary for step summaries
 
