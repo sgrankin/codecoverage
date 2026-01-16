@@ -39067,10 +39067,12 @@ function filterCoverageByFile(coverage) {
         const missingLineNumbers = item?.lines?.details
             .filter(line => line.hit === 0)
             .map(line => line.line) || [];
+        const coveredLineCount = item?.lines?.details.filter(line => line.hit > 0).length || 0;
         return {
             fileName: item.file,
             missingLineNumbers,
-            executableLines: allExecutableLines
+            executableLines: allExecutableLines,
+            coveredLineCount
         };
     });
 }
@@ -53938,6 +53940,16 @@ class GithubUtil {
             // Only annotate relevant files
             const prFileLines = pullRequestFiles[current.fileName];
             if (prFileLines && prFileLines.length > 0) {
+                // If file has zero coverage, just add a single notice on line 1
+                if (current.coveredLineCount === 0) {
+                    annotations.push({
+                        path: current.fileName,
+                        start_line: 1,
+                        end_line: 1,
+                        message: 'This file has no test coverage'
+                    });
+                    continue;
+                }
                 // Coalesce both coverage and PR ranges using executable line info
                 // This bridges gaps where non-executable lines (comments, braces)
                 // were either not covered or not modified

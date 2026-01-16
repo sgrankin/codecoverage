@@ -3,6 +3,7 @@
 exports[`filterCoverageByFile 1`] = `
 [
   {
+    "coveredLineCount": 1,
     "executableLines": Set {
       2,
       3,
@@ -15,6 +16,7 @@ exports[`filterCoverageByFile 1`] = `
     ],
   },
   {
+    "coveredLineCount": 7,
     "executableLines": Set {
       1,
       2,
@@ -75,6 +77,7 @@ exports[`filterCoverageByFile 1`] = `
     ],
   },
   {
+    "coveredLineCount": 8,
     "executableLines": Set {
       1,
       2,

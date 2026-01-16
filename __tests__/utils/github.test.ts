@@ -56,17 +56,20 @@ const buildAnnotationsTestCases = [
       {
         fileName: 'unchanged.txt',
         missingLineNumbers: [1, 2, 3],
-        executableLines: new Set([1, 2, 3])
+        executableLines: new Set([1, 2, 3]),
+        coveredLineCount: 10
       },
       {
         fileName: 'file1.txt',
         missingLineNumbers: [1, 2, 3, 132, 134, 135, 136, 1007, 1008],
-        executableLines: new Set([1, 2, 3, 132, 134, 135, 136, 1007, 1008])
+        executableLines: new Set([1, 2, 3, 132, 134, 135, 136, 1007, 1008]),
+        coveredLineCount: 50
       },
       {
         fileName: 'test/dir/file1.txt',
         missingLineNumbers: [20, 21, 22],
-        executableLines: new Set([20, 21, 22])
+        executableLines: new Set([20, 21, 22]),
+        coveredLineCount: 5
       }
     ],
     expected: [
@@ -97,7 +100,8 @@ const buildAnnotationsTestCases = [
       {
         fileName: 'file1.txt',
         missingLineNumbers: [1, 2, 3],
-        executableLines: new Set([1, 2, 3])
+        executableLines: new Set([1, 2, 3]),
+        coveredLineCount: 10
       }
     ],
     expected: []
@@ -113,7 +117,8 @@ const buildAnnotationsTestCases = [
       {
         fileName: 'file.ts',
         missingLineNumbers: [5, 6, 8, 9],
-        executableLines: new Set([5, 6, 8, 9])
+        executableLines: new Set([5, 6, 8, 9]),
+        coveredLineCount: 10
       }
     ], // line 7 is comment
     expected: [
@@ -136,9 +141,10 @@ const buildAnnotationsTestCases = [
       {
         fileName: 'file.ts',
         missingLineNumbers: [5, 6, 8, 9],
-        executableLines: new Set([5, 6, 7, 8, 9])
+        executableLines: new Set([5, 6, 7, 8, 9]),
+        coveredLineCount: 1 // line 7 is covered
       }
-    ], // line 7 is covered
+    ],
     expected: [
       {
         path: 'file.ts',
@@ -161,7 +167,8 @@ const buildAnnotationsTestCases = [
       {
         fileName: 'file.ts',
         missingLineNumbers: [5, 6, 8, 9],
-        executableLines: new Set([5, 6, 8, 9])
+        executableLines: new Set([5, 6, 8, 9]),
+        coveredLineCount: 10
       }
     ],
     expected: [
@@ -170,6 +177,26 @@ const buildAnnotationsTestCases = [
         start_line: 5,
         end_line: 9,
         message: 'These lines are not covered by a test'
+      }
+    ]
+  },
+  {
+    name: 'completely uncovered file gets single notice',
+    prFiles: {'newfile.ts': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]},
+    coverageFiles: [
+      {
+        fileName: 'newfile.ts',
+        missingLineNumbers: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        executableLines: new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+        coveredLineCount: 0
+      }
+    ],
+    expected: [
+      {
+        path: 'newfile.ts',
+        start_line: 1,
+        end_line: 1,
+        message: 'This file has no test coverage'
       }
     ]
   }
