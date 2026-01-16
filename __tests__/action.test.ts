@@ -252,7 +252,11 @@ test('generateSummary returns correct markdown for high coverage', function () {
     totalLines: 1000,
     coveredLines: 855,
     filesAnalyzed: 25,
-    annotationCount: 0
+    annotationCount: 0,
+    files: [
+      {file: 'src/utils.ts', totalLines: 500, coveredLines: 450},
+      {file: 'src/main.ts', totalLines: 500, coveredLines: 405}
+    ]
   })
 
   expect(summary).toContain('🟢 Code Coverage Report')
@@ -262,6 +266,12 @@ test('generateSummary returns correct markdown for high coverage', function () {
   expect(summary).toContain('1,000')
   expect(summary).toContain('25')
   expect(summary).toContain('✅ No new uncovered lines detected')
+  // File table
+  expect(summary).toContain('### File Coverage')
+  expect(summary).toContain('src/main.ts')
+  expect(summary).toContain('src/utils.ts')
+  expect(summary).toContain('90.0%') // 450/500
+  expect(summary).toContain('81.0%') // 405/500
 })
 
 test('generateSummary returns correct markdown for medium coverage', function () {
@@ -270,7 +280,8 @@ test('generateSummary returns correct markdown for medium coverage', function ()
     totalLines: 100,
     coveredLines: 65,
     filesAnalyzed: 5,
-    annotationCount: 3
+    annotationCount: 3,
+    files: [{file: 'src/app.ts', totalLines: 100, coveredLines: 65}]
   })
 
   expect(summary).toContain('🟡 Code Coverage Report')
@@ -284,13 +295,36 @@ test('generateSummary returns correct markdown for low coverage', function () {
     totalLines: 100,
     coveredLines: 45,
     filesAnalyzed: 5,
-    annotationCount: 1
+    annotationCount: 1,
+    files: [{file: 'src/app.ts', totalLines: 100, coveredLines: 45}]
   })
 
   expect(summary).toContain('🔴 Code Coverage Report')
   expect(summary).toContain('45.00%')
   expect(summary).toContain('⚠️ **1 annotation**')
   expect(summary).not.toContain('annotations')
+})
+
+test('generateSummary sorts files alphabetically', function () {
+  const summary = generateSummary({
+    coveragePercentage: '80.00',
+    totalLines: 300,
+    coveredLines: 240,
+    filesAnalyzed: 3,
+    annotationCount: 0,
+    files: [
+      {file: 'src/zebra.ts', totalLines: 100, coveredLines: 80},
+      {file: 'src/alpha.ts', totalLines: 100, coveredLines: 80},
+      {file: 'src/beta.ts', totalLines: 100, coveredLines: 80}
+    ]
+  })
+
+  // Check that files appear in alphabetical order
+  const alphaIndex = summary.indexOf('src/alpha.ts')
+  const betaIndex = summary.indexOf('src/beta.ts')
+  const zebraIndex = summary.indexOf('src/zebra.ts')
+  expect(alphaIndex).toBeLessThan(betaIndex)
+  expect(betaIndex).toBeLessThan(zebraIndex)
 })
 
 test('writes step summary when GITHUB_STEP_SUMMARY is set', async function () {

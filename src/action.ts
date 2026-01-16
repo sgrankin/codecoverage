@@ -10,12 +10,19 @@ import {GithubUtil} from './utils/github.js'
 
 const SUPPORTED_FORMATS = ['lcov', 'cobertura', 'go']
 
+interface FileCoverage {
+  file: string
+  totalLines: number
+  coveredLines: number
+}
+
 interface SummaryParams {
   coveragePercentage: string
   totalLines: number
   coveredLines: number
   filesAnalyzed: number
   annotationCount: number
+  files: FileCoverage[]
 }
 
 export function generateSummary(params: SummaryParams): string {
@@ -24,7 +31,8 @@ export function generateSummary(params: SummaryParams): string {
     totalLines,
     coveredLines,
     filesAnalyzed,
-    annotationCount
+    annotationCount,
+    files
   } = params
   const uncoveredLines = totalLines - coveredLines
 
@@ -34,6 +42,18 @@ export function generateSummary(params: SummaryParams): string {
   } else if (parseFloat(coveragePercentage) >= 60) {
     statusEmoji = '🟡'
   }
+
+  // Build file coverage table, sorted by filename
+  const sortedFiles = [...files].sort((a, b) => a.file.localeCompare(b.file))
+  const fileRows = sortedFiles
+    .map(f => {
+      const pct =
+        f.totalLines > 0
+          ? ((f.coveredLines / f.totalLines) * 100).toFixed(1)
+          : '0.0'
+      return `| ${f.file} | ${f.totalLines.toLocaleString()} | ${f.coveredLines.toLocaleString()} | ${pct}% |`
+    })
+    .join('\n')
 
   return `## ${statusEmoji} Code Coverage Report
 
@@ -46,6 +66,12 @@ export function generateSummary(params: SummaryParams): string {
 | **Files Analyzed** | ${filesAnalyzed.toLocaleString()} |
 
 ${annotationCount > 0 ? `⚠️ **${annotationCount} annotation${annotationCount === 1 ? '' : 's'}** added for uncovered lines in this PR.` : '✅ No new uncovered lines detected in this PR.'}
+
+### File Coverage
+
+| File | Total Lines | Covered | Coverage |
+| ---- | ----------- | ------- | -------- |
+${fileRows}
 `
 }
 
@@ -153,12 +179,18 @@ export async function play(): Promise<void> {
     const STEP_SUMMARY = core.getInput('STEP_SUMMARY')
     const summaryPath = env.GITHUB_STEP_SUMMARY
     if (summaryPath && STEP_SUMMARY !== 'false') {
+      const files: FileCoverage[] = parsedCov.map(entry => ({
+        file: entry.file,
+        totalLines: entry.lines.found,
+        coveredLines: entry.lines.hit
+      }))
       const summary = generateSummary({
         coveragePercentage,
         totalLines,
         coveredLines,
         filesAnalyzed: parsedCov.length,
-        annotationCount: annotations.length
+        annotationCount: annotations.length,
+        files
       })
       fs.appendFileSync(summaryPath, summary)
       core.info('Step summary written')
