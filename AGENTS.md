@@ -19,6 +19,8 @@ This is a GitHub Action for annotating PRs with lines missing test coverage.
 - `npm run format` - Format code with Prettier
 - `npm run all` - Build, format, lint, package, and test
 
+**Always run `npm run all` before committing** - this ensures dist/ is rebuilt and included in the commit.
+
 ## Project Structure
 
 - `src/` - TypeScript source files
