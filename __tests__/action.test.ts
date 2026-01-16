@@ -246,20 +246,21 @@ test('handles error gracefully', async function () {
   expect(core.setFailed).toHaveBeenCalled()
 })
 
-test('generateSummary returns correct markdown for high coverage', function () {
-  const summary = generateSummary({
-    coveragePercentage: '85.50',
-    totalLines: 1000,
-    coveredLines: 855,
-    filesAnalyzed: 2,
-    annotationCount: 0,
-    files: [
-      {file: 'src/utils.ts', totalLines: 500, coveredLines: 450},
-      {file: 'src/main.ts', totalLines: 500, coveredLines: 405}
-    ]
-  })
-
-  const expected = `## 🟢 Code Coverage Report
+const generateSummaryTestCases = [
+  {
+    name: 'high coverage with no annotations',
+    input: {
+      coveragePercentage: '85.50',
+      totalLines: 1000,
+      coveredLines: 855,
+      filesAnalyzed: 2,
+      annotationCount: 0,
+      files: [
+        {file: 'src/utils.ts', totalLines: 500, coveredLines: 450},
+        {file: 'src/main.ts', totalLines: 500, coveredLines: 405}
+      ]
+    },
+    expected: `## 🟢 Code Coverage Report
 
 | Metric | Value |
 | ------ | ----- |
@@ -278,20 +279,18 @@ test('generateSummary returns correct markdown for high coverage', function () {
 | src/main.ts | 500 | 405 | 81.0% |
 | src/utils.ts | 500 | 450 | 90.0% |
 `
-  expect(summary).toBe(expected)
-})
-
-test('generateSummary returns correct markdown for medium coverage with annotations', function () {
-  const summary = generateSummary({
-    coveragePercentage: '65.00',
-    totalLines: 100,
-    coveredLines: 65,
-    filesAnalyzed: 1,
-    annotationCount: 3,
-    files: [{file: 'src/app.ts', totalLines: 100, coveredLines: 65}]
-  })
-
-  const expected = `## 🟡 Code Coverage Report
+  },
+  {
+    name: 'medium coverage with multiple annotations',
+    input: {
+      coveragePercentage: '65.00',
+      totalLines: 100,
+      coveredLines: 65,
+      filesAnalyzed: 1,
+      annotationCount: 3,
+      files: [{file: 'src/app.ts', totalLines: 100, coveredLines: 65}]
+    },
+    expected: `## 🟡 Code Coverage Report
 
 | Metric | Value |
 | ------ | ----- |
@@ -309,20 +308,18 @@ test('generateSummary returns correct markdown for medium coverage with annotati
 | ---- | ----------- | ------- | -------- |
 | src/app.ts | 100 | 65 | 65.0% |
 `
-  expect(summary).toBe(expected)
-})
-
-test('generateSummary returns correct markdown for low coverage with single annotation', function () {
-  const summary = generateSummary({
-    coveragePercentage: '45.00',
-    totalLines: 100,
-    coveredLines: 45,
-    filesAnalyzed: 1,
-    annotationCount: 1,
-    files: [{file: 'src/app.ts', totalLines: 100, coveredLines: 45}]
-  })
-
-  const expected = `## 🔴 Code Coverage Report
+  },
+  {
+    name: 'low coverage with single annotation',
+    input: {
+      coveragePercentage: '45.00',
+      totalLines: 100,
+      coveredLines: 45,
+      filesAnalyzed: 1,
+      annotationCount: 1,
+      files: [{file: 'src/app.ts', totalLines: 100, coveredLines: 45}]
+    },
+    expected: `## 🔴 Code Coverage Report
 
 | Metric | Value |
 | ------ | ----- |
@@ -340,24 +337,22 @@ test('generateSummary returns correct markdown for low coverage with single anno
 | ---- | ----------- | ------- | -------- |
 | src/app.ts | 100 | 45 | 45.0% |
 `
-  expect(summary).toBe(expected)
-})
-
-test('generateSummary sorts files alphabetically', function () {
-  const summary = generateSummary({
-    coveragePercentage: '80.00',
-    totalLines: 300,
-    coveredLines: 240,
-    filesAnalyzed: 3,
-    annotationCount: 0,
-    files: [
-      {file: 'src/zebra.ts', totalLines: 100, coveredLines: 80},
-      {file: 'src/alpha.ts', totalLines: 100, coveredLines: 80},
-      {file: 'src/beta.ts', totalLines: 100, coveredLines: 80}
-    ]
-  })
-
-  const expected = `## 🟢 Code Coverage Report
+  },
+  {
+    name: 'files sorted alphabetically',
+    input: {
+      coveragePercentage: '80.00',
+      totalLines: 300,
+      coveredLines: 240,
+      filesAnalyzed: 3,
+      annotationCount: 0,
+      files: [
+        {file: 'src/zebra.ts', totalLines: 100, coveredLines: 80},
+        {file: 'src/alpha.ts', totalLines: 100, coveredLines: 80},
+        {file: 'src/beta.ts', totalLines: 100, coveredLines: 80}
+      ]
+    },
+    expected: `## 🟢 Code Coverage Report
 
 | Metric | Value |
 | ------ | ----- |
@@ -377,8 +372,16 @@ test('generateSummary sorts files alphabetically', function () {
 | src/beta.ts | 100 | 80 | 80.0% |
 | src/zebra.ts | 100 | 80 | 80.0% |
 `
-  expect(summary).toBe(expected)
-})
+  }
+]
+
+test.each(generateSummaryTestCases)(
+  'generateSummary: $name',
+  ({input, expected}) => {
+    const summary = generateSummary(input)
+    expect(summary).toBe(expected)
+  }
+)
 
 test('writes step summary when GITHUB_STEP_SUMMARY is set', async function () {
   const lcovPath = getFixturePath('lcov.info')
