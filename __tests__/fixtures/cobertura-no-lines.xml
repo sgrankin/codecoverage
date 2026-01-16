@@ -1,0 +1,14 @@
+<?xml version="1.0" ?>
+<!DOCTYPE coverage SYSTEM "http://cobertura.sourceforge.net/xml/coverage-04.dtd">
+<coverage line-rate="0" branch-rate="0" version="1.0" timestamp="1234567890">
+  <packages>
+    <package name="src" line-rate="0">
+      <classes>
+        <class name="empty.ts" filename="src/empty.ts" line-rate="0">
+          <lines>
+          </lines>
+        </class>
+      </classes>
+    </package>
+  </packages>
+</coverage>

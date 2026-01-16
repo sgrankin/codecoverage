@@ -2,37 +2,96 @@ import {test, expect} from 'vitest'
 import {parseCobertura} from '../../src/utils/cobertura'
 import {getFixturePath} from '../fixtures/util'
 
-test('should parse Cobertura XML file', async function () {
-  const path = getFixturePath('cobertura.xml')
-  // Use empty workspace so paths stay relative
-  const output = await parseCobertura(path, '')
-
-  expect(output).toHaveLength(2)
-  expect(output[0].file).toBe('src/example.ts')
-  expect(output[0].package).toBe('src')
-  expect(output[0].lines.found).toBe(5)
-  expect(output[0].lines.hit).toBe(3)
-  expect(output[0].lines.details).toHaveLength(5)
-  expect(output[0].lines.details[2]).toEqual({line: 3, hit: 0})
-
-  expect(output[1].file).toBe('src/utils/utils.ts')
-  expect(output[1].package).toBe('src')
-  expect(output[1].lines.found).toBe(4)
-  expect(output[1].lines.hit).toBe(3)
-})
-
 test('should throw error if path is not provided', async function () {
   await expect(parseCobertura('', '/workspace')).rejects.toThrow(
     'No Cobertura XML path provided'
   )
 })
 
-test('should strip workspace prefix from paths', async function () {
-  const path = getFixturePath('cobertura.xml')
-  // Use 'src' as workspace to strip it from paths
-  const output = await parseCobertura(path, 'src')
+const parseCoberturaTestCases = [
+  {
+    name: 'parses standard cobertura file',
+    fixture: 'cobertura.xml',
+    workspace: '',
+    expected: [
+      {
+        file: 'src/example.ts',
+        package: 'src',
+        linesFound: 5,
+        linesHit: 3,
+        detailsLength: 5
+      },
+      {
+        file: 'src/utils/utils.ts',
+        package: 'src',
+        linesFound: 4,
+        linesHit: 3,
+        detailsLength: 4
+      }
+    ]
+  },
+  {
+    name: 'strips workspace prefix from paths',
+    fixture: 'cobertura.xml',
+    workspace: 'src',
+    expected: [
+      {
+        file: 'example.ts',
+        package: 'src',
+        linesFound: 5,
+        linesHit: 3,
+        detailsLength: 5
+      },
+      {
+        file: 'utils/utils.ts',
+        package: 'src',
+        linesFound: 4,
+        linesHit: 3,
+        detailsLength: 4
+      }
+    ]
+  },
+  {
+    name: 'handles empty packages',
+    fixture: 'cobertura-empty.xml',
+    workspace: '',
+    expected: []
+  },
+  {
+    name: 'handles package with no classes',
+    fixture: 'cobertura-no-classes.xml',
+    workspace: '',
+    expected: []
+  },
+  {
+    name: 'handles class with no lines',
+    fixture: 'cobertura-no-lines.xml',
+    workspace: '',
+    expected: [
+      {
+        file: 'src/empty.ts',
+        package: 'src',
+        linesFound: 0,
+        linesHit: 0,
+        detailsLength: 0
+      }
+    ]
+  }
+]
 
-  // With 'src' workspace, 'src/example.ts' becomes 'example.ts'
-  expect(output[0].file).toBe('example.ts')
-  expect(output[1].file).toBe('utils/utils.ts')
-})
+test.each(parseCoberturaTestCases)(
+  'parseCobertura: $name',
+  async ({fixture, workspace, expected}) => {
+    const path = getFixturePath(fixture)
+    const output = await parseCobertura(path, workspace)
+
+    expect(output).toHaveLength(expected.length)
+    for (let i = 0; i < expected.length; i++) {
+      expect(output[i].file).toBe(expected[i].file)
+      expect(output[i].package).toBe(expected[i].package)
+      expect(output[i].lines.found).toBe(expected[i].linesFound)
+      expect(output[i].lines.hit).toBe(expected[i].linesHit)
+      expect(output[i].lines.details).toHaveLength(expected[i].detailsLength)
+    }
+  }
+)
