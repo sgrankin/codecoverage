@@ -7,11 +7,14 @@ export function filterCoverageByFile(coverage: CoverageParsed): CoverageFile[] {
       item?.lines?.details
         .filter(line => line.hit === 0)
         .map(line => line.line) || []
+    const coveredLineCount =
+      item?.lines?.details.filter(line => line.hit > 0).length || 0
 
     return {
       fileName: item.file,
       missingLineNumbers,
-      executableLines: allExecutableLines
+      executableLines: allExecutableLines,
+      coveredLineCount
     }
   })
 }
@@ -154,6 +157,7 @@ export type CoverageFile = {
   fileName: string
   missingLineNumbers: number[]
   executableLines: Set<number>
+  coveredLineCount: number
 }
 
 export type LineRange = {

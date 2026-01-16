@@ -10,13 +10,9 @@ Done. The action now catches 403/406/422 errors from the diff API and warns grac
 
 Done. Switched to `core.notice()` for annotations.
 
-## Handle completely uncovered files
+## ~~Handle completely uncovered files~~ ✅
 
-If a file in the diff has zero coverage (no lines covered at all), instead of annotating every changed line:
-- Leave a single notice on line 1 that the file isn't covered
-- Skip annotating individual diff chunks
-
-This reduces noise for files that clearly need tests written from scratch.
+Done. Files with zero coverage now get a single "This file has no test coverage" notice on line 1 instead of annotating every uncovered line.
 
 ## Use @actions/glob for file globbing
 
