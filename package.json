@@ -28,25 +28,25 @@
   "author": "Gabriel Gilder, Shravan Dhakal",
   "license": "MIT",
   "dependencies": {
-    "@actions/core": "^1.11.1",
-    "@actions/github": "^6.0.1",
+    "@actions/core": "^2.0.2",
+    "@actions/github": "^7.0.0",
     "cobertura-parse": "^1.0.5",
-    "golang-cover-parse": "^2.0",
+    "golang-cover-parse": "^2.0.0",
     "lcov-parse": "^1.0.0",
-    "octokit": "^4.1.4"
+    "octokit": "^5.0.5"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3.3.1",
+    "@eslint/eslintrc": "^3.3.3",
     "@eslint/js": "^9.25.1",
-    "@types/node": "^22.14.1",
+    "@types/node": "^22.19.7",
     "@typescript-eslint/eslint-plugin": "^8.31.0",
     "@typescript-eslint/parser": "^8.31.0",
     "@vercel/ncc": "^0.38.4",
-    "@vitest/coverage-v8": "^3.2.4",
-    "eslint": "^9.25.1",
+    "@vitest/coverage-v8": "^4.0.17",
+    "eslint": "^9.39.2",
     "eslint-plugin-github": "^6.0.0",
-    "prettier": "3.5.3",
-    "typescript": "^5.8.3",
-    "vitest": "^3.2.4"
+    "prettier": "^3.8.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.17"
   }
 }
