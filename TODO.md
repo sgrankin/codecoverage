@@ -23,3 +23,7 @@ This reduces noise for files that clearly need tests written from scratch.
 Replace the current globbing implementation with `@actions/glob` from the GitHub Actions toolkit. This is the standard library for glob patterns in Actions and would reduce dependencies.
 
 See: https://github.com/actions/toolkit/tree/main/packages/glob
+
+## Use @actions/core.summary for step summaries
+
+Replace direct file writes to `GITHUB_STEP_SUMMARY` with `@actions/core.summary`. This provides a cleaner API for building markdown summaries with proper escaping and formatting helpers.
