@@ -48,18 +48,32 @@ vi.mock('../src/utils/github', () => ({
   }))
 }))
 
+// Mock node:fs - partial mock to only mock appendFileSync
+import * as actualFs from 'node:fs'
+vi.mock('node:fs', async () => {
+  const actual = await vi.importActual<typeof actualFs>('node:fs')
+  return {
+    ...actual,
+    appendFileSync: vi.fn()
+  }
+})
+
 // Mock node:process env
 vi.mock('node:process', () => ({
   env: {
-    GITHUB_WORKSPACE: '/workspace'
+    GITHUB_WORKSPACE: '/workspace',
+    GITHUB_STEP_SUMMARY: undefined as string | undefined
   }
 }))
 
 // Import after mocks are set up
-import {play} from '../src/action'
+import {play, generateSummary} from '../src/action'
+import {env} from 'node:process'
+import * as fs from 'node:fs'
 
 beforeEach(() => {
   vi.clearAllMocks()
+  ;(env as any).GITHUB_STEP_SUMMARY = undefined
 })
 
 test('exits early when not a pull request', async function () {
@@ -230,4 +244,71 @@ test('handles error gracefully', async function () {
 
   // Should call setFailed with the error message
   expect(core.setFailed).toHaveBeenCalled()
+})
+
+test('generateSummary returns correct markdown for high coverage', function () {
+  const summary = generateSummary({
+    coveragePercentage: '85.50',
+    totalLines: 1000,
+    coveredLines: 855,
+    filesAnalyzed: 25,
+    annotationCount: 0
+  })
+
+  expect(summary).toContain('🟢 Code Coverage Report')
+  expect(summary).toContain('85.50%')
+  expect(summary).toContain('855')
+  expect(summary).toContain('145')
+  expect(summary).toContain('1,000')
+  expect(summary).toContain('25')
+  expect(summary).toContain('✅ No new uncovered lines detected')
+})
+
+test('generateSummary returns correct markdown for medium coverage', function () {
+  const summary = generateSummary({
+    coveragePercentage: '65.00',
+    totalLines: 100,
+    coveredLines: 65,
+    filesAnalyzed: 5,
+    annotationCount: 3
+  })
+
+  expect(summary).toContain('🟡 Code Coverage Report')
+  expect(summary).toContain('65.00%')
+  expect(summary).toContain('⚠️ **3 annotations**')
+})
+
+test('generateSummary returns correct markdown for low coverage', function () {
+  const summary = generateSummary({
+    coveragePercentage: '45.00',
+    totalLines: 100,
+    coveredLines: 45,
+    filesAnalyzed: 5,
+    annotationCount: 1
+  })
+
+  expect(summary).toContain('🔴 Code Coverage Report')
+  expect(summary).toContain('45.00%')
+  expect(summary).toContain('⚠️ **1 annotation**')
+  expect(summary).not.toContain('annotations')
+})
+
+test('writes step summary when GITHUB_STEP_SUMMARY is set', async function () {
+  const lcovPath = getFixturePath('lcov.info')
+  ;(env as any).GITHUB_STEP_SUMMARY = '/tmp/summary.md'
+  ;(core.getInput as any).mockImplementation((name: string) => {
+    if (name === 'GITHUB_TOKEN') return 'test-token'
+    if (name === 'COVERAGE_FILE_PATH') return lcovPath
+    if (name === 'COVERAGE_FORMAT') return 'lcov'
+    if (name === 'GITHUB_BASE_URL') return 'https://api.github.com'
+    return ''
+  })
+
+  await play()
+
+  expect(fs.appendFileSync).toHaveBeenCalledWith(
+    '/tmp/summary.md',
+    expect.stringContaining('Code Coverage Report')
+  )
+  expect(core.info).toHaveBeenCalledWith('Step summary written')
 })

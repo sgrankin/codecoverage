@@ -39484,6 +39484,8 @@ var __webpack_exports__ = {};
 
 ;// CONCATENATED MODULE: external "node:process"
 const external_node_process_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:process");
+;// CONCATENATED MODULE: external "node:fs"
+const external_node_fs_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:fs");
 // EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
 var core = __nccwpck_require__(7484);
 // EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
@@ -49860,7 +49862,31 @@ class GithubUtil {
 
 
 
+
 const SUPPORTED_FORMATS = ['lcov', 'cobertura', 'go'];
+function generateSummary(params) {
+    const { coveragePercentage, totalLines, coveredLines, filesAnalyzed, annotationCount } = params;
+    const uncoveredLines = totalLines - coveredLines;
+    let statusEmoji = '🔴';
+    if (parseFloat(coveragePercentage) >= 80) {
+        statusEmoji = '🟢';
+    }
+    else if (parseFloat(coveragePercentage) >= 60) {
+        statusEmoji = '🟡';
+    }
+    return `## ${statusEmoji} Code Coverage Report
+
+| Metric | Value |
+| ------ | ----- |
+| **Coverage** | ${coveragePercentage}% |
+| **Covered Lines** | ${coveredLines.toLocaleString()} |
+| **Uncovered Lines** | ${uncoveredLines.toLocaleString()} |
+| **Total Lines** | ${totalLines.toLocaleString()} |
+| **Files Analyzed** | ${filesAnalyzed.toLocaleString()} |
+
+${annotationCount > 0 ? `⚠️ **${annotationCount} annotation${annotationCount === 1 ? '' : 's'}** added for uncovered lines in this PR.` : '✅ No new uncovered lines detected in this PR.'}
+`;
+}
 /** Starting Point of the Github Action*/
 async function play() {
     try {
@@ -49939,6 +49965,19 @@ async function play() {
             annotations
         });
         core.info('Annotation done');
+        // 5. Write step summary
+        const summaryPath = external_node_process_namespaceObject.env.GITHUB_STEP_SUMMARY;
+        if (summaryPath) {
+            const summary = generateSummary({
+                coveragePercentage,
+                totalLines,
+                coveredLines,
+                filesAnalyzed: parsedCov.length,
+                annotationCount: annotations.length
+            });
+            external_node_fs_namespaceObject.appendFileSync(summaryPath, summary);
+            core.info('Step summary written');
+        }
     }
     catch (error) {
         if (error instanceof Error)
