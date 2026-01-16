@@ -7,7 +7,7 @@ import {getFixturePath} from './fixtures/util'
 vi.mock('@actions/core', () => ({
   getInput: vi.fn(),
   info: vi.fn(),
-  warning: vi.fn(),
+  notice: vi.fn(),
   setFailed: vi.fn(),
   setOutput: vi.fn()
 }))

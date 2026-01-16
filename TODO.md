@@ -6,9 +6,9 @@ Future improvements for the codecoverage action.
 
 Done. The action now catches 403/406/422 errors from the diff API and warns gracefully instead of failing.
 
-## Use notice instead of warning
+## ~~Use notice instead of warning~~ ✅
 
-Switch from `core.warning()` to `core.notice()` for annotations. Warnings imply something is wrong; notices are more appropriate for informational annotations about missing coverage.
+Done. Switched to `core.notice()` for annotations.
 
 ## Handle completely uncovered files
 

@@ -233,7 +233,7 @@ export async function play(): Promise<void> {
 
     // 4. Emit annotations using workflow commands
     for (const annotation of annotations) {
-      core.warning(annotation.message, {
+      core.notice(annotation.message, {
         file: annotation.path,
         startLine: annotation.start_line,
         endLine: annotation.end_line
