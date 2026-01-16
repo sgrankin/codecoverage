@@ -44665,8 +44665,6 @@ var __webpack_exports__ = {};
 
 ;// CONCATENATED MODULE: external "node:process"
 const external_node_process_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:process");
-;// CONCATENATED MODULE: external "node:fs"
-const external_node_fs_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:fs");
 // EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
 var core = __nccwpck_require__(7484);
 // EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
@@ -59634,7 +59632,6 @@ async function expandCoverageFilePaths(input) {
 
 
 
-
 const SUPPORTED_FORMATS = ['lcov', 'cobertura', 'go'];
 /** Extract package name from file path (directory path, or '.' for root) */
 function getPackageFromPath(filePath) {
@@ -59801,8 +59798,7 @@ async function play() {
         core.info('Annotations emitted');
         // 5. Write step summary
         const STEP_SUMMARY = core.getInput('STEP_SUMMARY');
-        const summaryPath = external_node_process_namespaceObject.env.GITHUB_STEP_SUMMARY;
-        if (summaryPath && STEP_SUMMARY !== 'false') {
+        if (STEP_SUMMARY !== 'false') {
             const files = parsedCov.map(entry => ({
                 file: entry.file,
                 totalLines: entry.lines.found,
@@ -59817,7 +59813,7 @@ async function play() {
                 annotationCount: annotations.length,
                 files
             });
-            external_node_fs_namespaceObject.appendFileSync(summaryPath, summary);
+            await core.summary.addRaw(summary).write();
             core.info('Step summary written');
         }
     }

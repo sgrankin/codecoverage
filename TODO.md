@@ -18,6 +18,6 @@ Done. Files with zero coverage now get a single "This file has no test coverage"
 
 Done. Replaced `glob` package with `@actions/glob` from the GitHub Actions toolkit.
 
-## Use @actions/core.summary for step summaries
+## ~~Use @actions/core.summary for step summaries~~ ✅
 
-Replace direct file writes to `GITHUB_STEP_SUMMARY` with `@actions/core.summary`. This provides a cleaner API for building markdown summaries with proper escaping and formatting helpers.
+Done. Replaced direct file writes with `core.summary.addRaw().write()`.

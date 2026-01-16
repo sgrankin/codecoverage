@@ -4,13 +4,20 @@ import * as github from '@actions/github'
 import {getFixturePath} from './fixtures/util'
 
 // Mock @actions/core
-vi.mock('@actions/core', () => ({
-  getInput: vi.fn(),
-  info: vi.fn(),
-  notice: vi.fn(),
-  setFailed: vi.fn(),
-  setOutput: vi.fn()
-}))
+vi.mock('@actions/core', () => {
+  const summary = {
+    addRaw: vi.fn().mockReturnThis(),
+    write: vi.fn().mockResolvedValue(undefined)
+  }
+  return {
+    getInput: vi.fn(),
+    info: vi.fn(),
+    notice: vi.fn(),
+    setFailed: vi.fn(),
+    setOutput: vi.fn(),
+    summary
+  }
+})
 
 // Mock @actions/github
 vi.mock('@actions/github', () => ({
@@ -47,32 +54,18 @@ vi.mock('../src/utils/github', () => ({
   })
 }))
 
-// Mock node:fs - partial mock to only mock appendFileSync
-import * as actualFs from 'node:fs'
-vi.mock('node:fs', async () => {
-  const actual = await vi.importActual<typeof actualFs>('node:fs')
-  return {
-    ...actual,
-    appendFileSync: vi.fn()
-  }
-})
-
 // Mock node:process env
 vi.mock('node:process', () => ({
   env: {
-    GITHUB_WORKSPACE: '/workspace',
-    GITHUB_STEP_SUMMARY: undefined as string | undefined
+    GITHUB_WORKSPACE: '/workspace'
   }
 }))
 
 // Import after mocks are set up
 import {play, generateSummary} from '../src/action'
-import {env} from 'node:process'
-import * as fs from 'node:fs'
 
 beforeEach(() => {
   vi.clearAllMocks()
-  ;(env as any).GITHUB_STEP_SUMMARY = undefined
 })
 
 test('exits early when not a pull request', async function () {
@@ -422,36 +415,34 @@ test.each(generateSummaryTestCases)(
   }
 )
 
-test('writes step summary when GITHUB_STEP_SUMMARY is set', async function () {
+test('writes step summary by default', async function () {
   const lcovPath = getFixturePath('lcov.info')
-  ;(env as any).GITHUB_STEP_SUMMARY = '/tmp/summary.md'
   ;(core.getInput as any).mockImplementation((name: string) => {
     if (name === 'GITHUB_TOKEN') return 'test-token'
     if (name === 'COVERAGE_FILE_PATH') return lcovPath
     if (name === 'COVERAGE_FORMAT') return 'lcov'
     if (name === 'GITHUB_BASE_URL') return 'https://api.github.com'
-    if (name === 'STEP_SUMMARY') return 'true'
+    if (name === 'STEP_SUMMARY') return ''
     return ''
   })
 
   await play()
 
-  expect(fs.appendFileSync).toHaveBeenCalledWith(
-    '/tmp/summary.md',
+  expect(core.summary.addRaw).toHaveBeenCalledWith(
     expect.stringContaining('Code Coverage Report')
   )
+  expect(core.summary.write).toHaveBeenCalled()
   expect(core.info).toHaveBeenCalledWith('Step summary written')
 })
 
 test('step summary includes file coverage from parsed coverage file', async function () {
   const lcovPath = getFixturePath('lcov.info')
-  ;(env as any).GITHUB_STEP_SUMMARY = '/tmp/summary.md'
   ;(core.getInput as any).mockImplementation((name: string) => {
     if (name === 'GITHUB_TOKEN') return 'test-token'
     if (name === 'COVERAGE_FILE_PATH') return lcovPath
     if (name === 'COVERAGE_FORMAT') return 'lcov'
     if (name === 'GITHUB_BASE_URL') return 'https://api.github.com'
-    if (name === 'STEP_SUMMARY') return 'true'
+    if (name === 'STEP_SUMMARY') return ''
     return ''
   })
 
@@ -459,8 +450,7 @@ test('step summary includes file coverage from parsed coverage file', async func
 
   // Verify file info from lcov.info fixture is in the summary
   // The fixture has 3 files: general.ts (3 lines, 1 hit), github.ts (30 lines, 7 hit), lcov.ts (13 lines, 8 hit)
-  const summaryCall = (fs.appendFileSync as any).mock.calls[0]
-  const summaryContent = summaryCall[1] as string
+  const summaryContent = (core.summary.addRaw as any).mock.calls[0][0] as string
 
   // Check the package table has correct structure
   expect(summaryContent).toContain('### Coverage by Package')
@@ -473,7 +463,6 @@ test('step summary includes file coverage from parsed coverage file', async func
 
 test('does not write step summary when STEP_SUMMARY is false', async function () {
   const lcovPath = getFixturePath('lcov.info')
-  ;(env as any).GITHUB_STEP_SUMMARY = '/tmp/summary.md'
   ;(core.getInput as any).mockImplementation((name: string) => {
     if (name === 'GITHUB_TOKEN') return 'test-token'
     if (name === 'COVERAGE_FILE_PATH') return lcovPath
@@ -485,6 +474,6 @@ test('does not write step summary when STEP_SUMMARY is false', async function ()
 
   await play()
 
-  expect(fs.appendFileSync).not.toHaveBeenCalled()
+  expect(core.summary.addRaw).not.toHaveBeenCalled()
   expect(core.info).not.toHaveBeenCalledWith('Step summary written')
 })

@@ -1,5 +1,5 @@
 import {env} from 'node:process'
-import * as fs from 'node:fs'
+
 import * as core from '@actions/core'
 import * as github from '@actions/github'
 import {
@@ -243,8 +243,7 @@ export async function play(): Promise<void> {
 
     // 5. Write step summary
     const STEP_SUMMARY = core.getInput('STEP_SUMMARY')
-    const summaryPath = env.GITHUB_STEP_SUMMARY
-    if (summaryPath && STEP_SUMMARY !== 'false') {
+    if (STEP_SUMMARY !== 'false') {
       const files: FileCoverage[] = parsedCov.map(entry => ({
         file: entry.file,
         totalLines: entry.lines.found,
@@ -259,7 +258,7 @@ export async function play(): Promise<void> {
         annotationCount: annotations.length,
         files
       })
-      fs.appendFileSync(summaryPath, summary)
+      await core.summary.addRaw(summary).write()
       core.info('Step summary written')
     }
   } catch (error) {
