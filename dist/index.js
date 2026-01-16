@@ -21,36 +21,68 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.issue = exports.issueCommand = void 0;
+exports.issueCommand = issueCommand;
+exports.issue = issue;
 const os = __importStar(__nccwpck_require__(857));
 const utils_1 = __nccwpck_require__(302);
 /**
- * Commands
+ * Issues a command to the GitHub Actions runner
+ *
+ * @param command - The command name to issue
+ * @param properties - Additional properties for the command (key-value pairs)
+ * @param message - The message to include with the command
+ * @remarks
+ * This function outputs a specially formatted string to stdout that the Actions
+ * runner interprets as a command. These commands can control workflow behavior,
+ * set outputs, create annotations, mask values, and more.
  *
  * Command Format:
  *   ::name key=value,key=value::message
  *
- * Examples:
- *   ::warning::This is the message
- *   ::set-env name=MY_VAR::some value
+ * @example
+ * ```typescript
+ * // Issue a warning annotation
+ * issueCommand('warning', {}, 'This is a warning message');
+ * // Output: ::warning::This is a warning message
+ *
+ * // Set an environment variable
+ * issueCommand('set-env', { name: 'MY_VAR' }, 'some value');
+ * // Output: ::set-env name=MY_VAR::some value
+ *
+ * // Add a secret mask
+ * issueCommand('add-mask', {}, 'secretValue123');
+ * // Output: ::add-mask::secretValue123
+ * ```
+ *
+ * @internal
+ * This is an internal utility function that powers the public API functions
+ * such as setSecret, warning, error, and exportVariable.
  */
 function issueCommand(command, properties, message) {
     const cmd = new Command(command, properties, message);
     process.stdout.write(cmd.toString() + os.EOL);
 }
-exports.issueCommand = issueCommand;
 function issue(name, message = '') {
     issueCommand(name, {}, message);
 }
-exports.issue = issue;
 const CMD_STRING = '::';
 class Command {
     constructor(command, properties, message) {
@@ -123,13 +155,23 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -140,7 +182,28 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.platform = exports.toPlatformPath = exports.toWin32Path = exports.toPosixPath = exports.markdownSummary = exports.summary = exports.getIDToken = exports.getState = exports.saveState = exports.group = exports.endGroup = exports.startGroup = exports.info = exports.notice = exports.warning = exports.error = exports.debug = exports.isDebug = exports.setFailed = exports.setCommandEcho = exports.setOutput = exports.getBooleanInput = exports.getMultilineInput = exports.getInput = exports.addPath = exports.setSecret = exports.exportVariable = exports.ExitCode = void 0;
+exports.platform = exports.toPlatformPath = exports.toWin32Path = exports.toPosixPath = exports.markdownSummary = exports.summary = exports.ExitCode = void 0;
+exports.exportVariable = exportVariable;
+exports.setSecret = setSecret;
+exports.addPath = addPath;
+exports.getInput = getInput;
+exports.getMultilineInput = getMultilineInput;
+exports.getBooleanInput = getBooleanInput;
+exports.setOutput = setOutput;
+exports.setCommandEcho = setCommandEcho;
+exports.setFailed = setFailed;
+exports.isDebug = isDebug;
+exports.debug = debug;
+exports.error = error;
+exports.warning = warning;
+exports.notice = notice;
+exports.info = info;
+exports.startGroup = startGroup;
+exports.endGroup = endGroup;
+exports.group = group;
+exports.saveState = saveState;
+exports.getState = getState;
+exports.getIDToken = getIDToken;
 const command_1 = __nccwpck_require__(4914);
 const file_command_1 = __nccwpck_require__(4753);
 const utils_1 = __nccwpck_require__(302);
@@ -179,15 +242,38 @@ function exportVariable(name, val) {
     }
     (0, command_1.issueCommand)('set-env', { name }, convertedVal);
 }
-exports.exportVariable = exportVariable;
 /**
  * Registers a secret which will get masked from logs
- * @param secret value of the secret
+ *
+ * @param secret - Value of the secret to be masked
+ * @remarks
+ * This function instructs the Actions runner to mask the specified value in any
+ * logs produced during the workflow run. Once registered, the secret value will
+ * be replaced with asterisks (***) whenever it appears in console output, logs,
+ * or error messages.
+ *
+ * This is useful for protecting sensitive information such as:
+ * - API keys
+ * - Access tokens
+ * - Authentication credentials
+ * - URL parameters containing signatures (SAS tokens)
+ *
+ * Note that masking only affects future logs; any previous appearances of the
+ * secret in logs before calling this function will remain unmasked.
+ *
+ * @example
+ * ```typescript
+ * // Register an API token as a secret
+ * const apiToken = "abc123xyz456";
+ * setSecret(apiToken);
+ *
+ * // Now any logs containing this value will show *** instead
+ * console.log(`Using token: ${apiToken}`); // Outputs: "Using token: ***"
+ * ```
  */
 function setSecret(secret) {
     (0, command_1.issueCommand)('add-mask', {}, secret);
 }
-exports.setSecret = setSecret;
 /**
  * Prepends inputPath to the PATH (for this action and future actions)
  * @param inputPath
@@ -202,7 +288,6 @@ function addPath(inputPath) {
     }
     process.env['PATH'] = `${inputPath}${path.delimiter}${process.env['PATH']}`;
 }
-exports.addPath = addPath;
 /**
  * Gets the value of an input.
  * Unless trimWhitespace is set to false in InputOptions, the value is also trimmed.
@@ -222,7 +307,6 @@ function getInput(name, options) {
     }
     return val.trim();
 }
-exports.getInput = getInput;
 /**
  * Gets the values of an multiline input.  Each value is also trimmed.
  *
@@ -240,7 +324,6 @@ function getMultilineInput(name, options) {
     }
     return inputs.map(input => input.trim());
 }
-exports.getMultilineInput = getMultilineInput;
 /**
  * Gets the input value of the boolean type in the YAML 1.2 "core schema" specification.
  * Support boolean input list: `true | True | TRUE | false | False | FALSE` .
@@ -262,7 +345,6 @@ function getBooleanInput(name, options) {
     throw new TypeError(`Input does not meet YAML 1.2 "Core Schema" specification: ${name}\n` +
         `Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
 }
-exports.getBooleanInput = getBooleanInput;
 /**
  * Sets the value of an output.
  *
@@ -278,7 +360,6 @@ function setOutput(name, value) {
     process.stdout.write(os.EOL);
     (0, command_1.issueCommand)('set-output', { name }, (0, utils_1.toCommandValue)(value));
 }
-exports.setOutput = setOutput;
 /**
  * Enables or disables the echoing of commands into stdout for the rest of the step.
  * Echoing is disabled by default if ACTIONS_STEP_DEBUG is not set.
@@ -287,7 +368,6 @@ exports.setOutput = setOutput;
 function setCommandEcho(enabled) {
     (0, command_1.issue)('echo', enabled ? 'on' : 'off');
 }
-exports.setCommandEcho = setCommandEcho;
 //-----------------------------------------------------------------------
 // Results
 //-----------------------------------------------------------------------
@@ -300,7 +380,6 @@ function setFailed(message) {
     process.exitCode = ExitCode.Failure;
     error(message);
 }
-exports.setFailed = setFailed;
 //-----------------------------------------------------------------------
 // Logging Commands
 //-----------------------------------------------------------------------
@@ -310,7 +389,6 @@ exports.setFailed = setFailed;
 function isDebug() {
     return process.env['RUNNER_DEBUG'] === '1';
 }
-exports.isDebug = isDebug;
 /**
  * Writes debug message to user log
  * @param message debug message
@@ -318,7 +396,6 @@ exports.isDebug = isDebug;
 function debug(message) {
     (0, command_1.issueCommand)('debug', {}, message);
 }
-exports.debug = debug;
 /**
  * Adds an error issue
  * @param message error issue message. Errors will be converted to string via toString()
@@ -327,7 +404,6 @@ exports.debug = debug;
 function error(message, properties = {}) {
     (0, command_1.issueCommand)('error', (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
 }
-exports.error = error;
 /**
  * Adds a warning issue
  * @param message warning issue message. Errors will be converted to string via toString()
@@ -336,7 +412,6 @@ exports.error = error;
 function warning(message, properties = {}) {
     (0, command_1.issueCommand)('warning', (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
 }
-exports.warning = warning;
 /**
  * Adds a notice issue
  * @param message notice issue message. Errors will be converted to string via toString()
@@ -345,7 +420,6 @@ exports.warning = warning;
 function notice(message, properties = {}) {
     (0, command_1.issueCommand)('notice', (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
 }
-exports.notice = notice;
 /**
  * Writes info to log with console.log.
  * @param message info message
@@ -353,7 +427,6 @@ exports.notice = notice;
 function info(message) {
     process.stdout.write(message + os.EOL);
 }
-exports.info = info;
 /**
  * Begin an output group.
  *
@@ -364,14 +437,12 @@ exports.info = info;
 function startGroup(name) {
     (0, command_1.issue)('group', name);
 }
-exports.startGroup = startGroup;
 /**
  * End an output group.
  */
 function endGroup() {
     (0, command_1.issue)('endgroup');
 }
-exports.endGroup = endGroup;
 /**
  * Wrap an asynchronous function call in a group.
  *
@@ -393,7 +464,6 @@ function group(name, fn) {
         return result;
     });
 }
-exports.group = group;
 //-----------------------------------------------------------------------
 // Wrapper action state
 //-----------------------------------------------------------------------
@@ -411,7 +481,6 @@ function saveState(name, value) {
     }
     (0, command_1.issueCommand)('save-state', { name }, (0, utils_1.toCommandValue)(value));
 }
-exports.saveState = saveState;
 /**
  * Gets the value of an state set by this action's main execution.
  *
@@ -421,13 +490,11 @@ exports.saveState = saveState;
 function getState(name) {
     return process.env[`STATE_${name}`] || '';
 }
-exports.getState = getState;
 function getIDToken(aud) {
     return __awaiter(this, void 0, void 0, function* () {
         return yield oidc_utils_1.OidcClient.getIDToken(aud);
     });
 }
-exports.getIDToken = getIDToken;
 /**
  * Summary exports
  */
@@ -474,15 +541,26 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.prepareKeyValueMessage = exports.issueFileCommand = void 0;
+exports.issueFileCommand = issueFileCommand;
+exports.prepareKeyValueMessage = prepareKeyValueMessage;
 // We use any as a valid input type
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const crypto = __importStar(__nccwpck_require__(6982));
@@ -501,7 +579,6 @@ function issueFileCommand(command, message) {
         encoding: 'utf8'
     });
 }
-exports.issueFileCommand = issueFileCommand;
 function prepareKeyValueMessage(key, value) {
     const delimiter = `ghadelimiter_${crypto.randomUUID()}`;
     const convertedValue = (0, utils_1.toCommandValue)(value);
@@ -516,7 +593,6 @@ function prepareKeyValueMessage(key, value) {
     }
     return `${key}<<${delimiter}${os.EOL}${convertedValue}${os.EOL}${delimiter}`;
 }
-exports.prepareKeyValueMessage = prepareKeyValueMessage;
 //# sourceMappingURL=file-command.js.map
 
 /***/ }),
@@ -562,8 +638,8 @@ class OidcClient {
         return runtimeUrl;
     }
     static getCall(id_token_url) {
-        var _a;
         return __awaiter(this, void 0, void 0, function* () {
+            var _a;
             const httpclient = OidcClient.createHttpClient();
             const res = yield httpclient
                 .getJson(id_token_url)
@@ -624,15 +700,27 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.toPlatformPath = exports.toWin32Path = exports.toPosixPath = void 0;
+exports.toPosixPath = toPosixPath;
+exports.toWin32Path = toWin32Path;
+exports.toPlatformPath = toPlatformPath;
 const path = __importStar(__nccwpck_require__(6928));
 /**
  * toPosixPath converts the given path to the posix form. On Windows, \\ will be
@@ -644,7 +732,6 @@ const path = __importStar(__nccwpck_require__(6928));
 function toPosixPath(pth) {
     return pth.replace(/[\\]/g, '/');
 }
-exports.toPosixPath = toPosixPath;
 /**
  * toWin32Path converts the given path to the win32 form. On Linux, / will be
  * replaced with \\.
@@ -655,7 +742,6 @@ exports.toPosixPath = toPosixPath;
 function toWin32Path(pth) {
     return pth.replace(/[/]/g, '\\');
 }
-exports.toWin32Path = toWin32Path;
 /**
  * toPlatformPath converts the given path to a platform-specific path. It does
  * this by replacing instances of / and \ with the platform-specific path
@@ -667,7 +753,6 @@ exports.toWin32Path = toWin32Path;
 function toPlatformPath(pth) {
     return pth.replace(/[/\\]/g, path.sep);
 }
-exports.toPlatformPath = toPlatformPath;
 //# sourceMappingURL=path-utils.js.map
 
 /***/ }),
@@ -692,13 +777,23 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -712,7 +807,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getDetails = exports.isLinux = exports.isMacOS = exports.isWindows = exports.arch = exports.platform = void 0;
+exports.isLinux = exports.isMacOS = exports.isWindows = exports.arch = exports.platform = void 0;
+exports.getDetails = getDetails;
 const os_1 = __importDefault(__nccwpck_require__(857));
 const exec = __importStar(__nccwpck_require__(5236));
 const getWindowsInfo = () => __awaiter(void 0, void 0, void 0, function* () {
@@ -767,7 +863,6 @@ function getDetails() {
             isLinux: exports.isLinux });
     });
 }
-exports.getDetails = getDetails;
 //# sourceMappingURL=platform.js.map
 
 /***/ }),
@@ -1068,7 +1163,8 @@ exports.summary = _summary;
 // We use any as a valid input type
 /* eslint-disable @typescript-eslint/no-explicit-any */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.toCommandProperties = exports.toCommandValue = void 0;
+exports.toCommandValue = toCommandValue;
+exports.toCommandProperties = toCommandProperties;
 /**
  * Sanitizes an input into a string so it can be passed into issueCommand safely
  * @param input input to sanitize into a string
@@ -1082,7 +1178,6 @@ function toCommandValue(input) {
     }
     return JSON.stringify(input);
 }
-exports.toCommandValue = toCommandValue;
 /**
  *
  * @param annotationProperties
@@ -1102,7 +1197,6 @@ function toCommandProperties(annotationProperties) {
         endColumn: annotationProperties.endColumn
     };
 }
-exports.toCommandProperties = toCommandProperties;
 //# sourceMappingURL=utils.js.map
 
 /***/ }),
@@ -1113,7 +1207,11 @@ exports.toCommandProperties = toCommandProperties;
 
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -1123,13 +1221,23 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -1140,7 +1248,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getExecOutput = exports.exec = void 0;
+exports.exec = exec;
+exports.getExecOutput = getExecOutput;
 const string_decoder_1 = __nccwpck_require__(3193);
 const tr = __importStar(__nccwpck_require__(6665));
 /**
@@ -1166,7 +1275,6 @@ function exec(commandLine, args, options) {
         return runner.exec();
     });
 }
-exports.exec = exec;
 /**
  * Exec a command and get the output.
  * Output will be streamed to the live console.
@@ -1178,8 +1286,8 @@ exports.exec = exec;
  * @returns   Promise<ExecOutput>   exit code, stdout, and stderr
  */
 function getExecOutput(commandLine, args, options) {
-    var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
+        var _a, _b;
         let stdout = '';
         let stderr = '';
         //Using string decoder covers the case where a mult-byte character is split
@@ -1211,7 +1319,6 @@ function getExecOutput(commandLine, args, options) {
         };
     });
 }
-exports.getExecOutput = getExecOutput;
 //# sourceMappingURL=exec.js.map
 
 /***/ }),
@@ -1222,7 +1329,11 @@ exports.getExecOutput = getExecOutput;
 
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -1232,13 +1343,23 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -1249,7 +1370,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.argStringToArray = exports.ToolRunner = void 0;
+exports.ToolRunner = void 0;
+exports.argStringToArray = argStringToArray;
 const os = __importStar(__nccwpck_require__(857));
 const events = __importStar(__nccwpck_require__(4434));
 const child = __importStar(__nccwpck_require__(5317));
@@ -1481,10 +1603,7 @@ class ToolRunner extends events.EventEmitter {
             }
         }
         reverse += '"';
-        return reverse
-            .split('')
-            .reverse()
-            .join('');
+        return reverse.split('').reverse().join('');
     }
     _uvQuoteCmdArg(arg) {
         // Tool runner wraps child_process.spawn() and needs to apply the same quoting as
@@ -1560,10 +1679,7 @@ class ToolRunner extends events.EventEmitter {
             }
         }
         reverse += '"';
-        return reverse
-            .split('')
-            .reverse()
-            .join('');
+        return reverse.split('').reverse().join('');
     }
     _cloneExecOptions(options) {
         options = options || {};
@@ -1767,7 +1883,6 @@ function argStringToArray(argString) {
     }
     return args;
 }
-exports.argStringToArray = argStringToArray;
 class ExecState extends events.EventEmitter {
     constructor(options, toolPath) {
         super();
@@ -1796,7 +1911,7 @@ class ExecState extends events.EventEmitter {
             this._setResult();
         }
         else if (this.processExited) {
-            this.timeout = timers_1.setTimeout(ExecState.HandleTimeout, this.delay, this);
+            this.timeout = (0, timers_1.setTimeout)(ExecState.HandleTimeout, this.delay, this);
         }
     }
     _debug(message) {
@@ -1829,8 +1944,7 @@ class ExecState extends events.EventEmitter {
             return;
         }
         if (!state.processClosed && state.processExited) {
-            const message = `The STDIO streams did not close within ${state.delay /
-                1000} seconds of the exit event from process '${state.toolPath}'. This may indicate a child process inherited the STDIO streams and has not yet exited.`;
+            const message = `The STDIO streams did not close within ${state.delay / 1000} seconds of the exit event from process '${state.toolPath}'. This may indicate a child process inherited the STDIO streams and has not yet exited.`;
             state._debug(message);
         }
         state._setResult();
@@ -1922,15 +2036,26 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getOctokit = exports.context = void 0;
+exports.context = void 0;
+exports.getOctokit = getOctokit;
 const Context = __importStar(__nccwpck_require__(1648));
 const utils_1 = __nccwpck_require__(8006);
 exports.context = new Context.Context();
@@ -1944,7 +2069,6 @@ function getOctokit(token, options, ...additionalPlugins) {
     const GitHubWithPlugins = utils_1.GitHub.plugin(...additionalPlugins);
     return new GitHubWithPlugins((0, utils_1.getOctokitOptions)(token, options));
 }
-exports.getOctokit = getOctokit;
 //# sourceMappingURL=github.js.map
 
 /***/ }),
@@ -1969,13 +2093,23 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -1986,7 +2120,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getApiBaseUrl = exports.getProxyFetch = exports.getProxyAgentDispatcher = exports.getProxyAgent = exports.getAuthString = void 0;
+exports.getAuthString = getAuthString;
+exports.getProxyAgent = getProxyAgent;
+exports.getProxyAgentDispatcher = getProxyAgentDispatcher;
+exports.getProxyFetch = getProxyFetch;
+exports.getApiBaseUrl = getApiBaseUrl;
 const httpClient = __importStar(__nccwpck_require__(4844));
 const undici_1 = __nccwpck_require__(6752);
 function getAuthString(token, options) {
@@ -1998,17 +2136,14 @@ function getAuthString(token, options) {
     }
     return typeof options.auth === 'string' ? options.auth : `token ${token}`;
 }
-exports.getAuthString = getAuthString;
 function getProxyAgent(destinationUrl) {
     const hc = new httpClient.HttpClient();
     return hc.getAgent(destinationUrl);
 }
-exports.getProxyAgent = getProxyAgent;
 function getProxyAgentDispatcher(destinationUrl) {
     const hc = new httpClient.HttpClient();
     return hc.getAgentDispatcher(destinationUrl);
 }
-exports.getProxyAgentDispatcher = getProxyAgentDispatcher;
 function getProxyFetch(destinationUrl) {
     const httpDispatcher = getProxyAgentDispatcher(destinationUrl);
     const proxyFetch = (url, opts) => __awaiter(this, void 0, void 0, function* () {
@@ -2016,11 +2151,9 @@ function getProxyFetch(destinationUrl) {
     });
     return proxyFetch;
 }
-exports.getProxyFetch = getProxyFetch;
 function getApiBaseUrl() {
     return process.env['GITHUB_API_URL'] || 'https://api.github.com';
 }
-exports.getApiBaseUrl = getApiBaseUrl;
 //# sourceMappingURL=utils.js.map
 
 /***/ }),
@@ -2045,15 +2178,26 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getOctokitOptions = exports.GitHub = exports.defaults = exports.context = void 0;
+exports.GitHub = exports.defaults = exports.context = void 0;
+exports.getOctokitOptions = getOctokitOptions;
 const Context = __importStar(__nccwpck_require__(1648));
 const Utils = __importStar(__nccwpck_require__(5156));
 // octokit + plugins
@@ -2085,7 +2229,6 @@ function getOctokitOptions(token, options) {
     }
     return opts;
 }
-exports.getOctokitOptions = getOctokitOptions;
 //# sourceMappingURL=utils.js.map
 
 /***/ }),
@@ -2198,13 +2341,23 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -2215,7 +2368,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.HttpClient = exports.isHttps = exports.HttpClientResponse = exports.HttpClientError = exports.getProxyUrl = exports.MediaTypes = exports.Headers = exports.HttpCodes = void 0;
+exports.HttpClient = exports.HttpClientResponse = exports.HttpClientError = exports.MediaTypes = exports.Headers = exports.HttpCodes = void 0;
+exports.getProxyUrl = getProxyUrl;
+exports.isHttps = isHttps;
 const http = __importStar(__nccwpck_require__(8611));
 const https = __importStar(__nccwpck_require__(5692));
 const pm = __importStar(__nccwpck_require__(4988));
@@ -2268,7 +2423,6 @@ function getProxyUrl(serverUrl) {
     const proxyUrl = pm.getProxyUrl(new URL(serverUrl));
     return proxyUrl ? proxyUrl.href : '';
 }
-exports.getProxyUrl = getProxyUrl;
 const HttpRedirectCodes = [
     HttpCodes.MovedPermanently,
     HttpCodes.ResourceMoved,
@@ -2329,7 +2483,6 @@ function isHttps(requestUrl) {
     const parsedUrl = new URL(requestUrl);
     return parsedUrl.protocol === 'https:';
 }
-exports.isHttps = isHttps;
 class HttpClient {
     constructor(userAgent, handlers, requestOptions) {
         this._ignoreSslError = false;
@@ -2340,7 +2493,7 @@ class HttpClient {
         this._maxRetries = 1;
         this._keepAlive = false;
         this._disposed = false;
-        this.userAgent = userAgent;
+        this.userAgent = this._getUserAgentWithOrchestrationId(userAgent);
         this.handlers = handlers || [];
         this.requestOptions = requestOptions;
         if (requestOptions) {
@@ -2412,36 +2565,39 @@ class HttpClient {
      * Gets a typed object from an endpoint
      * Be aware that not found returns a null.  Other errors (4xx, 5xx) reject the promise
      */
-    getJson(requestUrl, additionalHeaders = {}) {
-        return __awaiter(this, void 0, void 0, function* () {
+    getJson(requestUrl_1) {
+        return __awaiter(this, arguments, void 0, function* (requestUrl, additionalHeaders = {}) {
             additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.Accept, MediaTypes.ApplicationJson);
             const res = yield this.get(requestUrl, additionalHeaders);
             return this._processResponse(res, this.requestOptions);
         });
     }
-    postJson(requestUrl, obj, additionalHeaders = {}) {
-        return __awaiter(this, void 0, void 0, function* () {
+    postJson(requestUrl_1, obj_1) {
+        return __awaiter(this, arguments, void 0, function* (requestUrl, obj, additionalHeaders = {}) {
             const data = JSON.stringify(obj, null, 2);
             additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.Accept, MediaTypes.ApplicationJson);
-            additionalHeaders[Headers.ContentType] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.ContentType, MediaTypes.ApplicationJson);
+            additionalHeaders[Headers.ContentType] =
+                this._getExistingOrDefaultContentTypeHeader(additionalHeaders, MediaTypes.ApplicationJson);
             const res = yield this.post(requestUrl, data, additionalHeaders);
             return this._processResponse(res, this.requestOptions);
         });
     }
-    putJson(requestUrl, obj, additionalHeaders = {}) {
-        return __awaiter(this, void 0, void 0, function* () {
+    putJson(requestUrl_1, obj_1) {
+        return __awaiter(this, arguments, void 0, function* (requestUrl, obj, additionalHeaders = {}) {
             const data = JSON.stringify(obj, null, 2);
             additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.Accept, MediaTypes.ApplicationJson);
-            additionalHeaders[Headers.ContentType] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.ContentType, MediaTypes.ApplicationJson);
+            additionalHeaders[Headers.ContentType] =
+                this._getExistingOrDefaultContentTypeHeader(additionalHeaders, MediaTypes.ApplicationJson);
             const res = yield this.put(requestUrl, data, additionalHeaders);
             return this._processResponse(res, this.requestOptions);
         });
     }
-    patchJson(requestUrl, obj, additionalHeaders = {}) {
-        return __awaiter(this, void 0, void 0, function* () {
+    patchJson(requestUrl_1, obj_1) {
+        return __awaiter(this, arguments, void 0, function* (requestUrl, obj, additionalHeaders = {}) {
             const data = JSON.stringify(obj, null, 2);
             additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.Accept, MediaTypes.ApplicationJson);
-            additionalHeaders[Headers.ContentType] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.ContentType, MediaTypes.ApplicationJson);
+            additionalHeaders[Headers.ContentType] =
+                this._getExistingOrDefaultContentTypeHeader(additionalHeaders, MediaTypes.ApplicationJson);
             const res = yield this.patch(requestUrl, data, additionalHeaders);
             return this._processResponse(res, this.requestOptions);
         });
@@ -2670,12 +2826,73 @@ class HttpClient {
         }
         return lowercaseKeys(headers || {});
     }
+    /**
+     * Gets an existing header value or returns a default.
+     * Handles converting number header values to strings since HTTP headers must be strings.
+     * Note: This returns string | string[] since some headers can have multiple values.
+     * For headers that must always be a single string (like Content-Type), use the
+     * specialized _getExistingOrDefaultContentTypeHeader method instead.
+     */
     _getExistingOrDefaultHeader(additionalHeaders, header, _default) {
         let clientHeader;
         if (this.requestOptions && this.requestOptions.headers) {
-            clientHeader = lowercaseKeys(this.requestOptions.headers)[header];
+            const headerValue = lowercaseKeys(this.requestOptions.headers)[header];
+            if (headerValue) {
+                clientHeader =
+                    typeof headerValue === 'number' ? headerValue.toString() : headerValue;
+            }
         }
-        return additionalHeaders[header] || clientHeader || _default;
+        const additionalValue = additionalHeaders[header];
+        if (additionalValue !== undefined) {
+            return typeof additionalValue === 'number'
+                ? additionalValue.toString()
+                : additionalValue;
+        }
+        if (clientHeader !== undefined) {
+            return clientHeader;
+        }
+        return _default;
+    }
+    /**
+     * Specialized version of _getExistingOrDefaultHeader for Content-Type header.
+     * Always returns a single string (not an array) since Content-Type should be a single value.
+     * Converts arrays to comma-separated strings and numbers to strings to ensure type safety.
+     * This was split from _getExistingOrDefaultHeader to provide stricter typing for callers
+     * that assign the result to places expecting a string (e.g., additionalHeaders[Headers.ContentType]).
+     */
+    _getExistingOrDefaultContentTypeHeader(additionalHeaders, _default) {
+        let clientHeader;
+        if (this.requestOptions && this.requestOptions.headers) {
+            const headerValue = lowercaseKeys(this.requestOptions.headers)[Headers.ContentType];
+            if (headerValue) {
+                if (typeof headerValue === 'number') {
+                    clientHeader = String(headerValue);
+                }
+                else if (Array.isArray(headerValue)) {
+                    clientHeader = headerValue.join(', ');
+                }
+                else {
+                    clientHeader = headerValue;
+                }
+            }
+        }
+        const additionalValue = additionalHeaders[Headers.ContentType];
+        // Return the first non-undefined value, converting numbers or arrays to strings if necessary
+        if (additionalValue !== undefined) {
+            if (typeof additionalValue === 'number') {
+                return String(additionalValue);
+            }
+            else if (Array.isArray(additionalValue)) {
+                return additionalValue.join(', ');
+            }
+            else {
+                return additionalValue;
+            }
+        }
+        if (clientHeader !== undefined) {
+            return clientHeader;
+        }
+        return _default;
     }
     _getAgent(parsedUrl) {
         let agent;
@@ -2755,6 +2972,17 @@ class HttpClient {
             });
         }
         return proxyAgent;
+    }
+    _getUserAgentWithOrchestrationId(userAgent) {
+        const baseUserAgent = userAgent || 'actions/http-client';
+        const orchId = process.env['ACTIONS_ORCHESTRATION_ID'];
+        if (orchId) {
+            // Sanitize the orchestration ID to ensure it contains only valid characters
+            // Valid characters: 0-9, a-z, _, -, .
+            const sanitizedId = orchId.replace(/[^a-z0-9_.-]/gi, '_');
+            return `${baseUserAgent} actions_orchestration_id/${sanitizedId}`;
+        }
+        return baseUserAgent;
     }
     _performExponentialBackoff(retryNumber) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -2840,7 +3068,8 @@ const lowercaseKeys = (obj) => Object.keys(obj).reduce((c, k) => ((c[k.toLowerCa
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.checkBypass = exports.getProxyUrl = void 0;
+exports.getProxyUrl = getProxyUrl;
+exports.checkBypass = checkBypass;
 function getProxyUrl(reqUrl) {
     const usingSsl = reqUrl.protocol === 'https:';
     if (checkBypass(reqUrl)) {
@@ -2867,7 +3096,6 @@ function getProxyUrl(reqUrl) {
         return undefined;
     }
 }
-exports.getProxyUrl = getProxyUrl;
 function checkBypass(reqUrl) {
     if (!reqUrl.hostname) {
         return false;
@@ -2911,7 +3139,6 @@ function checkBypass(reqUrl) {
     }
     return false;
 }
-exports.checkBypass = checkBypass;
 function isLoopbackAddress(host) {
     const hostLower = host.toLowerCase();
     return (hostLower === 'localhost' ||
@@ -2942,7 +3169,11 @@ class DecodedURL extends URL {
 
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -2952,13 +3183,23 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -2970,21 +3211,49 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getCmdPath = exports.tryGetExecutablePath = exports.isRooted = exports.isDirectory = exports.exists = exports.READONLY = exports.UV_FS_O_EXLOCK = exports.IS_WINDOWS = exports.unlink = exports.symlink = exports.stat = exports.rmdir = exports.rm = exports.rename = exports.readlink = exports.readdir = exports.open = exports.mkdir = exports.lstat = exports.copyFile = exports.chmod = void 0;
+exports.READONLY = exports.UV_FS_O_EXLOCK = exports.IS_WINDOWS = exports.unlink = exports.symlink = exports.stat = exports.rmdir = exports.rm = exports.rename = exports.readdir = exports.open = exports.mkdir = exports.lstat = exports.copyFile = exports.chmod = void 0;
+exports.readlink = readlink;
+exports.exists = exists;
+exports.isDirectory = isDirectory;
+exports.isRooted = isRooted;
+exports.tryGetExecutablePath = tryGetExecutablePath;
+exports.getCmdPath = getCmdPath;
 const fs = __importStar(__nccwpck_require__(9896));
 const path = __importStar(__nccwpck_require__(6928));
 _a = fs.promises
 // export const {open} = 'fs'
-, exports.chmod = _a.chmod, exports.copyFile = _a.copyFile, exports.lstat = _a.lstat, exports.mkdir = _a.mkdir, exports.open = _a.open, exports.readdir = _a.readdir, exports.readlink = _a.readlink, exports.rename = _a.rename, exports.rm = _a.rm, exports.rmdir = _a.rmdir, exports.stat = _a.stat, exports.symlink = _a.symlink, exports.unlink = _a.unlink;
+, exports.chmod = _a.chmod, exports.copyFile = _a.copyFile, exports.lstat = _a.lstat, exports.mkdir = _a.mkdir, exports.open = _a.open, exports.readdir = _a.readdir, exports.rename = _a.rename, exports.rm = _a.rm, exports.rmdir = _a.rmdir, exports.stat = _a.stat, exports.symlink = _a.symlink, exports.unlink = _a.unlink;
 // export const {open} = 'fs'
 exports.IS_WINDOWS = process.platform === 'win32';
+/**
+ * Custom implementation of readlink to ensure Windows junctions
+ * maintain trailing backslash for backward compatibility with Node.js < 24
+ *
+ * In Node.js 20, Windows junctions (directory symlinks) always returned paths
+ * with trailing backslashes. Node.js 24 removed this behavior, which breaks
+ * code that relied on this format for path operations.
+ *
+ * This implementation restores the Node 20 behavior by adding a trailing
+ * backslash to all junction results on Windows.
+ */
+function readlink(fsPath) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const result = yield fs.promises.readlink(fsPath);
+        // On Windows, restore Node 20 behavior: add trailing backslash to all results
+        // since junctions on Windows are always directory links
+        if (exports.IS_WINDOWS && !result.endsWith('\\')) {
+            return `${result}\\`;
+        }
+        return result;
+    });
+}
 // See https://github.com/nodejs/node/blob/d0153aee367422d0858105abec186da4dff0a0c5/deps/uv/include/uv/win.h#L691
 exports.UV_FS_O_EXLOCK = 0x10000000;
 exports.READONLY = fs.constants.O_RDONLY;
 function exists(fsPath) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            yield exports.stat(fsPath);
+            yield (0, exports.stat)(fsPath);
         }
         catch (err) {
             if (err.code === 'ENOENT') {
@@ -2995,14 +3264,12 @@ function exists(fsPath) {
         return true;
     });
 }
-exports.exists = exists;
-function isDirectory(fsPath, useStat = false) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const stats = useStat ? yield exports.stat(fsPath) : yield exports.lstat(fsPath);
+function isDirectory(fsPath_1) {
+    return __awaiter(this, arguments, void 0, function* (fsPath, useStat = false) {
+        const stats = useStat ? yield (0, exports.stat)(fsPath) : yield (0, exports.lstat)(fsPath);
         return stats.isDirectory();
     });
 }
-exports.isDirectory = isDirectory;
 /**
  * On OSX/Linux, true if path starts with '/'. On Windows, true for paths like:
  * \, \hello, \\hello\share, C:, and C:\hello (and corresponding alternate separator cases).
@@ -3018,7 +3285,6 @@ function isRooted(p) {
     }
     return p.startsWith('/');
 }
-exports.isRooted = isRooted;
 /**
  * Best effort attempt to determine whether a file exists and is executable.
  * @param filePath    file path to check
@@ -3030,7 +3296,7 @@ function tryGetExecutablePath(filePath, extensions) {
         let stats = undefined;
         try {
             // test file exists
-            stats = yield exports.stat(filePath);
+            stats = yield (0, exports.stat)(filePath);
         }
         catch (err) {
             if (err.code !== 'ENOENT') {
@@ -3058,7 +3324,7 @@ function tryGetExecutablePath(filePath, extensions) {
             filePath = originalFilePath + extension;
             stats = undefined;
             try {
-                stats = yield exports.stat(filePath);
+                stats = yield (0, exports.stat)(filePath);
             }
             catch (err) {
                 if (err.code !== 'ENOENT') {
@@ -3072,7 +3338,7 @@ function tryGetExecutablePath(filePath, extensions) {
                     try {
                         const directory = path.dirname(filePath);
                         const upperName = path.basename(filePath).toUpperCase();
-                        for (const actualName of yield exports.readdir(directory)) {
+                        for (const actualName of yield (0, exports.readdir)(directory)) {
                             if (upperName === actualName.toUpperCase()) {
                                 filePath = path.join(directory, actualName);
                                 break;
@@ -3095,7 +3361,6 @@ function tryGetExecutablePath(filePath, extensions) {
         return '';
     });
 }
-exports.tryGetExecutablePath = tryGetExecutablePath;
 function normalizeSeparators(p) {
     p = p || '';
     if (exports.IS_WINDOWS) {
@@ -3112,15 +3377,18 @@ function normalizeSeparators(p) {
 //   256 128 64 32 16 8 4 2 1
 function isUnixExecutable(stats) {
     return ((stats.mode & 1) > 0 ||
-        ((stats.mode & 8) > 0 && stats.gid === process.getgid()) ||
-        ((stats.mode & 64) > 0 && stats.uid === process.getuid()));
+        ((stats.mode & 8) > 0 &&
+            process.getgid !== undefined &&
+            stats.gid === process.getgid()) ||
+        ((stats.mode & 64) > 0 &&
+            process.getuid !== undefined &&
+            stats.uid === process.getuid()));
 }
 // Get the path of cmd.exe in windows
 function getCmdPath() {
     var _a;
     return (_a = process.env['COMSPEC']) !== null && _a !== void 0 ? _a : `cmd.exe`;
 }
-exports.getCmdPath = getCmdPath;
 //# sourceMappingURL=io-util.js.map
 
 /***/ }),
@@ -3131,7 +3399,11 @@ exports.getCmdPath = getCmdPath;
 
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -3141,13 +3413,23 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -3158,7 +3440,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.findInPath = exports.which = exports.mkdirP = exports.rmRF = exports.mv = exports.cp = void 0;
+exports.cp = cp;
+exports.mv = mv;
+exports.rmRF = rmRF;
+exports.mkdirP = mkdirP;
+exports.which = which;
+exports.findInPath = findInPath;
 const assert_1 = __nccwpck_require__(2613);
 const path = __importStar(__nccwpck_require__(6928));
 const ioUtil = __importStar(__nccwpck_require__(5207));
@@ -3170,8 +3457,8 @@ const ioUtil = __importStar(__nccwpck_require__(5207));
  * @param     dest      destination path
  * @param     options   optional. See CopyOptions.
  */
-function cp(source, dest, options = {}) {
-    return __awaiter(this, void 0, void 0, function* () {
+function cp(source_1, dest_1) {
+    return __awaiter(this, arguments, void 0, function* (source, dest, options = {}) {
         const { force, recursive, copySourceDirectory } = readCopyOptions(options);
         const destStat = (yield ioUtil.exists(dest)) ? yield ioUtil.stat(dest) : null;
         // Dest is an existing file, but not forcing
@@ -3203,7 +3490,6 @@ function cp(source, dest, options = {}) {
         }
     });
 }
-exports.cp = cp;
 /**
  * Moves a path.
  *
@@ -3211,8 +3497,8 @@ exports.cp = cp;
  * @param     dest      destination path
  * @param     options   optional. See MoveOptions.
  */
-function mv(source, dest, options = {}) {
-    return __awaiter(this, void 0, void 0, function* () {
+function mv(source_1, dest_1) {
+    return __awaiter(this, arguments, void 0, function* (source, dest, options = {}) {
         if (yield ioUtil.exists(dest)) {
             let destExists = true;
             if (yield ioUtil.isDirectory(dest)) {
@@ -3233,7 +3519,6 @@ function mv(source, dest, options = {}) {
         yield ioUtil.rename(source, dest);
     });
 }
-exports.mv = mv;
 /**
  * Remove a path recursively with force
  *
@@ -3262,7 +3547,6 @@ function rmRF(inputPath) {
         }
     });
 }
-exports.rmRF = rmRF;
 /**
  * Make a directory.  Creates the full path with folders in between
  * Will throw if it fails
@@ -3272,11 +3556,10 @@ exports.rmRF = rmRF;
  */
 function mkdirP(fsPath) {
     return __awaiter(this, void 0, void 0, function* () {
-        assert_1.ok(fsPath, 'a path argument must be provided');
+        (0, assert_1.ok)(fsPath, 'a path argument must be provided');
         yield ioUtil.mkdir(fsPath, { recursive: true });
     });
 }
-exports.mkdirP = mkdirP;
 /**
  * Returns path of a tool had the tool actually been invoked.  Resolves via paths.
  * If you check and the tool does not exist, it will throw.
@@ -3310,7 +3593,6 @@ function which(tool, check) {
         return '';
     });
 }
-exports.which = which;
 /**
  * Returns a list of all occurrences of the given tool on the system path.
  *
@@ -3367,7 +3649,6 @@ function findInPath(tool) {
         return matches;
     });
 }
-exports.findInPath = findInPath;
 function readCopyOptions(options) {
     const force = options.force == null ? true : options.force;
     const recursive = Boolean(options.recursive);
@@ -3542,20 +3823,35 @@ __export(index_exports, {
   Octokit: () => Octokit
 });
 module.exports = __toCommonJS(index_exports);
-var import_universal_user_agent = __nccwpck_require__(862);
+var import_universal_user_agent = __nccwpck_require__(3843);
 var import_before_after_hook = __nccwpck_require__(2732);
-var import_request = __nccwpck_require__(4558);
+var import_request = __nccwpck_require__(8636);
 var import_graphql = __nccwpck_require__(7);
 var import_auth_token = __nccwpck_require__(7864);
 
 // pkg/dist-src/version.js
-var VERSION = "5.2.1";
+var VERSION = "5.2.2";
 
 // pkg/dist-src/index.js
 var noop = () => {
 };
 var consoleWarn = console.warn.bind(console);
 var consoleError = console.error.bind(console);
+function createLogger(logger = {}) {
+  if (typeof logger.debug !== "function") {
+    logger.debug = noop;
+  }
+  if (typeof logger.info !== "function") {
+    logger.info = noop;
+  }
+  if (typeof logger.warn !== "function") {
+    logger.warn = consoleWarn;
+  }
+  if (typeof logger.error !== "function") {
+    logger.error = consoleError;
+  }
+  return logger;
+}
 var userAgentTrail = `octokit-core.js/${VERSION} ${(0, import_universal_user_agent.getUserAgent)()}`;
 var Octokit = class {
   static {
@@ -3629,15 +3925,7 @@ var Octokit = class {
     }
     this.request = import_request.request.defaults(requestDefaults);
     this.graphql = (0, import_graphql.withCustomRequest)(this.request).defaults(requestDefaults);
-    this.log = Object.assign(
-      {
-        debug: noop,
-        info: noop,
-        warn: consoleWarn,
-        error: consoleError
-      },
-      options.log
-    );
+    this.log = createLogger(options.log);
     this.hook = hook;
     if (!options.authStrategy) {
       if (!options.auth) {
@@ -3682,7 +3970,7 @@ var Octokit = class {
 
 /***/ }),
 
-/***/ 7820:
+/***/ 4471:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 
@@ -3712,7 +4000,7 @@ __export(dist_src_exports, {
 module.exports = __toCommonJS(dist_src_exports);
 
 // pkg/dist-src/defaults.js
-var import_universal_user_agent = __nccwpck_require__(862);
+var import_universal_user_agent = __nccwpck_require__(3843);
 
 // pkg/dist-src/version.js
 var VERSION = "9.0.6";
@@ -4065,357 +4353,6 @@ var endpoint = withDefaults(null, DEFAULTS);
 
 /***/ }),
 
-/***/ 497:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-
-var __create = Object.create;
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __getProtoOf = Object.getPrototypeOf;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
-  // If the importer is in node compatibility mode or this is not an ESM
-  // file that has been converted to a CommonJS file using a Babel-
-  // compatible transform (i.e. "__esModule" has not been set), then set
-  // "default" to the CommonJS "module.exports" for node compatibility.
-  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
-  mod
-));
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-
-// pkg/dist-src/index.js
-var dist_src_exports = {};
-__export(dist_src_exports, {
-  RequestError: () => RequestError
-});
-module.exports = __toCommonJS(dist_src_exports);
-var import_deprecation = __nccwpck_require__(4150);
-var import_once = __toESM(__nccwpck_require__(5560));
-var logOnceCode = (0, import_once.default)((deprecation) => console.warn(deprecation));
-var logOnceHeaders = (0, import_once.default)((deprecation) => console.warn(deprecation));
-var RequestError = class extends Error {
-  constructor(message, statusCode, options) {
-    super(message);
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, this.constructor);
-    }
-    this.name = "HttpError";
-    this.status = statusCode;
-    let headers;
-    if ("headers" in options && typeof options.headers !== "undefined") {
-      headers = options.headers;
-    }
-    if ("response" in options) {
-      this.response = options.response;
-      headers = options.response.headers;
-    }
-    const requestCopy = Object.assign({}, options.request);
-    if (options.request.headers.authorization) {
-      requestCopy.headers = Object.assign({}, options.request.headers, {
-        authorization: options.request.headers.authorization.replace(
-          /(?<! ) .*$/,
-          " [REDACTED]"
-        )
-      });
-    }
-    requestCopy.url = requestCopy.url.replace(/\bclient_secret=\w+/g, "client_secret=[REDACTED]").replace(/\baccess_token=\w+/g, "access_token=[REDACTED]");
-    this.request = requestCopy;
-    Object.defineProperty(this, "code", {
-      get() {
-        logOnceCode(
-          new import_deprecation.Deprecation(
-            "[@octokit/request-error] `error.code` is deprecated, use `error.status`."
-          )
-        );
-        return statusCode;
-      }
-    });
-    Object.defineProperty(this, "headers", {
-      get() {
-        logOnceHeaders(
-          new import_deprecation.Deprecation(
-            "[@octokit/request-error] `error.headers` is deprecated, use `error.response.headers`."
-          )
-        );
-        return headers || {};
-      }
-    });
-  }
-};
-// Annotate the CommonJS export names for ESM import in node:
-0 && (0);
-
-
-/***/ }),
-
-/***/ 4558:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-
-// pkg/dist-src/index.js
-var dist_src_exports = {};
-__export(dist_src_exports, {
-  request: () => request
-});
-module.exports = __toCommonJS(dist_src_exports);
-var import_endpoint = __nccwpck_require__(7820);
-var import_universal_user_agent = __nccwpck_require__(862);
-
-// pkg/dist-src/version.js
-var VERSION = "8.4.1";
-
-// pkg/dist-src/is-plain-object.js
-function isPlainObject(value) {
-  if (typeof value !== "object" || value === null)
-    return false;
-  if (Object.prototype.toString.call(value) !== "[object Object]")
-    return false;
-  const proto = Object.getPrototypeOf(value);
-  if (proto === null)
-    return true;
-  const Ctor = Object.prototype.hasOwnProperty.call(proto, "constructor") && proto.constructor;
-  return typeof Ctor === "function" && Ctor instanceof Ctor && Function.prototype.call(Ctor) === Function.prototype.call(value);
-}
-
-// pkg/dist-src/fetch-wrapper.js
-var import_request_error = __nccwpck_require__(497);
-
-// pkg/dist-src/get-buffer-response.js
-function getBufferResponse(response) {
-  return response.arrayBuffer();
-}
-
-// pkg/dist-src/fetch-wrapper.js
-function fetchWrapper(requestOptions) {
-  var _a, _b, _c, _d;
-  const log = requestOptions.request && requestOptions.request.log ? requestOptions.request.log : console;
-  const parseSuccessResponseBody = ((_a = requestOptions.request) == null ? void 0 : _a.parseSuccessResponseBody) !== false;
-  if (isPlainObject(requestOptions.body) || Array.isArray(requestOptions.body)) {
-    requestOptions.body = JSON.stringify(requestOptions.body);
-  }
-  let headers = {};
-  let status;
-  let url;
-  let { fetch } = globalThis;
-  if ((_b = requestOptions.request) == null ? void 0 : _b.fetch) {
-    fetch = requestOptions.request.fetch;
-  }
-  if (!fetch) {
-    throw new Error(
-      "fetch is not set. Please pass a fetch implementation as new Octokit({ request: { fetch }}). Learn more at https://github.com/octokit/octokit.js/#fetch-missing"
-    );
-  }
-  return fetch(requestOptions.url, {
-    method: requestOptions.method,
-    body: requestOptions.body,
-    redirect: (_c = requestOptions.request) == null ? void 0 : _c.redirect,
-    headers: requestOptions.headers,
-    signal: (_d = requestOptions.request) == null ? void 0 : _d.signal,
-    // duplex must be set if request.body is ReadableStream or Async Iterables.
-    // See https://fetch.spec.whatwg.org/#dom-requestinit-duplex.
-    ...requestOptions.body && { duplex: "half" }
-  }).then(async (response) => {
-    url = response.url;
-    status = response.status;
-    for (const keyAndValue of response.headers) {
-      headers[keyAndValue[0]] = keyAndValue[1];
-    }
-    if ("deprecation" in headers) {
-      const matches = headers.link && headers.link.match(/<([^<>]+)>; rel="deprecation"/);
-      const deprecationLink = matches && matches.pop();
-      log.warn(
-        `[@octokit/request] "${requestOptions.method} ${requestOptions.url}" is deprecated. It is scheduled to be removed on ${headers.sunset}${deprecationLink ? `. See ${deprecationLink}` : ""}`
-      );
-    }
-    if (status === 204 || status === 205) {
-      return;
-    }
-    if (requestOptions.method === "HEAD") {
-      if (status < 400) {
-        return;
-      }
-      throw new import_request_error.RequestError(response.statusText, status, {
-        response: {
-          url,
-          status,
-          headers,
-          data: void 0
-        },
-        request: requestOptions
-      });
-    }
-    if (status === 304) {
-      throw new import_request_error.RequestError("Not modified", status, {
-        response: {
-          url,
-          status,
-          headers,
-          data: await getResponseData(response)
-        },
-        request: requestOptions
-      });
-    }
-    if (status >= 400) {
-      const data = await getResponseData(response);
-      const error = new import_request_error.RequestError(toErrorMessage(data), status, {
-        response: {
-          url,
-          status,
-          headers,
-          data
-        },
-        request: requestOptions
-      });
-      throw error;
-    }
-    return parseSuccessResponseBody ? await getResponseData(response) : response.body;
-  }).then((data) => {
-    return {
-      status,
-      url,
-      headers,
-      data
-    };
-  }).catch((error) => {
-    if (error instanceof import_request_error.RequestError)
-      throw error;
-    else if (error.name === "AbortError")
-      throw error;
-    let message = error.message;
-    if (error.name === "TypeError" && "cause" in error) {
-      if (error.cause instanceof Error) {
-        message = error.cause.message;
-      } else if (typeof error.cause === "string") {
-        message = error.cause;
-      }
-    }
-    throw new import_request_error.RequestError(message, 500, {
-      request: requestOptions
-    });
-  });
-}
-async function getResponseData(response) {
-  const contentType = response.headers.get("content-type");
-  if (/application\/json/.test(contentType)) {
-    return response.json().catch(() => response.text()).catch(() => "");
-  }
-  if (!contentType || /^text\/|charset=utf-8$/.test(contentType)) {
-    return response.text();
-  }
-  return getBufferResponse(response);
-}
-function toErrorMessage(data) {
-  if (typeof data === "string")
-    return data;
-  let suffix;
-  if ("documentation_url" in data) {
-    suffix = ` - ${data.documentation_url}`;
-  } else {
-    suffix = "";
-  }
-  if ("message" in data) {
-    if (Array.isArray(data.errors)) {
-      return `${data.message}: ${data.errors.map(JSON.stringify).join(", ")}${suffix}`;
-    }
-    return `${data.message}${suffix}`;
-  }
-  return `Unknown error: ${JSON.stringify(data)}`;
-}
-
-// pkg/dist-src/with-defaults.js
-function withDefaults(oldEndpoint, newDefaults) {
-  const endpoint2 = oldEndpoint.defaults(newDefaults);
-  const newApi = function(route, parameters) {
-    const endpointOptions = endpoint2.merge(route, parameters);
-    if (!endpointOptions.request || !endpointOptions.request.hook) {
-      return fetchWrapper(endpoint2.parse(endpointOptions));
-    }
-    const request2 = (route2, parameters2) => {
-      return fetchWrapper(
-        endpoint2.parse(endpoint2.merge(route2, parameters2))
-      );
-    };
-    Object.assign(request2, {
-      endpoint: endpoint2,
-      defaults: withDefaults.bind(null, endpoint2)
-    });
-    return endpointOptions.request.hook(request2, endpointOptions);
-  };
-  return Object.assign(newApi, {
-    endpoint: endpoint2,
-    defaults: withDefaults.bind(null, endpoint2)
-  });
-}
-
-// pkg/dist-src/index.js
-var request = withDefaults(import_endpoint.endpoint, {
-  headers: {
-    "user-agent": `octokit-request.js/${VERSION} ${(0, import_universal_user_agent.getUserAgent)()}`
-  }
-});
-// Annotate the CommonJS export names for ESM import in node:
-0 && (0);
-
-
-/***/ }),
-
-/***/ 862:
-/***/ ((__unused_webpack_module, exports) => {
-
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-
-function getUserAgent() {
-  if (typeof navigator === "object" && "userAgent" in navigator) {
-    return navigator.userAgent;
-  }
-
-  if (typeof process === "object" && process.version !== undefined) {
-    return `Node.js/${process.version.substr(1)} (${process.platform}; ${process.arch})`;
-  }
-
-  return "<environment undetectable>";
-}
-
-exports.getUserAgent = getUserAgent;
-//# sourceMappingURL=index.js.map
-
-
-/***/ }),
-
 /***/ 7:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -4446,17 +4383,17 @@ __export(index_exports, {
   withCustomRequest: () => withCustomRequest
 });
 module.exports = __toCommonJS(index_exports);
-var import_request3 = __nccwpck_require__(2804);
-var import_universal_user_agent = __nccwpck_require__(4768);
+var import_request3 = __nccwpck_require__(8636);
+var import_universal_user_agent = __nccwpck_require__(3843);
 
 // pkg/dist-src/version.js
 var VERSION = "7.1.1";
 
 // pkg/dist-src/with-defaults.js
-var import_request2 = __nccwpck_require__(2804);
+var import_request2 = __nccwpck_require__(8636);
 
 // pkg/dist-src/graphql.js
-var import_request = __nccwpck_require__(2804);
+var import_request = __nccwpck_require__(8636);
 
 // pkg/dist-src/error.js
 function _buildMessageForResponseErrors(data) {
@@ -4568,740 +4505,6 @@ function withCustomRequest(customRequest) {
 }
 // Annotate the CommonJS export names for ESM import in node:
 0 && (0);
-
-
-/***/ }),
-
-/***/ 7858:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-
-// pkg/dist-src/index.js
-var dist_src_exports = {};
-__export(dist_src_exports, {
-  endpoint: () => endpoint
-});
-module.exports = __toCommonJS(dist_src_exports);
-
-// pkg/dist-src/defaults.js
-var import_universal_user_agent = __nccwpck_require__(4768);
-
-// pkg/dist-src/version.js
-var VERSION = "9.0.6";
-
-// pkg/dist-src/defaults.js
-var userAgent = `octokit-endpoint.js/${VERSION} ${(0, import_universal_user_agent.getUserAgent)()}`;
-var DEFAULTS = {
-  method: "GET",
-  baseUrl: "https://api.github.com",
-  headers: {
-    accept: "application/vnd.github.v3+json",
-    "user-agent": userAgent
-  },
-  mediaType: {
-    format: ""
-  }
-};
-
-// pkg/dist-src/util/lowercase-keys.js
-function lowercaseKeys(object) {
-  if (!object) {
-    return {};
-  }
-  return Object.keys(object).reduce((newObj, key) => {
-    newObj[key.toLowerCase()] = object[key];
-    return newObj;
-  }, {});
-}
-
-// pkg/dist-src/util/is-plain-object.js
-function isPlainObject(value) {
-  if (typeof value !== "object" || value === null)
-    return false;
-  if (Object.prototype.toString.call(value) !== "[object Object]")
-    return false;
-  const proto = Object.getPrototypeOf(value);
-  if (proto === null)
-    return true;
-  const Ctor = Object.prototype.hasOwnProperty.call(proto, "constructor") && proto.constructor;
-  return typeof Ctor === "function" && Ctor instanceof Ctor && Function.prototype.call(Ctor) === Function.prototype.call(value);
-}
-
-// pkg/dist-src/util/merge-deep.js
-function mergeDeep(defaults, options) {
-  const result = Object.assign({}, defaults);
-  Object.keys(options).forEach((key) => {
-    if (isPlainObject(options[key])) {
-      if (!(key in defaults))
-        Object.assign(result, { [key]: options[key] });
-      else
-        result[key] = mergeDeep(defaults[key], options[key]);
-    } else {
-      Object.assign(result, { [key]: options[key] });
-    }
-  });
-  return result;
-}
-
-// pkg/dist-src/util/remove-undefined-properties.js
-function removeUndefinedProperties(obj) {
-  for (const key in obj) {
-    if (obj[key] === void 0) {
-      delete obj[key];
-    }
-  }
-  return obj;
-}
-
-// pkg/dist-src/merge.js
-function merge(defaults, route, options) {
-  if (typeof route === "string") {
-    let [method, url] = route.split(" ");
-    options = Object.assign(url ? { method, url } : { url: method }, options);
-  } else {
-    options = Object.assign({}, route);
-  }
-  options.headers = lowercaseKeys(options.headers);
-  removeUndefinedProperties(options);
-  removeUndefinedProperties(options.headers);
-  const mergedOptions = mergeDeep(defaults || {}, options);
-  if (options.url === "/graphql") {
-    if (defaults && defaults.mediaType.previews?.length) {
-      mergedOptions.mediaType.previews = defaults.mediaType.previews.filter(
-        (preview) => !mergedOptions.mediaType.previews.includes(preview)
-      ).concat(mergedOptions.mediaType.previews);
-    }
-    mergedOptions.mediaType.previews = (mergedOptions.mediaType.previews || []).map((preview) => preview.replace(/-preview/, ""));
-  }
-  return mergedOptions;
-}
-
-// pkg/dist-src/util/add-query-parameters.js
-function addQueryParameters(url, parameters) {
-  const separator = /\?/.test(url) ? "&" : "?";
-  const names = Object.keys(parameters);
-  if (names.length === 0) {
-    return url;
-  }
-  return url + separator + names.map((name) => {
-    if (name === "q") {
-      return "q=" + parameters.q.split("+").map(encodeURIComponent).join("+");
-    }
-    return `${name}=${encodeURIComponent(parameters[name])}`;
-  }).join("&");
-}
-
-// pkg/dist-src/util/extract-url-variable-names.js
-var urlVariableRegex = /\{[^{}}]+\}/g;
-function removeNonChars(variableName) {
-  return variableName.replace(/(?:^\W+)|(?:(?<!\W)\W+$)/g, "").split(/,/);
-}
-function extractUrlVariableNames(url) {
-  const matches = url.match(urlVariableRegex);
-  if (!matches) {
-    return [];
-  }
-  return matches.map(removeNonChars).reduce((a, b) => a.concat(b), []);
-}
-
-// pkg/dist-src/util/omit.js
-function omit(object, keysToOmit) {
-  const result = { __proto__: null };
-  for (const key of Object.keys(object)) {
-    if (keysToOmit.indexOf(key) === -1) {
-      result[key] = object[key];
-    }
-  }
-  return result;
-}
-
-// pkg/dist-src/util/url-template.js
-function encodeReserved(str) {
-  return str.split(/(%[0-9A-Fa-f]{2})/g).map(function(part) {
-    if (!/%[0-9A-Fa-f]/.test(part)) {
-      part = encodeURI(part).replace(/%5B/g, "[").replace(/%5D/g, "]");
-    }
-    return part;
-  }).join("");
-}
-function encodeUnreserved(str) {
-  return encodeURIComponent(str).replace(/[!'()*]/g, function(c) {
-    return "%" + c.charCodeAt(0).toString(16).toUpperCase();
-  });
-}
-function encodeValue(operator, value, key) {
-  value = operator === "+" || operator === "#" ? encodeReserved(value) : encodeUnreserved(value);
-  if (key) {
-    return encodeUnreserved(key) + "=" + value;
-  } else {
-    return value;
-  }
-}
-function isDefined(value) {
-  return value !== void 0 && value !== null;
-}
-function isKeyOperator(operator) {
-  return operator === ";" || operator === "&" || operator === "?";
-}
-function getValues(context, operator, key, modifier) {
-  var value = context[key], result = [];
-  if (isDefined(value) && value !== "") {
-    if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
-      value = value.toString();
-      if (modifier && modifier !== "*") {
-        value = value.substring(0, parseInt(modifier, 10));
-      }
-      result.push(
-        encodeValue(operator, value, isKeyOperator(operator) ? key : "")
-      );
-    } else {
-      if (modifier === "*") {
-        if (Array.isArray(value)) {
-          value.filter(isDefined).forEach(function(value2) {
-            result.push(
-              encodeValue(operator, value2, isKeyOperator(operator) ? key : "")
-            );
-          });
-        } else {
-          Object.keys(value).forEach(function(k) {
-            if (isDefined(value[k])) {
-              result.push(encodeValue(operator, value[k], k));
-            }
-          });
-        }
-      } else {
-        const tmp = [];
-        if (Array.isArray(value)) {
-          value.filter(isDefined).forEach(function(value2) {
-            tmp.push(encodeValue(operator, value2));
-          });
-        } else {
-          Object.keys(value).forEach(function(k) {
-            if (isDefined(value[k])) {
-              tmp.push(encodeUnreserved(k));
-              tmp.push(encodeValue(operator, value[k].toString()));
-            }
-          });
-        }
-        if (isKeyOperator(operator)) {
-          result.push(encodeUnreserved(key) + "=" + tmp.join(","));
-        } else if (tmp.length !== 0) {
-          result.push(tmp.join(","));
-        }
-      }
-    }
-  } else {
-    if (operator === ";") {
-      if (isDefined(value)) {
-        result.push(encodeUnreserved(key));
-      }
-    } else if (value === "" && (operator === "&" || operator === "?")) {
-      result.push(encodeUnreserved(key) + "=");
-    } else if (value === "") {
-      result.push("");
-    }
-  }
-  return result;
-}
-function parseUrl(template) {
-  return {
-    expand: expand.bind(null, template)
-  };
-}
-function expand(template, context) {
-  var operators = ["+", "#", ".", "/", ";", "?", "&"];
-  template = template.replace(
-    /\{([^\{\}]+)\}|([^\{\}]+)/g,
-    function(_, expression, literal) {
-      if (expression) {
-        let operator = "";
-        const values = [];
-        if (operators.indexOf(expression.charAt(0)) !== -1) {
-          operator = expression.charAt(0);
-          expression = expression.substr(1);
-        }
-        expression.split(/,/g).forEach(function(variable) {
-          var tmp = /([^:\*]*)(?::(\d+)|(\*))?/.exec(variable);
-          values.push(getValues(context, operator, tmp[1], tmp[2] || tmp[3]));
-        });
-        if (operator && operator !== "+") {
-          var separator = ",";
-          if (operator === "?") {
-            separator = "&";
-          } else if (operator !== "#") {
-            separator = operator;
-          }
-          return (values.length !== 0 ? operator : "") + values.join(separator);
-        } else {
-          return values.join(",");
-        }
-      } else {
-        return encodeReserved(literal);
-      }
-    }
-  );
-  if (template === "/") {
-    return template;
-  } else {
-    return template.replace(/\/$/, "");
-  }
-}
-
-// pkg/dist-src/parse.js
-function parse(options) {
-  let method = options.method.toUpperCase();
-  let url = (options.url || "/").replace(/:([a-z]\w+)/g, "{$1}");
-  let headers = Object.assign({}, options.headers);
-  let body;
-  let parameters = omit(options, [
-    "method",
-    "baseUrl",
-    "url",
-    "headers",
-    "request",
-    "mediaType"
-  ]);
-  const urlVariableNames = extractUrlVariableNames(url);
-  url = parseUrl(url).expand(parameters);
-  if (!/^http/.test(url)) {
-    url = options.baseUrl + url;
-  }
-  const omittedParameters = Object.keys(options).filter((option) => urlVariableNames.includes(option)).concat("baseUrl");
-  const remainingParameters = omit(parameters, omittedParameters);
-  const isBinaryRequest = /application\/octet-stream/i.test(headers.accept);
-  if (!isBinaryRequest) {
-    if (options.mediaType.format) {
-      headers.accept = headers.accept.split(/,/).map(
-        (format) => format.replace(
-          /application\/vnd(\.\w+)(\.v3)?(\.\w+)?(\+json)?$/,
-          `application/vnd$1$2.${options.mediaType.format}`
-        )
-      ).join(",");
-    }
-    if (url.endsWith("/graphql")) {
-      if (options.mediaType.previews?.length) {
-        const previewsFromAcceptHeader = headers.accept.match(/(?<![\w-])[\w-]+(?=-preview)/g) || [];
-        headers.accept = previewsFromAcceptHeader.concat(options.mediaType.previews).map((preview) => {
-          const format = options.mediaType.format ? `.${options.mediaType.format}` : "+json";
-          return `application/vnd.github.${preview}-preview${format}`;
-        }).join(",");
-      }
-    }
-  }
-  if (["GET", "HEAD"].includes(method)) {
-    url = addQueryParameters(url, remainingParameters);
-  } else {
-    if ("data" in remainingParameters) {
-      body = remainingParameters.data;
-    } else {
-      if (Object.keys(remainingParameters).length) {
-        body = remainingParameters;
-      }
-    }
-  }
-  if (!headers["content-type"] && typeof body !== "undefined") {
-    headers["content-type"] = "application/json; charset=utf-8";
-  }
-  if (["PATCH", "PUT"].includes(method) && typeof body === "undefined") {
-    body = "";
-  }
-  return Object.assign(
-    { method, url, headers },
-    typeof body !== "undefined" ? { body } : null,
-    options.request ? { request: options.request } : null
-  );
-}
-
-// pkg/dist-src/endpoint-with-defaults.js
-function endpointWithDefaults(defaults, route, options) {
-  return parse(merge(defaults, route, options));
-}
-
-// pkg/dist-src/with-defaults.js
-function withDefaults(oldDefaults, newDefaults) {
-  const DEFAULTS2 = merge(oldDefaults, newDefaults);
-  const endpoint2 = endpointWithDefaults.bind(null, DEFAULTS2);
-  return Object.assign(endpoint2, {
-    DEFAULTS: DEFAULTS2,
-    defaults: withDefaults.bind(null, DEFAULTS2),
-    merge: merge.bind(null, DEFAULTS2),
-    parse
-  });
-}
-
-// pkg/dist-src/index.js
-var endpoint = withDefaults(null, DEFAULTS);
-// Annotate the CommonJS export names for ESM import in node:
-0 && (0);
-
-
-/***/ }),
-
-/***/ 4751:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-
-var __create = Object.create;
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __getProtoOf = Object.getPrototypeOf;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
-  // If the importer is in node compatibility mode or this is not an ESM
-  // file that has been converted to a CommonJS file using a Babel-
-  // compatible transform (i.e. "__esModule" has not been set), then set
-  // "default" to the CommonJS "module.exports" for node compatibility.
-  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
-  mod
-));
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-
-// pkg/dist-src/index.js
-var dist_src_exports = {};
-__export(dist_src_exports, {
-  RequestError: () => RequestError
-});
-module.exports = __toCommonJS(dist_src_exports);
-var import_deprecation = __nccwpck_require__(4150);
-var import_once = __toESM(__nccwpck_require__(5560));
-var logOnceCode = (0, import_once.default)((deprecation) => console.warn(deprecation));
-var logOnceHeaders = (0, import_once.default)((deprecation) => console.warn(deprecation));
-var RequestError = class extends Error {
-  constructor(message, statusCode, options) {
-    super(message);
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, this.constructor);
-    }
-    this.name = "HttpError";
-    this.status = statusCode;
-    let headers;
-    if ("headers" in options && typeof options.headers !== "undefined") {
-      headers = options.headers;
-    }
-    if ("response" in options) {
-      this.response = options.response;
-      headers = options.response.headers;
-    }
-    const requestCopy = Object.assign({}, options.request);
-    if (options.request.headers.authorization) {
-      requestCopy.headers = Object.assign({}, options.request.headers, {
-        authorization: options.request.headers.authorization.replace(
-          /(?<! ) .*$/,
-          " [REDACTED]"
-        )
-      });
-    }
-    requestCopy.url = requestCopy.url.replace(/\bclient_secret=\w+/g, "client_secret=[REDACTED]").replace(/\baccess_token=\w+/g, "access_token=[REDACTED]");
-    this.request = requestCopy;
-    Object.defineProperty(this, "code", {
-      get() {
-        logOnceCode(
-          new import_deprecation.Deprecation(
-            "[@octokit/request-error] `error.code` is deprecated, use `error.status`."
-          )
-        );
-        return statusCode;
-      }
-    });
-    Object.defineProperty(this, "headers", {
-      get() {
-        logOnceHeaders(
-          new import_deprecation.Deprecation(
-            "[@octokit/request-error] `error.headers` is deprecated, use `error.response.headers`."
-          )
-        );
-        return headers || {};
-      }
-    });
-  }
-};
-// Annotate the CommonJS export names for ESM import in node:
-0 && (0);
-
-
-/***/ }),
-
-/***/ 2804:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-
-// pkg/dist-src/index.js
-var dist_src_exports = {};
-__export(dist_src_exports, {
-  request: () => request
-});
-module.exports = __toCommonJS(dist_src_exports);
-var import_endpoint = __nccwpck_require__(7858);
-var import_universal_user_agent = __nccwpck_require__(4768);
-
-// pkg/dist-src/version.js
-var VERSION = "8.4.1";
-
-// pkg/dist-src/is-plain-object.js
-function isPlainObject(value) {
-  if (typeof value !== "object" || value === null)
-    return false;
-  if (Object.prototype.toString.call(value) !== "[object Object]")
-    return false;
-  const proto = Object.getPrototypeOf(value);
-  if (proto === null)
-    return true;
-  const Ctor = Object.prototype.hasOwnProperty.call(proto, "constructor") && proto.constructor;
-  return typeof Ctor === "function" && Ctor instanceof Ctor && Function.prototype.call(Ctor) === Function.prototype.call(value);
-}
-
-// pkg/dist-src/fetch-wrapper.js
-var import_request_error = __nccwpck_require__(4751);
-
-// pkg/dist-src/get-buffer-response.js
-function getBufferResponse(response) {
-  return response.arrayBuffer();
-}
-
-// pkg/dist-src/fetch-wrapper.js
-function fetchWrapper(requestOptions) {
-  var _a, _b, _c, _d;
-  const log = requestOptions.request && requestOptions.request.log ? requestOptions.request.log : console;
-  const parseSuccessResponseBody = ((_a = requestOptions.request) == null ? void 0 : _a.parseSuccessResponseBody) !== false;
-  if (isPlainObject(requestOptions.body) || Array.isArray(requestOptions.body)) {
-    requestOptions.body = JSON.stringify(requestOptions.body);
-  }
-  let headers = {};
-  let status;
-  let url;
-  let { fetch } = globalThis;
-  if ((_b = requestOptions.request) == null ? void 0 : _b.fetch) {
-    fetch = requestOptions.request.fetch;
-  }
-  if (!fetch) {
-    throw new Error(
-      "fetch is not set. Please pass a fetch implementation as new Octokit({ request: { fetch }}). Learn more at https://github.com/octokit/octokit.js/#fetch-missing"
-    );
-  }
-  return fetch(requestOptions.url, {
-    method: requestOptions.method,
-    body: requestOptions.body,
-    redirect: (_c = requestOptions.request) == null ? void 0 : _c.redirect,
-    headers: requestOptions.headers,
-    signal: (_d = requestOptions.request) == null ? void 0 : _d.signal,
-    // duplex must be set if request.body is ReadableStream or Async Iterables.
-    // See https://fetch.spec.whatwg.org/#dom-requestinit-duplex.
-    ...requestOptions.body && { duplex: "half" }
-  }).then(async (response) => {
-    url = response.url;
-    status = response.status;
-    for (const keyAndValue of response.headers) {
-      headers[keyAndValue[0]] = keyAndValue[1];
-    }
-    if ("deprecation" in headers) {
-      const matches = headers.link && headers.link.match(/<([^<>]+)>; rel="deprecation"/);
-      const deprecationLink = matches && matches.pop();
-      log.warn(
-        `[@octokit/request] "${requestOptions.method} ${requestOptions.url}" is deprecated. It is scheduled to be removed on ${headers.sunset}${deprecationLink ? `. See ${deprecationLink}` : ""}`
-      );
-    }
-    if (status === 204 || status === 205) {
-      return;
-    }
-    if (requestOptions.method === "HEAD") {
-      if (status < 400) {
-        return;
-      }
-      throw new import_request_error.RequestError(response.statusText, status, {
-        response: {
-          url,
-          status,
-          headers,
-          data: void 0
-        },
-        request: requestOptions
-      });
-    }
-    if (status === 304) {
-      throw new import_request_error.RequestError("Not modified", status, {
-        response: {
-          url,
-          status,
-          headers,
-          data: await getResponseData(response)
-        },
-        request: requestOptions
-      });
-    }
-    if (status >= 400) {
-      const data = await getResponseData(response);
-      const error = new import_request_error.RequestError(toErrorMessage(data), status, {
-        response: {
-          url,
-          status,
-          headers,
-          data
-        },
-        request: requestOptions
-      });
-      throw error;
-    }
-    return parseSuccessResponseBody ? await getResponseData(response) : response.body;
-  }).then((data) => {
-    return {
-      status,
-      url,
-      headers,
-      data
-    };
-  }).catch((error) => {
-    if (error instanceof import_request_error.RequestError)
-      throw error;
-    else if (error.name === "AbortError")
-      throw error;
-    let message = error.message;
-    if (error.name === "TypeError" && "cause" in error) {
-      if (error.cause instanceof Error) {
-        message = error.cause.message;
-      } else if (typeof error.cause === "string") {
-        message = error.cause;
-      }
-    }
-    throw new import_request_error.RequestError(message, 500, {
-      request: requestOptions
-    });
-  });
-}
-async function getResponseData(response) {
-  const contentType = response.headers.get("content-type");
-  if (/application\/json/.test(contentType)) {
-    return response.json().catch(() => response.text()).catch(() => "");
-  }
-  if (!contentType || /^text\/|charset=utf-8$/.test(contentType)) {
-    return response.text();
-  }
-  return getBufferResponse(response);
-}
-function toErrorMessage(data) {
-  if (typeof data === "string")
-    return data;
-  let suffix;
-  if ("documentation_url" in data) {
-    suffix = ` - ${data.documentation_url}`;
-  } else {
-    suffix = "";
-  }
-  if ("message" in data) {
-    if (Array.isArray(data.errors)) {
-      return `${data.message}: ${data.errors.map(JSON.stringify).join(", ")}${suffix}`;
-    }
-    return `${data.message}${suffix}`;
-  }
-  return `Unknown error: ${JSON.stringify(data)}`;
-}
-
-// pkg/dist-src/with-defaults.js
-function withDefaults(oldEndpoint, newDefaults) {
-  const endpoint2 = oldEndpoint.defaults(newDefaults);
-  const newApi = function(route, parameters) {
-    const endpointOptions = endpoint2.merge(route, parameters);
-    if (!endpointOptions.request || !endpointOptions.request.hook) {
-      return fetchWrapper(endpoint2.parse(endpointOptions));
-    }
-    const request2 = (route2, parameters2) => {
-      return fetchWrapper(
-        endpoint2.parse(endpoint2.merge(route2, parameters2))
-      );
-    };
-    Object.assign(request2, {
-      endpoint: endpoint2,
-      defaults: withDefaults.bind(null, endpoint2)
-    });
-    return endpointOptions.request.hook(request2, endpointOptions);
-  };
-  return Object.assign(newApi, {
-    endpoint: endpoint2,
-    defaults: withDefaults.bind(null, endpoint2)
-  });
-}
-
-// pkg/dist-src/index.js
-var request = withDefaults(import_endpoint.endpoint, {
-  headers: {
-    "user-agent": `octokit-request.js/${VERSION} ${(0, import_universal_user_agent.getUserAgent)()}`
-  }
-});
-// Annotate the CommonJS export names for ESM import in node:
-0 && (0);
-
-
-/***/ }),
-
-/***/ 4768:
-/***/ ((__unused_webpack_module, exports) => {
-
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-
-function getUserAgent() {
-  if (typeof navigator === "object" && "userAgent" in navigator) {
-    return navigator.userAgent;
-  }
-
-  if (typeof process === "object" && process.version !== undefined) {
-    return `Node.js/${process.version.substr(1)} (${process.platform}; ${process.arch})`;
-  }
-
-  return "<environment undetectable>";
-}
-
-exports.getUserAgent = getUserAgent;
-//# sourceMappingURL=index.js.map
 
 
 /***/ }),
@@ -7875,6 +7078,332 @@ legacyRestEndpointMethods.VERSION = VERSION;
 
 /***/ }),
 
+/***/ 3708:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+
+var __create = Object.create;
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+// pkg/dist-src/index.js
+var dist_src_exports = {};
+__export(dist_src_exports, {
+  RequestError: () => RequestError
+});
+module.exports = __toCommonJS(dist_src_exports);
+var import_deprecation = __nccwpck_require__(4150);
+var import_once = __toESM(__nccwpck_require__(5560));
+var logOnceCode = (0, import_once.default)((deprecation) => console.warn(deprecation));
+var logOnceHeaders = (0, import_once.default)((deprecation) => console.warn(deprecation));
+var RequestError = class extends Error {
+  constructor(message, statusCode, options) {
+    super(message);
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, this.constructor);
+    }
+    this.name = "HttpError";
+    this.status = statusCode;
+    let headers;
+    if ("headers" in options && typeof options.headers !== "undefined") {
+      headers = options.headers;
+    }
+    if ("response" in options) {
+      this.response = options.response;
+      headers = options.response.headers;
+    }
+    const requestCopy = Object.assign({}, options.request);
+    if (options.request.headers.authorization) {
+      requestCopy.headers = Object.assign({}, options.request.headers, {
+        authorization: options.request.headers.authorization.replace(
+          /(?<! ) .*$/,
+          " [REDACTED]"
+        )
+      });
+    }
+    requestCopy.url = requestCopy.url.replace(/\bclient_secret=\w+/g, "client_secret=[REDACTED]").replace(/\baccess_token=\w+/g, "access_token=[REDACTED]");
+    this.request = requestCopy;
+    Object.defineProperty(this, "code", {
+      get() {
+        logOnceCode(
+          new import_deprecation.Deprecation(
+            "[@octokit/request-error] `error.code` is deprecated, use `error.status`."
+          )
+        );
+        return statusCode;
+      }
+    });
+    Object.defineProperty(this, "headers", {
+      get() {
+        logOnceHeaders(
+          new import_deprecation.Deprecation(
+            "[@octokit/request-error] `error.headers` is deprecated, use `error.response.headers`."
+          )
+        );
+        return headers || {};
+      }
+    });
+  }
+};
+// Annotate the CommonJS export names for ESM import in node:
+0 && (0);
+
+
+/***/ }),
+
+/***/ 8636:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+// pkg/dist-src/index.js
+var dist_src_exports = {};
+__export(dist_src_exports, {
+  request: () => request
+});
+module.exports = __toCommonJS(dist_src_exports);
+var import_endpoint = __nccwpck_require__(4471);
+var import_universal_user_agent = __nccwpck_require__(3843);
+
+// pkg/dist-src/version.js
+var VERSION = "8.4.1";
+
+// pkg/dist-src/is-plain-object.js
+function isPlainObject(value) {
+  if (typeof value !== "object" || value === null)
+    return false;
+  if (Object.prototype.toString.call(value) !== "[object Object]")
+    return false;
+  const proto = Object.getPrototypeOf(value);
+  if (proto === null)
+    return true;
+  const Ctor = Object.prototype.hasOwnProperty.call(proto, "constructor") && proto.constructor;
+  return typeof Ctor === "function" && Ctor instanceof Ctor && Function.prototype.call(Ctor) === Function.prototype.call(value);
+}
+
+// pkg/dist-src/fetch-wrapper.js
+var import_request_error = __nccwpck_require__(3708);
+
+// pkg/dist-src/get-buffer-response.js
+function getBufferResponse(response) {
+  return response.arrayBuffer();
+}
+
+// pkg/dist-src/fetch-wrapper.js
+function fetchWrapper(requestOptions) {
+  var _a, _b, _c, _d;
+  const log = requestOptions.request && requestOptions.request.log ? requestOptions.request.log : console;
+  const parseSuccessResponseBody = ((_a = requestOptions.request) == null ? void 0 : _a.parseSuccessResponseBody) !== false;
+  if (isPlainObject(requestOptions.body) || Array.isArray(requestOptions.body)) {
+    requestOptions.body = JSON.stringify(requestOptions.body);
+  }
+  let headers = {};
+  let status;
+  let url;
+  let { fetch } = globalThis;
+  if ((_b = requestOptions.request) == null ? void 0 : _b.fetch) {
+    fetch = requestOptions.request.fetch;
+  }
+  if (!fetch) {
+    throw new Error(
+      "fetch is not set. Please pass a fetch implementation as new Octokit({ request: { fetch }}). Learn more at https://github.com/octokit/octokit.js/#fetch-missing"
+    );
+  }
+  return fetch(requestOptions.url, {
+    method: requestOptions.method,
+    body: requestOptions.body,
+    redirect: (_c = requestOptions.request) == null ? void 0 : _c.redirect,
+    headers: requestOptions.headers,
+    signal: (_d = requestOptions.request) == null ? void 0 : _d.signal,
+    // duplex must be set if request.body is ReadableStream or Async Iterables.
+    // See https://fetch.spec.whatwg.org/#dom-requestinit-duplex.
+    ...requestOptions.body && { duplex: "half" }
+  }).then(async (response) => {
+    url = response.url;
+    status = response.status;
+    for (const keyAndValue of response.headers) {
+      headers[keyAndValue[0]] = keyAndValue[1];
+    }
+    if ("deprecation" in headers) {
+      const matches = headers.link && headers.link.match(/<([^<>]+)>; rel="deprecation"/);
+      const deprecationLink = matches && matches.pop();
+      log.warn(
+        `[@octokit/request] "${requestOptions.method} ${requestOptions.url}" is deprecated. It is scheduled to be removed on ${headers.sunset}${deprecationLink ? `. See ${deprecationLink}` : ""}`
+      );
+    }
+    if (status === 204 || status === 205) {
+      return;
+    }
+    if (requestOptions.method === "HEAD") {
+      if (status < 400) {
+        return;
+      }
+      throw new import_request_error.RequestError(response.statusText, status, {
+        response: {
+          url,
+          status,
+          headers,
+          data: void 0
+        },
+        request: requestOptions
+      });
+    }
+    if (status === 304) {
+      throw new import_request_error.RequestError("Not modified", status, {
+        response: {
+          url,
+          status,
+          headers,
+          data: await getResponseData(response)
+        },
+        request: requestOptions
+      });
+    }
+    if (status >= 400) {
+      const data = await getResponseData(response);
+      const error = new import_request_error.RequestError(toErrorMessage(data), status, {
+        response: {
+          url,
+          status,
+          headers,
+          data
+        },
+        request: requestOptions
+      });
+      throw error;
+    }
+    return parseSuccessResponseBody ? await getResponseData(response) : response.body;
+  }).then((data) => {
+    return {
+      status,
+      url,
+      headers,
+      data
+    };
+  }).catch((error) => {
+    if (error instanceof import_request_error.RequestError)
+      throw error;
+    else if (error.name === "AbortError")
+      throw error;
+    let message = error.message;
+    if (error.name === "TypeError" && "cause" in error) {
+      if (error.cause instanceof Error) {
+        message = error.cause.message;
+      } else if (typeof error.cause === "string") {
+        message = error.cause;
+      }
+    }
+    throw new import_request_error.RequestError(message, 500, {
+      request: requestOptions
+    });
+  });
+}
+async function getResponseData(response) {
+  const contentType = response.headers.get("content-type");
+  if (/application\/json/.test(contentType)) {
+    return response.json().catch(() => response.text()).catch(() => "");
+  }
+  if (!contentType || /^text\/|charset=utf-8$/.test(contentType)) {
+    return response.text();
+  }
+  return getBufferResponse(response);
+}
+function toErrorMessage(data) {
+  if (typeof data === "string")
+    return data;
+  let suffix;
+  if ("documentation_url" in data) {
+    suffix = ` - ${data.documentation_url}`;
+  } else {
+    suffix = "";
+  }
+  if ("message" in data) {
+    if (Array.isArray(data.errors)) {
+      return `${data.message}: ${data.errors.map(JSON.stringify).join(", ")}${suffix}`;
+    }
+    return `${data.message}${suffix}`;
+  }
+  return `Unknown error: ${JSON.stringify(data)}`;
+}
+
+// pkg/dist-src/with-defaults.js
+function withDefaults(oldEndpoint, newDefaults) {
+  const endpoint2 = oldEndpoint.defaults(newDefaults);
+  const newApi = function(route, parameters) {
+    const endpointOptions = endpoint2.merge(route, parameters);
+    if (!endpointOptions.request || !endpointOptions.request.hook) {
+      return fetchWrapper(endpoint2.parse(endpointOptions));
+    }
+    const request2 = (route2, parameters2) => {
+      return fetchWrapper(
+        endpoint2.parse(endpoint2.merge(route2, parameters2))
+      );
+    };
+    Object.assign(request2, {
+      endpoint: endpoint2,
+      defaults: withDefaults.bind(null, endpoint2)
+    });
+    return endpointOptions.request.hook(request2, endpointOptions);
+  };
+  return Object.assign(newApi, {
+    endpoint: endpoint2,
+    defaults: withDefaults.bind(null, endpoint2)
+  });
+}
+
+// pkg/dist-src/index.js
+var request = withDefaults(import_endpoint.endpoint, {
+  headers: {
+    "user-agent": `octokit-request.js/${VERSION} ${(0, import_universal_user_agent.getUserAgent)()}`
+  }
+});
+// Annotate the CommonJS export names for ESM import in node:
+0 && (0);
+
+
+/***/ }),
+
 /***/ 2732:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -9586,3352 +9115,13 @@ function removeHook(state, name, method) {
 
 /***/ }),
 
-/***/ 9075:
-/***/ (function(__unused_webpack_module, exports) {
-
-// Generated by CoffeeScript 1.12.7
-(function() {
-  "use strict";
-  exports.stripBOM = function(str) {
-    if (str[0] === '\uFEFF') {
-      return str.substring(1);
-    } else {
-      return str;
-    }
-  };
-
-}).call(this);
-
-
-/***/ }),
-
-/***/ 6610:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-// Generated by CoffeeScript 1.12.7
-(function() {
-  "use strict";
-  var builder, defaults, escapeCDATA, requiresCDATA, wrapCDATA,
-    hasProp = {}.hasOwnProperty;
-
-  builder = __nccwpck_require__(9891);
-
-  defaults = (__nccwpck_require__(3679).defaults);
-
-  requiresCDATA = function(entry) {
-    return typeof entry === "string" && (entry.indexOf('&') >= 0 || entry.indexOf('>') >= 0 || entry.indexOf('<') >= 0);
-  };
-
-  wrapCDATA = function(entry) {
-    return "<![CDATA[" + (escapeCDATA(entry)) + "]]>";
-  };
-
-  escapeCDATA = function(entry) {
-    return entry.replace(']]>', ']]]]><![CDATA[>');
-  };
-
-  exports.Builder = (function() {
-    function Builder(opts) {
-      var key, ref, value;
-      this.options = {};
-      ref = defaults["0.2"];
-      for (key in ref) {
-        if (!hasProp.call(ref, key)) continue;
-        value = ref[key];
-        this.options[key] = value;
-      }
-      for (key in opts) {
-        if (!hasProp.call(opts, key)) continue;
-        value = opts[key];
-        this.options[key] = value;
-      }
-    }
-
-    Builder.prototype.buildObject = function(rootObj) {
-      var attrkey, charkey, render, rootElement, rootName;
-      attrkey = this.options.attrkey;
-      charkey = this.options.charkey;
-      if ((Object.keys(rootObj).length === 1) && (this.options.rootName === defaults['0.2'].rootName)) {
-        rootName = Object.keys(rootObj)[0];
-        rootObj = rootObj[rootName];
-      } else {
-        rootName = this.options.rootName;
-      }
-      render = (function(_this) {
-        return function(element, obj) {
-          var attr, child, entry, index, key, value;
-          if (typeof obj !== 'object') {
-            if (_this.options.cdata && requiresCDATA(obj)) {
-              element.raw(wrapCDATA(obj));
-            } else {
-              element.txt(obj);
-            }
-          } else if (Array.isArray(obj)) {
-            for (index in obj) {
-              if (!hasProp.call(obj, index)) continue;
-              child = obj[index];
-              for (key in child) {
-                entry = child[key];
-                element = render(element.ele(key), entry).up();
-              }
-            }
-          } else {
-            for (key in obj) {
-              if (!hasProp.call(obj, key)) continue;
-              child = obj[key];
-              if (key === attrkey) {
-                if (typeof child === "object") {
-                  for (attr in child) {
-                    value = child[attr];
-                    element = element.att(attr, value);
-                  }
-                }
-              } else if (key === charkey) {
-                if (_this.options.cdata && requiresCDATA(child)) {
-                  element = element.raw(wrapCDATA(child));
-                } else {
-                  element = element.txt(child);
-                }
-              } else if (Array.isArray(child)) {
-                for (index in child) {
-                  if (!hasProp.call(child, index)) continue;
-                  entry = child[index];
-                  if (typeof entry === 'string') {
-                    if (_this.options.cdata && requiresCDATA(entry)) {
-                      element = element.ele(key).raw(wrapCDATA(entry)).up();
-                    } else {
-                      element = element.ele(key, entry).up();
-                    }
-                  } else {
-                    element = render(element.ele(key), entry).up();
-                  }
-                }
-              } else if (typeof child === "object") {
-                element = render(element.ele(key), child).up();
-              } else {
-                if (typeof child === 'string' && _this.options.cdata && requiresCDATA(child)) {
-                  element = element.ele(key).raw(wrapCDATA(child)).up();
-                } else {
-                  if (child == null) {
-                    child = '';
-                  }
-                  element = element.ele(key, child.toString()).up();
-                }
-              }
-            }
-          }
-          return element;
-        };
-      })(this);
-      rootElement = builder.create(rootName, this.options.xmldec, this.options.doctype, {
-        headless: this.options.headless,
-        allowSurrogateChars: this.options.allowSurrogateChars
-      });
-      return render(rootElement, rootObj).end(this.options.renderOpts);
-    };
-
-    return Builder;
-
-  })();
-
-}).call(this);
-
-
-/***/ }),
-
-/***/ 3679:
-/***/ (function(__unused_webpack_module, exports) {
-
-// Generated by CoffeeScript 1.12.7
-(function() {
-  exports.defaults = {
-    "0.1": {
-      explicitCharkey: false,
-      trim: true,
-      normalize: true,
-      normalizeTags: false,
-      attrkey: "@",
-      charkey: "#",
-      explicitArray: false,
-      ignoreAttrs: false,
-      mergeAttrs: false,
-      explicitRoot: false,
-      validator: null,
-      xmlns: false,
-      explicitChildren: false,
-      childkey: '@@',
-      charsAsChildren: false,
-      includeWhiteChars: false,
-      async: false,
-      strict: true,
-      attrNameProcessors: null,
-      attrValueProcessors: null,
-      tagNameProcessors: null,
-      valueProcessors: null,
-      emptyTag: ''
-    },
-    "0.2": {
-      explicitCharkey: false,
-      trim: false,
-      normalize: false,
-      normalizeTags: false,
-      attrkey: "$",
-      charkey: "_",
-      explicitArray: true,
-      ignoreAttrs: false,
-      mergeAttrs: false,
-      explicitRoot: true,
-      validator: null,
-      xmlns: false,
-      explicitChildren: false,
-      preserveChildrenOrder: false,
-      childkey: '$$',
-      charsAsChildren: false,
-      includeWhiteChars: false,
-      async: false,
-      strict: true,
-      attrNameProcessors: null,
-      attrValueProcessors: null,
-      tagNameProcessors: null,
-      valueProcessors: null,
-      rootName: 'root',
-      xmldec: {
-        'version': '1.0',
-        'encoding': 'UTF-8',
-        'standalone': true
-      },
-      doctype: null,
-      renderOpts: {
-        'pretty': true,
-        'indent': '  ',
-        'newline': '\n'
-      },
-      headless: false,
-      chunkSize: 10000,
-      emptyTag: '',
-      cdata: false
-    }
-  };
-
-}).call(this);
-
-
-/***/ }),
-
-/***/ 74:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-// Generated by CoffeeScript 1.12.7
-(function() {
-  "use strict";
-  var bom, defaults, events, isEmpty, processItem, processors, sax, setImmediate,
-    bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
-    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty;
-
-  sax = __nccwpck_require__(2560);
-
-  events = __nccwpck_require__(4434);
-
-  bom = __nccwpck_require__(9075);
-
-  processors = __nccwpck_require__(640);
-
-  setImmediate = (__nccwpck_require__(3557).setImmediate);
-
-  defaults = (__nccwpck_require__(3679).defaults);
-
-  isEmpty = function(thing) {
-    return typeof thing === "object" && (thing != null) && Object.keys(thing).length === 0;
-  };
-
-  processItem = function(processors, item, key) {
-    var i, len, process;
-    for (i = 0, len = processors.length; i < len; i++) {
-      process = processors[i];
-      item = process(item, key);
-    }
-    return item;
-  };
-
-  exports.Parser = (function(superClass) {
-    extend(Parser, superClass);
-
-    function Parser(opts) {
-      this.parseString = bind(this.parseString, this);
-      this.reset = bind(this.reset, this);
-      this.assignOrPush = bind(this.assignOrPush, this);
-      this.processAsync = bind(this.processAsync, this);
-      var key, ref, value;
-      if (!(this instanceof exports.Parser)) {
-        return new exports.Parser(opts);
-      }
-      this.options = {};
-      ref = defaults["0.2"];
-      for (key in ref) {
-        if (!hasProp.call(ref, key)) continue;
-        value = ref[key];
-        this.options[key] = value;
-      }
-      for (key in opts) {
-        if (!hasProp.call(opts, key)) continue;
-        value = opts[key];
-        this.options[key] = value;
-      }
-      if (this.options.xmlns) {
-        this.options.xmlnskey = this.options.attrkey + "ns";
-      }
-      if (this.options.normalizeTags) {
-        if (!this.options.tagNameProcessors) {
-          this.options.tagNameProcessors = [];
-        }
-        this.options.tagNameProcessors.unshift(processors.normalize);
-      }
-      this.reset();
-    }
-
-    Parser.prototype.processAsync = function() {
-      var chunk, err;
-      try {
-        if (this.remaining.length <= this.options.chunkSize) {
-          chunk = this.remaining;
-          this.remaining = '';
-          this.saxParser = this.saxParser.write(chunk);
-          return this.saxParser.close();
-        } else {
-          chunk = this.remaining.substr(0, this.options.chunkSize);
-          this.remaining = this.remaining.substr(this.options.chunkSize, this.remaining.length);
-          this.saxParser = this.saxParser.write(chunk);
-          return setImmediate(this.processAsync);
-        }
-      } catch (error1) {
-        err = error1;
-        if (!this.saxParser.errThrown) {
-          this.saxParser.errThrown = true;
-          return this.emit(err);
-        }
-      }
-    };
-
-    Parser.prototype.assignOrPush = function(obj, key, newValue) {
-      if (!(key in obj)) {
-        if (!this.options.explicitArray) {
-          return obj[key] = newValue;
-        } else {
-          return obj[key] = [newValue];
-        }
-      } else {
-        if (!(obj[key] instanceof Array)) {
-          obj[key] = [obj[key]];
-        }
-        return obj[key].push(newValue);
-      }
-    };
-
-    Parser.prototype.reset = function() {
-      var attrkey, charkey, ontext, stack;
-      this.removeAllListeners();
-      this.saxParser = sax.parser(this.options.strict, {
-        trim: false,
-        normalize: false,
-        xmlns: this.options.xmlns
-      });
-      this.saxParser.errThrown = false;
-      this.saxParser.onerror = (function(_this) {
-        return function(error) {
-          _this.saxParser.resume();
-          if (!_this.saxParser.errThrown) {
-            _this.saxParser.errThrown = true;
-            return _this.emit("error", error);
-          }
-        };
-      })(this);
-      this.saxParser.onend = (function(_this) {
-        return function() {
-          if (!_this.saxParser.ended) {
-            _this.saxParser.ended = true;
-            return _this.emit("end", _this.resultObject);
-          }
-        };
-      })(this);
-      this.saxParser.ended = false;
-      this.EXPLICIT_CHARKEY = this.options.explicitCharkey;
-      this.resultObject = null;
-      stack = [];
-      attrkey = this.options.attrkey;
-      charkey = this.options.charkey;
-      this.saxParser.onopentag = (function(_this) {
-        return function(node) {
-          var key, newValue, obj, processedKey, ref;
-          obj = {};
-          obj[charkey] = "";
-          if (!_this.options.ignoreAttrs) {
-            ref = node.attributes;
-            for (key in ref) {
-              if (!hasProp.call(ref, key)) continue;
-              if (!(attrkey in obj) && !_this.options.mergeAttrs) {
-                obj[attrkey] = {};
-              }
-              newValue = _this.options.attrValueProcessors ? processItem(_this.options.attrValueProcessors, node.attributes[key], key) : node.attributes[key];
-              processedKey = _this.options.attrNameProcessors ? processItem(_this.options.attrNameProcessors, key) : key;
-              if (_this.options.mergeAttrs) {
-                _this.assignOrPush(obj, processedKey, newValue);
-              } else {
-                obj[attrkey][processedKey] = newValue;
-              }
-            }
-          }
-          obj["#name"] = _this.options.tagNameProcessors ? processItem(_this.options.tagNameProcessors, node.name) : node.name;
-          if (_this.options.xmlns) {
-            obj[_this.options.xmlnskey] = {
-              uri: node.uri,
-              local: node.local
-            };
-          }
-          return stack.push(obj);
-        };
-      })(this);
-      this.saxParser.onclosetag = (function(_this) {
-        return function() {
-          var cdata, emptyStr, key, node, nodeName, obj, objClone, old, s, xpath;
-          obj = stack.pop();
-          nodeName = obj["#name"];
-          if (!_this.options.explicitChildren || !_this.options.preserveChildrenOrder) {
-            delete obj["#name"];
-          }
-          if (obj.cdata === true) {
-            cdata = obj.cdata;
-            delete obj.cdata;
-          }
-          s = stack[stack.length - 1];
-          if (obj[charkey].match(/^\s*$/) && !cdata) {
-            emptyStr = obj[charkey];
-            delete obj[charkey];
-          } else {
-            if (_this.options.trim) {
-              obj[charkey] = obj[charkey].trim();
-            }
-            if (_this.options.normalize) {
-              obj[charkey] = obj[charkey].replace(/\s{2,}/g, " ").trim();
-            }
-            obj[charkey] = _this.options.valueProcessors ? processItem(_this.options.valueProcessors, obj[charkey], nodeName) : obj[charkey];
-            if (Object.keys(obj).length === 1 && charkey in obj && !_this.EXPLICIT_CHARKEY) {
-              obj = obj[charkey];
-            }
-          }
-          if (isEmpty(obj)) {
-            obj = _this.options.emptyTag !== '' ? _this.options.emptyTag : emptyStr;
-          }
-          if (_this.options.validator != null) {
-            xpath = "/" + ((function() {
-              var i, len, results;
-              results = [];
-              for (i = 0, len = stack.length; i < len; i++) {
-                node = stack[i];
-                results.push(node["#name"]);
-              }
-              return results;
-            })()).concat(nodeName).join("/");
-            (function() {
-              var err;
-              try {
-                return obj = _this.options.validator(xpath, s && s[nodeName], obj);
-              } catch (error1) {
-                err = error1;
-                return _this.emit("error", err);
-              }
-            })();
-          }
-          if (_this.options.explicitChildren && !_this.options.mergeAttrs && typeof obj === 'object') {
-            if (!_this.options.preserveChildrenOrder) {
-              node = {};
-              if (_this.options.attrkey in obj) {
-                node[_this.options.attrkey] = obj[_this.options.attrkey];
-                delete obj[_this.options.attrkey];
-              }
-              if (!_this.options.charsAsChildren && _this.options.charkey in obj) {
-                node[_this.options.charkey] = obj[_this.options.charkey];
-                delete obj[_this.options.charkey];
-              }
-              if (Object.getOwnPropertyNames(obj).length > 0) {
-                node[_this.options.childkey] = obj;
-              }
-              obj = node;
-            } else if (s) {
-              s[_this.options.childkey] = s[_this.options.childkey] || [];
-              objClone = {};
-              for (key in obj) {
-                if (!hasProp.call(obj, key)) continue;
-                objClone[key] = obj[key];
-              }
-              s[_this.options.childkey].push(objClone);
-              delete obj["#name"];
-              if (Object.keys(obj).length === 1 && charkey in obj && !_this.EXPLICIT_CHARKEY) {
-                obj = obj[charkey];
-              }
-            }
-          }
-          if (stack.length > 0) {
-            return _this.assignOrPush(s, nodeName, obj);
-          } else {
-            if (_this.options.explicitRoot) {
-              old = obj;
-              obj = {};
-              obj[nodeName] = old;
-            }
-            _this.resultObject = obj;
-            _this.saxParser.ended = true;
-            return _this.emit("end", _this.resultObject);
-          }
-        };
-      })(this);
-      ontext = (function(_this) {
-        return function(text) {
-          var charChild, s;
-          s = stack[stack.length - 1];
-          if (s) {
-            s[charkey] += text;
-            if (_this.options.explicitChildren && _this.options.preserveChildrenOrder && _this.options.charsAsChildren && (_this.options.includeWhiteChars || text.replace(/\\n/g, '').trim() !== '')) {
-              s[_this.options.childkey] = s[_this.options.childkey] || [];
-              charChild = {
-                '#name': '__text__'
-              };
-              charChild[charkey] = text;
-              if (_this.options.normalize) {
-                charChild[charkey] = charChild[charkey].replace(/\s{2,}/g, " ").trim();
-              }
-              s[_this.options.childkey].push(charChild);
-            }
-            return s;
-          }
-        };
-      })(this);
-      this.saxParser.ontext = ontext;
-      return this.saxParser.oncdata = (function(_this) {
-        return function(text) {
-          var s;
-          s = ontext(text);
-          if (s) {
-            return s.cdata = true;
-          }
-        };
-      })(this);
-    };
-
-    Parser.prototype.parseString = function(str, cb) {
-      var err;
-      if ((cb != null) && typeof cb === "function") {
-        this.on("end", function(result) {
-          this.reset();
-          return cb(null, result);
-        });
-        this.on("error", function(err) {
-          this.reset();
-          return cb(err);
-        });
-      }
-      try {
-        str = str.toString();
-        if (str.trim() === '') {
-          this.emit("end", null);
-          return true;
-        }
-        str = bom.stripBOM(str);
-        if (this.options.async) {
-          this.remaining = str;
-          setImmediate(this.processAsync);
-          return this.saxParser;
-        }
-        return this.saxParser.write(str).close();
-      } catch (error1) {
-        err = error1;
-        if (!(this.saxParser.errThrown || this.saxParser.ended)) {
-          this.emit('error', err);
-          return this.saxParser.errThrown = true;
-        } else if (this.saxParser.ended) {
-          throw err;
-        }
-      }
-    };
-
-    return Parser;
-
-  })(events.EventEmitter);
-
-  exports.parseString = function(str, a, b) {
-    var cb, options, parser;
-    if (b != null) {
-      if (typeof b === 'function') {
-        cb = b;
-      }
-      if (typeof a === 'object') {
-        options = a;
-      }
-    } else {
-      if (typeof a === 'function') {
-        cb = a;
-      }
-      options = {};
-    }
-    parser = new exports.Parser(options);
-    return parser.parseString(str, cb);
-  };
-
-}).call(this);
-
-
-/***/ }),
-
-/***/ 640:
-/***/ (function(__unused_webpack_module, exports) {
-
-// Generated by CoffeeScript 1.12.7
-(function() {
-  "use strict";
-  var prefixMatch;
-
-  prefixMatch = new RegExp(/(?!xmlns)^.*:/);
-
-  exports.normalize = function(str) {
-    return str.toLowerCase();
-  };
-
-  exports.firstCharLowerCase = function(str) {
-    return str.charAt(0).toLowerCase() + str.slice(1);
-  };
-
-  exports.stripPrefix = function(str) {
-    return str.replace(prefixMatch, '');
-  };
-
-  exports.parseNumbers = function(str) {
-    if (!isNaN(str)) {
-      str = str % 1 === 0 ? parseInt(str, 10) : parseFloat(str);
-    }
-    return str;
-  };
-
-  exports.parseBooleans = function(str) {
-    if (/^(?:true|false)$/i.test(str)) {
-      str = str.toLowerCase() === 'true';
-    }
-    return str;
-  };
-
-}).call(this);
-
-
-/***/ }),
-
-/***/ 519:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-// Generated by CoffeeScript 1.12.7
-(function() {
-  "use strict";
-  var builder, defaults, parser, processors,
-    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty;
-
-  defaults = __nccwpck_require__(3679);
-
-  builder = __nccwpck_require__(6610);
-
-  parser = __nccwpck_require__(74);
-
-  processors = __nccwpck_require__(640);
-
-  exports.defaults = defaults.defaults;
-
-  exports.processors = processors;
-
-  exports.ValidationError = (function(superClass) {
-    extend(ValidationError, superClass);
-
-    function ValidationError(message) {
-      this.message = message;
-    }
-
-    return ValidationError;
-
-  })(Error);
-
-  exports.Builder = builder.Builder;
-
-  exports.Parser = parser.Parser;
-
-  exports.parseString = parser.parseString;
-
-}).call(this);
-
-
-/***/ }),
-
-/***/ 2335:
-/***/ (function(module) {
-
-// Generated by CoffeeScript 1.12.7
-(function() {
-  var assign, isArray, isEmpty, isFunction, isObject, isPlainObject,
-    slice = [].slice,
-    hasProp = {}.hasOwnProperty;
-
-  assign = function() {
-    var i, key, len, source, sources, target;
-    target = arguments[0], sources = 2 <= arguments.length ? slice.call(arguments, 1) : [];
-    if (isFunction(Object.assign)) {
-      Object.assign.apply(null, arguments);
-    } else {
-      for (i = 0, len = sources.length; i < len; i++) {
-        source = sources[i];
-        if (source != null) {
-          for (key in source) {
-            if (!hasProp.call(source, key)) continue;
-            target[key] = source[key];
-          }
-        }
-      }
-    }
-    return target;
-  };
-
-  isFunction = function(val) {
-    return !!val && Object.prototype.toString.call(val) === '[object Function]';
-  };
-
-  isObject = function(val) {
-    var ref;
-    return !!val && ((ref = typeof val) === 'function' || ref === 'object');
-  };
-
-  isArray = function(val) {
-    if (isFunction(Array.isArray)) {
-      return Array.isArray(val);
-    } else {
-      return Object.prototype.toString.call(val) === '[object Array]';
-    }
-  };
-
-  isEmpty = function(val) {
-    var key;
-    if (isArray(val)) {
-      return !val.length;
-    } else {
-      for (key in val) {
-        if (!hasProp.call(val, key)) continue;
-        return false;
-      }
-      return true;
-    }
-  };
-
-  isPlainObject = function(val) {
-    var ctor, proto;
-    return isObject(val) && (proto = Object.getPrototypeOf(val)) && (ctor = proto.constructor) && (typeof ctor === 'function') && (ctor instanceof ctor) && (Function.prototype.toString.call(ctor) === Function.prototype.toString.call(Object));
-  };
-
-  module.exports.assign = assign;
-
-  module.exports.isFunction = isFunction;
-
-  module.exports.isObject = isObject;
-
-  module.exports.isArray = isArray;
-
-  module.exports.isEmpty = isEmpty;
-
-  module.exports.isPlainObject = isPlainObject;
-
-}).call(this);
-
-
-/***/ }),
-
-/***/ 7760:
-/***/ (function(module) {
-
-// Generated by CoffeeScript 1.12.7
-(function() {
-  var XMLAttribute;
-
-  module.exports = XMLAttribute = (function() {
-    function XMLAttribute(parent, name, value) {
-      this.options = parent.options;
-      this.stringify = parent.stringify;
-      if (name == null) {
-        throw new Error("Missing attribute name of element " + parent.name);
-      }
-      if (value == null) {
-        throw new Error("Missing attribute value for attribute " + name + " of element " + parent.name);
-      }
-      this.name = this.stringify.attName(name);
-      this.value = this.stringify.attValue(value);
-    }
-
-    XMLAttribute.prototype.clone = function() {
-      return Object.create(this);
-    };
-
-    XMLAttribute.prototype.toString = function(options) {
-      return this.options.writer.set(options).attribute(this);
-    };
-
-    return XMLAttribute;
-
-  })();
-
-}).call(this);
-
-
-/***/ }),
-
-/***/ 4697:
-/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
-
-// Generated by CoffeeScript 1.12.7
-(function() {
-  var XMLCData, XMLNode,
-    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty;
-
-  XMLNode = __nccwpck_require__(2482);
-
-  module.exports = XMLCData = (function(superClass) {
-    extend(XMLCData, superClass);
-
-    function XMLCData(parent, text) {
-      XMLCData.__super__.constructor.call(this, parent);
-      if (text == null) {
-        throw new Error("Missing CDATA text");
-      }
-      this.text = this.stringify.cdata(text);
-    }
-
-    XMLCData.prototype.clone = function() {
-      return Object.create(this);
-    };
-
-    XMLCData.prototype.toString = function(options) {
-      return this.options.writer.set(options).cdata(this);
-    };
-
-    return XMLCData;
-
-  })(XMLNode);
-
-}).call(this);
-
-
-/***/ }),
-
-/***/ 413:
-/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
-
-// Generated by CoffeeScript 1.12.7
-(function() {
-  var XMLComment, XMLNode,
-    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty;
-
-  XMLNode = __nccwpck_require__(2482);
-
-  module.exports = XMLComment = (function(superClass) {
-    extend(XMLComment, superClass);
-
-    function XMLComment(parent, text) {
-      XMLComment.__super__.constructor.call(this, parent);
-      if (text == null) {
-        throw new Error("Missing comment text");
-      }
-      this.text = this.stringify.comment(text);
-    }
-
-    XMLComment.prototype.clone = function() {
-      return Object.create(this);
-    };
-
-    XMLComment.prototype.toString = function(options) {
-      return this.options.writer.set(options).comment(this);
-    };
-
-    return XMLComment;
-
-  })(XMLNode);
-
-}).call(this);
-
-
-/***/ }),
-
-/***/ 1833:
-/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
-
-// Generated by CoffeeScript 1.12.7
-(function() {
-  var XMLDTDAttList, XMLNode,
-    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty;
-
-  XMLNode = __nccwpck_require__(2482);
-
-  module.exports = XMLDTDAttList = (function(superClass) {
-    extend(XMLDTDAttList, superClass);
-
-    function XMLDTDAttList(parent, elementName, attributeName, attributeType, defaultValueType, defaultValue) {
-      XMLDTDAttList.__super__.constructor.call(this, parent);
-      if (elementName == null) {
-        throw new Error("Missing DTD element name");
-      }
-      if (attributeName == null) {
-        throw new Error("Missing DTD attribute name");
-      }
-      if (!attributeType) {
-        throw new Error("Missing DTD attribute type");
-      }
-      if (!defaultValueType) {
-        throw new Error("Missing DTD attribute default");
-      }
-      if (defaultValueType.indexOf('#') !== 0) {
-        defaultValueType = '#' + defaultValueType;
-      }
-      if (!defaultValueType.match(/^(#REQUIRED|#IMPLIED|#FIXED|#DEFAULT)$/)) {
-        throw new Error("Invalid default value type; expected: #REQUIRED, #IMPLIED, #FIXED or #DEFAULT");
-      }
-      if (defaultValue && !defaultValueType.match(/^(#FIXED|#DEFAULT)$/)) {
-        throw new Error("Default value only applies to #FIXED or #DEFAULT");
-      }
-      this.elementName = this.stringify.eleName(elementName);
-      this.attributeName = this.stringify.attName(attributeName);
-      this.attributeType = this.stringify.dtdAttType(attributeType);
-      this.defaultValue = this.stringify.dtdAttDefault(defaultValue);
-      this.defaultValueType = defaultValueType;
-    }
-
-    XMLDTDAttList.prototype.toString = function(options) {
-      return this.options.writer.set(options).dtdAttList(this);
-    };
-
-    return XMLDTDAttList;
-
-  })(XMLNode);
-
-}).call(this);
-
-
-/***/ }),
-
-/***/ 714:
-/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
-
-// Generated by CoffeeScript 1.12.7
-(function() {
-  var XMLDTDElement, XMLNode,
-    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty;
-
-  XMLNode = __nccwpck_require__(2482);
-
-  module.exports = XMLDTDElement = (function(superClass) {
-    extend(XMLDTDElement, superClass);
-
-    function XMLDTDElement(parent, name, value) {
-      XMLDTDElement.__super__.constructor.call(this, parent);
-      if (name == null) {
-        throw new Error("Missing DTD element name");
-      }
-      if (!value) {
-        value = '(#PCDATA)';
-      }
-      if (Array.isArray(value)) {
-        value = '(' + value.join(',') + ')';
-      }
-      this.name = this.stringify.eleName(name);
-      this.value = this.stringify.dtdElementValue(value);
-    }
-
-    XMLDTDElement.prototype.toString = function(options) {
-      return this.options.writer.set(options).dtdElement(this);
-    };
-
-    return XMLDTDElement;
-
-  })(XMLNode);
-
-}).call(this);
-
-
-/***/ }),
-
-/***/ 2615:
-/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
-
-// Generated by CoffeeScript 1.12.7
-(function() {
-  var XMLDTDEntity, XMLNode, isObject,
-    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty;
-
-  isObject = (__nccwpck_require__(2335).isObject);
-
-  XMLNode = __nccwpck_require__(2482);
-
-  module.exports = XMLDTDEntity = (function(superClass) {
-    extend(XMLDTDEntity, superClass);
-
-    function XMLDTDEntity(parent, pe, name, value) {
-      XMLDTDEntity.__super__.constructor.call(this, parent);
-      if (name == null) {
-        throw new Error("Missing entity name");
-      }
-      if (value == null) {
-        throw new Error("Missing entity value");
-      }
-      this.pe = !!pe;
-      this.name = this.stringify.eleName(name);
-      if (!isObject(value)) {
-        this.value = this.stringify.dtdEntityValue(value);
-      } else {
-        if (!value.pubID && !value.sysID) {
-          throw new Error("Public and/or system identifiers are required for an external entity");
-        }
-        if (value.pubID && !value.sysID) {
-          throw new Error("System identifier is required for a public external entity");
-        }
-        if (value.pubID != null) {
-          this.pubID = this.stringify.dtdPubID(value.pubID);
-        }
-        if (value.sysID != null) {
-          this.sysID = this.stringify.dtdSysID(value.sysID);
-        }
-        if (value.nData != null) {
-          this.nData = this.stringify.dtdNData(value.nData);
-        }
-        if (this.pe && this.nData) {
-          throw new Error("Notation declaration is not allowed in a parameter entity");
-        }
-      }
-    }
-
-    XMLDTDEntity.prototype.toString = function(options) {
-      return this.options.writer.set(options).dtdEntity(this);
-    };
-
-    return XMLDTDEntity;
-
-  })(XMLNode);
-
-}).call(this);
-
-
-/***/ }),
-
-/***/ 2878:
-/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
-
-// Generated by CoffeeScript 1.12.7
-(function() {
-  var XMLDTDNotation, XMLNode,
-    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty;
-
-  XMLNode = __nccwpck_require__(2482);
-
-  module.exports = XMLDTDNotation = (function(superClass) {
-    extend(XMLDTDNotation, superClass);
-
-    function XMLDTDNotation(parent, name, value) {
-      XMLDTDNotation.__super__.constructor.call(this, parent);
-      if (name == null) {
-        throw new Error("Missing notation name");
-      }
-      if (!value.pubID && !value.sysID) {
-        throw new Error("Public or system identifiers are required for an external entity");
-      }
-      this.name = this.stringify.eleName(name);
-      if (value.pubID != null) {
-        this.pubID = this.stringify.dtdPubID(value.pubID);
-      }
-      if (value.sysID != null) {
-        this.sysID = this.stringify.dtdSysID(value.sysID);
-      }
-    }
-
-    XMLDTDNotation.prototype.toString = function(options) {
-      return this.options.writer.set(options).dtdNotation(this);
-    };
-
-    return XMLDTDNotation;
-
-  })(XMLNode);
-
-}).call(this);
-
-
-/***/ }),
-
-/***/ 6172:
-/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
-
-// Generated by CoffeeScript 1.12.7
-(function() {
-  var XMLDeclaration, XMLNode, isObject,
-    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty;
-
-  isObject = (__nccwpck_require__(2335).isObject);
-
-  XMLNode = __nccwpck_require__(2482);
-
-  module.exports = XMLDeclaration = (function(superClass) {
-    extend(XMLDeclaration, superClass);
-
-    function XMLDeclaration(parent, version, encoding, standalone) {
-      var ref;
-      XMLDeclaration.__super__.constructor.call(this, parent);
-      if (isObject(version)) {
-        ref = version, version = ref.version, encoding = ref.encoding, standalone = ref.standalone;
-      }
-      if (!version) {
-        version = '1.0';
-      }
-      this.version = this.stringify.xmlVersion(version);
-      if (encoding != null) {
-        this.encoding = this.stringify.xmlEncoding(encoding);
-      }
-      if (standalone != null) {
-        this.standalone = this.stringify.xmlStandalone(standalone);
-      }
-    }
-
-    XMLDeclaration.prototype.toString = function(options) {
-      return this.options.writer.set(options).declaration(this);
-    };
-
-    return XMLDeclaration;
-
-  })(XMLNode);
-
-}).call(this);
-
-
-/***/ }),
-
-/***/ 978:
-/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
-
-// Generated by CoffeeScript 1.12.7
-(function() {
-  var XMLDTDAttList, XMLDTDElement, XMLDTDEntity, XMLDTDNotation, XMLDocType, XMLNode, isObject,
-    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty;
-
-  isObject = (__nccwpck_require__(2335).isObject);
-
-  XMLNode = __nccwpck_require__(2482);
-
-  XMLDTDAttList = __nccwpck_require__(1833);
-
-  XMLDTDEntity = __nccwpck_require__(2615);
-
-  XMLDTDElement = __nccwpck_require__(714);
-
-  XMLDTDNotation = __nccwpck_require__(2878);
-
-  module.exports = XMLDocType = (function(superClass) {
-    extend(XMLDocType, superClass);
-
-    function XMLDocType(parent, pubID, sysID) {
-      var ref, ref1;
-      XMLDocType.__super__.constructor.call(this, parent);
-      this.documentObject = parent;
-      if (isObject(pubID)) {
-        ref = pubID, pubID = ref.pubID, sysID = ref.sysID;
-      }
-      if (sysID == null) {
-        ref1 = [pubID, sysID], sysID = ref1[0], pubID = ref1[1];
-      }
-      if (pubID != null) {
-        this.pubID = this.stringify.dtdPubID(pubID);
-      }
-      if (sysID != null) {
-        this.sysID = this.stringify.dtdSysID(sysID);
-      }
-    }
-
-    XMLDocType.prototype.element = function(name, value) {
-      var child;
-      child = new XMLDTDElement(this, name, value);
-      this.children.push(child);
-      return this;
-    };
-
-    XMLDocType.prototype.attList = function(elementName, attributeName, attributeType, defaultValueType, defaultValue) {
-      var child;
-      child = new XMLDTDAttList(this, elementName, attributeName, attributeType, defaultValueType, defaultValue);
-      this.children.push(child);
-      return this;
-    };
-
-    XMLDocType.prototype.entity = function(name, value) {
-      var child;
-      child = new XMLDTDEntity(this, false, name, value);
-      this.children.push(child);
-      return this;
-    };
-
-    XMLDocType.prototype.pEntity = function(name, value) {
-      var child;
-      child = new XMLDTDEntity(this, true, name, value);
-      this.children.push(child);
-      return this;
-    };
-
-    XMLDocType.prototype.notation = function(name, value) {
-      var child;
-      child = new XMLDTDNotation(this, name, value);
-      this.children.push(child);
-      return this;
-    };
-
-    XMLDocType.prototype.toString = function(options) {
-      return this.options.writer.set(options).docType(this);
-    };
-
-    XMLDocType.prototype.ele = function(name, value) {
-      return this.element(name, value);
-    };
-
-    XMLDocType.prototype.att = function(elementName, attributeName, attributeType, defaultValueType, defaultValue) {
-      return this.attList(elementName, attributeName, attributeType, defaultValueType, defaultValue);
-    };
-
-    XMLDocType.prototype.ent = function(name, value) {
-      return this.entity(name, value);
-    };
-
-    XMLDocType.prototype.pent = function(name, value) {
-      return this.pEntity(name, value);
-    };
-
-    XMLDocType.prototype.not = function(name, value) {
-      return this.notation(name, value);
-    };
-
-    XMLDocType.prototype.up = function() {
-      return this.root() || this.documentObject;
-    };
-
-    return XMLDocType;
-
-  })(XMLNode);
-
-}).call(this);
-
-
-/***/ }),
-
-/***/ 4879:
-/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
-
-// Generated by CoffeeScript 1.12.7
-(function() {
-  var XMLDocument, XMLNode, XMLStringWriter, XMLStringifier, isPlainObject,
-    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty;
-
-  isPlainObject = (__nccwpck_require__(2335).isPlainObject);
-
-  XMLNode = __nccwpck_require__(2482);
-
-  XMLStringifier = __nccwpck_require__(874);
-
-  XMLStringWriter = __nccwpck_require__(4672);
-
-  module.exports = XMLDocument = (function(superClass) {
-    extend(XMLDocument, superClass);
-
-    function XMLDocument(options) {
-      XMLDocument.__super__.constructor.call(this, null);
-      options || (options = {});
-      if (!options.writer) {
-        options.writer = new XMLStringWriter();
-      }
-      this.options = options;
-      this.stringify = new XMLStringifier(options);
-      this.isDocument = true;
-    }
-
-    XMLDocument.prototype.end = function(writer) {
-      var writerOptions;
-      if (!writer) {
-        writer = this.options.writer;
-      } else if (isPlainObject(writer)) {
-        writerOptions = writer;
-        writer = this.options.writer.set(writerOptions);
-      }
-      return writer.document(this);
-    };
-
-    XMLDocument.prototype.toString = function(options) {
-      return this.options.writer.set(options).document(this);
-    };
-
-    return XMLDocument;
-
-  })(XMLNode);
-
-}).call(this);
-
-
-/***/ }),
-
-/***/ 5706:
-/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
-
-// Generated by CoffeeScript 1.12.7
-(function() {
-  var XMLAttribute, XMLCData, XMLComment, XMLDTDAttList, XMLDTDElement, XMLDTDEntity, XMLDTDNotation, XMLDeclaration, XMLDocType, XMLDocumentCB, XMLElement, XMLProcessingInstruction, XMLRaw, XMLStringWriter, XMLStringifier, XMLText, isFunction, isObject, isPlainObject, ref,
-    hasProp = {}.hasOwnProperty;
-
-  ref = __nccwpck_require__(2335), isObject = ref.isObject, isFunction = ref.isFunction, isPlainObject = ref.isPlainObject;
-
-  XMLElement = __nccwpck_require__(8616);
-
-  XMLCData = __nccwpck_require__(4697);
-
-  XMLComment = __nccwpck_require__(413);
-
-  XMLRaw = __nccwpck_require__(6782);
-
-  XMLText = __nccwpck_require__(3469);
-
-  XMLProcessingInstruction = __nccwpck_require__(5809);
-
-  XMLDeclaration = __nccwpck_require__(6172);
-
-  XMLDocType = __nccwpck_require__(978);
-
-  XMLDTDAttList = __nccwpck_require__(1833);
-
-  XMLDTDEntity = __nccwpck_require__(2615);
-
-  XMLDTDElement = __nccwpck_require__(714);
-
-  XMLDTDNotation = __nccwpck_require__(2878);
-
-  XMLAttribute = __nccwpck_require__(7760);
-
-  XMLStringifier = __nccwpck_require__(874);
-
-  XMLStringWriter = __nccwpck_require__(4672);
-
-  module.exports = XMLDocumentCB = (function() {
-    function XMLDocumentCB(options, onData, onEnd) {
-      var writerOptions;
-      options || (options = {});
-      if (!options.writer) {
-        options.writer = new XMLStringWriter(options);
-      } else if (isPlainObject(options.writer)) {
-        writerOptions = options.writer;
-        options.writer = new XMLStringWriter(writerOptions);
-      }
-      this.options = options;
-      this.writer = options.writer;
-      this.stringify = new XMLStringifier(options);
-      this.onDataCallback = onData || function() {};
-      this.onEndCallback = onEnd || function() {};
-      this.currentNode = null;
-      this.currentLevel = -1;
-      this.openTags = {};
-      this.documentStarted = false;
-      this.documentCompleted = false;
-      this.root = null;
-    }
-
-    XMLDocumentCB.prototype.node = function(name, attributes, text) {
-      var ref1;
-      if (name == null) {
-        throw new Error("Missing node name");
-      }
-      if (this.root && this.currentLevel === -1) {
-        throw new Error("Document can only have one root node");
-      }
-      this.openCurrent();
-      name = name.valueOf();
-      if (attributes == null) {
-        attributes = {};
-      }
-      attributes = attributes.valueOf();
-      if (!isObject(attributes)) {
-        ref1 = [attributes, text], text = ref1[0], attributes = ref1[1];
-      }
-      this.currentNode = new XMLElement(this, name, attributes);
-      this.currentNode.children = false;
-      this.currentLevel++;
-      this.openTags[this.currentLevel] = this.currentNode;
-      if (text != null) {
-        this.text(text);
-      }
-      return this;
-    };
-
-    XMLDocumentCB.prototype.element = function(name, attributes, text) {
-      if (this.currentNode && this.currentNode instanceof XMLDocType) {
-        return this.dtdElement.apply(this, arguments);
-      } else {
-        return this.node(name, attributes, text);
-      }
-    };
-
-    XMLDocumentCB.prototype.attribute = function(name, value) {
-      var attName, attValue;
-      if (!this.currentNode || this.currentNode.children) {
-        throw new Error("att() can only be used immediately after an ele() call in callback mode");
-      }
-      if (name != null) {
-        name = name.valueOf();
-      }
-      if (isObject(name)) {
-        for (attName in name) {
-          if (!hasProp.call(name, attName)) continue;
-          attValue = name[attName];
-          this.attribute(attName, attValue);
-        }
-      } else {
-        if (isFunction(value)) {
-          value = value.apply();
-        }
-        if (!this.options.skipNullAttributes || (value != null)) {
-          this.currentNode.attributes[name] = new XMLAttribute(this, name, value);
-        }
-      }
-      return this;
-    };
-
-    XMLDocumentCB.prototype.text = function(value) {
-      var node;
-      this.openCurrent();
-      node = new XMLText(this, value);
-      this.onData(this.writer.text(node, this.currentLevel + 1));
-      return this;
-    };
-
-    XMLDocumentCB.prototype.cdata = function(value) {
-      var node;
-      this.openCurrent();
-      node = new XMLCData(this, value);
-      this.onData(this.writer.cdata(node, this.currentLevel + 1));
-      return this;
-    };
-
-    XMLDocumentCB.prototype.comment = function(value) {
-      var node;
-      this.openCurrent();
-      node = new XMLComment(this, value);
-      this.onData(this.writer.comment(node, this.currentLevel + 1));
-      return this;
-    };
-
-    XMLDocumentCB.prototype.raw = function(value) {
-      var node;
-      this.openCurrent();
-      node = new XMLRaw(this, value);
-      this.onData(this.writer.raw(node, this.currentLevel + 1));
-      return this;
-    };
-
-    XMLDocumentCB.prototype.instruction = function(target, value) {
-      var i, insTarget, insValue, len, node;
-      this.openCurrent();
-      if (target != null) {
-        target = target.valueOf();
-      }
-      if (value != null) {
-        value = value.valueOf();
-      }
-      if (Array.isArray(target)) {
-        for (i = 0, len = target.length; i < len; i++) {
-          insTarget = target[i];
-          this.instruction(insTarget);
-        }
-      } else if (isObject(target)) {
-        for (insTarget in target) {
-          if (!hasProp.call(target, insTarget)) continue;
-          insValue = target[insTarget];
-          this.instruction(insTarget, insValue);
-        }
-      } else {
-        if (isFunction(value)) {
-          value = value.apply();
-        }
-        node = new XMLProcessingInstruction(this, target, value);
-        this.onData(this.writer.processingInstruction(node, this.currentLevel + 1));
-      }
-      return this;
-    };
-
-    XMLDocumentCB.prototype.declaration = function(version, encoding, standalone) {
-      var node;
-      this.openCurrent();
-      if (this.documentStarted) {
-        throw new Error("declaration() must be the first node");
-      }
-      node = new XMLDeclaration(this, version, encoding, standalone);
-      this.onData(this.writer.declaration(node, this.currentLevel + 1));
-      return this;
-    };
-
-    XMLDocumentCB.prototype.doctype = function(root, pubID, sysID) {
-      this.openCurrent();
-      if (root == null) {
-        throw new Error("Missing root node name");
-      }
-      if (this.root) {
-        throw new Error("dtd() must come before the root node");
-      }
-      this.currentNode = new XMLDocType(this, pubID, sysID);
-      this.currentNode.rootNodeName = root;
-      this.currentNode.children = false;
-      this.currentLevel++;
-      this.openTags[this.currentLevel] = this.currentNode;
-      return this;
-    };
-
-    XMLDocumentCB.prototype.dtdElement = function(name, value) {
-      var node;
-      this.openCurrent();
-      node = new XMLDTDElement(this, name, value);
-      this.onData(this.writer.dtdElement(node, this.currentLevel + 1));
-      return this;
-    };
-
-    XMLDocumentCB.prototype.attList = function(elementName, attributeName, attributeType, defaultValueType, defaultValue) {
-      var node;
-      this.openCurrent();
-      node = new XMLDTDAttList(this, elementName, attributeName, attributeType, defaultValueType, defaultValue);
-      this.onData(this.writer.dtdAttList(node, this.currentLevel + 1));
-      return this;
-    };
-
-    XMLDocumentCB.prototype.entity = function(name, value) {
-      var node;
-      this.openCurrent();
-      node = new XMLDTDEntity(this, false, name, value);
-      this.onData(this.writer.dtdEntity(node, this.currentLevel + 1));
-      return this;
-    };
-
-    XMLDocumentCB.prototype.pEntity = function(name, value) {
-      var node;
-      this.openCurrent();
-      node = new XMLDTDEntity(this, true, name, value);
-      this.onData(this.writer.dtdEntity(node, this.currentLevel + 1));
-      return this;
-    };
-
-    XMLDocumentCB.prototype.notation = function(name, value) {
-      var node;
-      this.openCurrent();
-      node = new XMLDTDNotation(this, name, value);
-      this.onData(this.writer.dtdNotation(node, this.currentLevel + 1));
-      return this;
-    };
-
-    XMLDocumentCB.prototype.up = function() {
-      if (this.currentLevel < 0) {
-        throw new Error("The document node has no parent");
-      }
-      if (this.currentNode) {
-        if (this.currentNode.children) {
-          this.closeNode(this.currentNode);
-        } else {
-          this.openNode(this.currentNode);
-        }
-        this.currentNode = null;
-      } else {
-        this.closeNode(this.openTags[this.currentLevel]);
-      }
-      delete this.openTags[this.currentLevel];
-      this.currentLevel--;
-      return this;
-    };
-
-    XMLDocumentCB.prototype.end = function() {
-      while (this.currentLevel >= 0) {
-        this.up();
-      }
-      return this.onEnd();
-    };
-
-    XMLDocumentCB.prototype.openCurrent = function() {
-      if (this.currentNode) {
-        this.currentNode.children = true;
-        return this.openNode(this.currentNode);
-      }
-    };
-
-    XMLDocumentCB.prototype.openNode = function(node) {
-      if (!node.isOpen) {
-        if (!this.root && this.currentLevel === 0 && node instanceof XMLElement) {
-          this.root = node;
-        }
-        this.onData(this.writer.openNode(node, this.currentLevel));
-        return node.isOpen = true;
-      }
-    };
-
-    XMLDocumentCB.prototype.closeNode = function(node) {
-      if (!node.isClosed) {
-        this.onData(this.writer.closeNode(node, this.currentLevel));
-        return node.isClosed = true;
-      }
-    };
-
-    XMLDocumentCB.prototype.onData = function(chunk) {
-      this.documentStarted = true;
-      return this.onDataCallback(chunk);
-    };
-
-    XMLDocumentCB.prototype.onEnd = function() {
-      this.documentCompleted = true;
-      return this.onEndCallback();
-    };
-
-    XMLDocumentCB.prototype.ele = function() {
-      return this.element.apply(this, arguments);
-    };
-
-    XMLDocumentCB.prototype.nod = function(name, attributes, text) {
-      return this.node(name, attributes, text);
-    };
-
-    XMLDocumentCB.prototype.txt = function(value) {
-      return this.text(value);
-    };
-
-    XMLDocumentCB.prototype.dat = function(value) {
-      return this.cdata(value);
-    };
-
-    XMLDocumentCB.prototype.com = function(value) {
-      return this.comment(value);
-    };
-
-    XMLDocumentCB.prototype.ins = function(target, value) {
-      return this.instruction(target, value);
-    };
-
-    XMLDocumentCB.prototype.dec = function(version, encoding, standalone) {
-      return this.declaration(version, encoding, standalone);
-    };
-
-    XMLDocumentCB.prototype.dtd = function(root, pubID, sysID) {
-      return this.doctype(root, pubID, sysID);
-    };
-
-    XMLDocumentCB.prototype.e = function(name, attributes, text) {
-      return this.element(name, attributes, text);
-    };
-
-    XMLDocumentCB.prototype.n = function(name, attributes, text) {
-      return this.node(name, attributes, text);
-    };
-
-    XMLDocumentCB.prototype.t = function(value) {
-      return this.text(value);
-    };
-
-    XMLDocumentCB.prototype.d = function(value) {
-      return this.cdata(value);
-    };
-
-    XMLDocumentCB.prototype.c = function(value) {
-      return this.comment(value);
-    };
-
-    XMLDocumentCB.prototype.r = function(value) {
-      return this.raw(value);
-    };
-
-    XMLDocumentCB.prototype.i = function(target, value) {
-      return this.instruction(target, value);
-    };
-
-    XMLDocumentCB.prototype.att = function() {
-      if (this.currentNode && this.currentNode instanceof XMLDocType) {
-        return this.attList.apply(this, arguments);
-      } else {
-        return this.attribute.apply(this, arguments);
-      }
-    };
-
-    XMLDocumentCB.prototype.a = function() {
-      if (this.currentNode && this.currentNode instanceof XMLDocType) {
-        return this.attList.apply(this, arguments);
-      } else {
-        return this.attribute.apply(this, arguments);
-      }
-    };
-
-    XMLDocumentCB.prototype.ent = function(name, value) {
-      return this.entity(name, value);
-    };
-
-    XMLDocumentCB.prototype.pent = function(name, value) {
-      return this.pEntity(name, value);
-    };
-
-    XMLDocumentCB.prototype.not = function(name, value) {
-      return this.notation(name, value);
-    };
-
-    return XMLDocumentCB;
-
-  })();
-
-}).call(this);
-
-
-/***/ }),
-
-/***/ 8616:
-/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
-
-// Generated by CoffeeScript 1.12.7
-(function() {
-  var XMLAttribute, XMLElement, XMLNode, isFunction, isObject, ref,
-    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty;
-
-  ref = __nccwpck_require__(2335), isObject = ref.isObject, isFunction = ref.isFunction;
-
-  XMLNode = __nccwpck_require__(2482);
-
-  XMLAttribute = __nccwpck_require__(7760);
-
-  module.exports = XMLElement = (function(superClass) {
-    extend(XMLElement, superClass);
-
-    function XMLElement(parent, name, attributes) {
-      XMLElement.__super__.constructor.call(this, parent);
-      if (name == null) {
-        throw new Error("Missing element name");
-      }
-      this.name = this.stringify.eleName(name);
-      this.attributes = {};
-      if (attributes != null) {
-        this.attribute(attributes);
-      }
-      if (parent.isDocument) {
-        this.isRoot = true;
-        this.documentObject = parent;
-        parent.rootObject = this;
-      }
-    }
-
-    XMLElement.prototype.clone = function() {
-      var att, attName, clonedSelf, ref1;
-      clonedSelf = Object.create(this);
-      if (clonedSelf.isRoot) {
-        clonedSelf.documentObject = null;
-      }
-      clonedSelf.attributes = {};
-      ref1 = this.attributes;
-      for (attName in ref1) {
-        if (!hasProp.call(ref1, attName)) continue;
-        att = ref1[attName];
-        clonedSelf.attributes[attName] = att.clone();
-      }
-      clonedSelf.children = [];
-      this.children.forEach(function(child) {
-        var clonedChild;
-        clonedChild = child.clone();
-        clonedChild.parent = clonedSelf;
-        return clonedSelf.children.push(clonedChild);
-      });
-      return clonedSelf;
-    };
-
-    XMLElement.prototype.attribute = function(name, value) {
-      var attName, attValue;
-      if (name != null) {
-        name = name.valueOf();
-      }
-      if (isObject(name)) {
-        for (attName in name) {
-          if (!hasProp.call(name, attName)) continue;
-          attValue = name[attName];
-          this.attribute(attName, attValue);
-        }
-      } else {
-        if (isFunction(value)) {
-          value = value.apply();
-        }
-        if (!this.options.skipNullAttributes || (value != null)) {
-          this.attributes[name] = new XMLAttribute(this, name, value);
-        }
-      }
-      return this;
-    };
-
-    XMLElement.prototype.removeAttribute = function(name) {
-      var attName, i, len;
-      if (name == null) {
-        throw new Error("Missing attribute name");
-      }
-      name = name.valueOf();
-      if (Array.isArray(name)) {
-        for (i = 0, len = name.length; i < len; i++) {
-          attName = name[i];
-          delete this.attributes[attName];
-        }
-      } else {
-        delete this.attributes[name];
-      }
-      return this;
-    };
-
-    XMLElement.prototype.toString = function(options) {
-      return this.options.writer.set(options).element(this);
-    };
-
-    XMLElement.prototype.att = function(name, value) {
-      return this.attribute(name, value);
-    };
-
-    XMLElement.prototype.a = function(name, value) {
-      return this.attribute(name, value);
-    };
-
-    return XMLElement;
-
-  })(XMLNode);
-
-}).call(this);
-
-
-/***/ }),
-
-/***/ 2482:
-/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
-
-// Generated by CoffeeScript 1.12.7
-(function() {
-  var XMLCData, XMLComment, XMLDeclaration, XMLDocType, XMLElement, XMLNode, XMLProcessingInstruction, XMLRaw, XMLText, isEmpty, isFunction, isObject, ref,
-    hasProp = {}.hasOwnProperty;
-
-  ref = __nccwpck_require__(2335), isObject = ref.isObject, isFunction = ref.isFunction, isEmpty = ref.isEmpty;
-
-  XMLElement = null;
-
-  XMLCData = null;
-
-  XMLComment = null;
-
-  XMLDeclaration = null;
-
-  XMLDocType = null;
-
-  XMLRaw = null;
-
-  XMLText = null;
-
-  XMLProcessingInstruction = null;
-
-  module.exports = XMLNode = (function() {
-    function XMLNode(parent) {
-      this.parent = parent;
-      if (this.parent) {
-        this.options = this.parent.options;
-        this.stringify = this.parent.stringify;
-      }
-      this.children = [];
-      if (!XMLElement) {
-        XMLElement = __nccwpck_require__(8616);
-        XMLCData = __nccwpck_require__(4697);
-        XMLComment = __nccwpck_require__(413);
-        XMLDeclaration = __nccwpck_require__(6172);
-        XMLDocType = __nccwpck_require__(978);
-        XMLRaw = __nccwpck_require__(6782);
-        XMLText = __nccwpck_require__(3469);
-        XMLProcessingInstruction = __nccwpck_require__(5809);
-      }
-    }
-
-    XMLNode.prototype.element = function(name, attributes, text) {
-      var childNode, item, j, k, key, lastChild, len, len1, ref1, val;
-      lastChild = null;
-      if (attributes == null) {
-        attributes = {};
-      }
-      attributes = attributes.valueOf();
-      if (!isObject(attributes)) {
-        ref1 = [attributes, text], text = ref1[0], attributes = ref1[1];
-      }
-      if (name != null) {
-        name = name.valueOf();
-      }
-      if (Array.isArray(name)) {
-        for (j = 0, len = name.length; j < len; j++) {
-          item = name[j];
-          lastChild = this.element(item);
-        }
-      } else if (isFunction(name)) {
-        lastChild = this.element(name.apply());
-      } else if (isObject(name)) {
-        for (key in name) {
-          if (!hasProp.call(name, key)) continue;
-          val = name[key];
-          if (isFunction(val)) {
-            val = val.apply();
-          }
-          if ((isObject(val)) && (isEmpty(val))) {
-            val = null;
-          }
-          if (!this.options.ignoreDecorators && this.stringify.convertAttKey && key.indexOf(this.stringify.convertAttKey) === 0) {
-            lastChild = this.attribute(key.substr(this.stringify.convertAttKey.length), val);
-          } else if (!this.options.separateArrayItems && Array.isArray(val)) {
-            for (k = 0, len1 = val.length; k < len1; k++) {
-              item = val[k];
-              childNode = {};
-              childNode[key] = item;
-              lastChild = this.element(childNode);
-            }
-          } else if (isObject(val)) {
-            lastChild = this.element(key);
-            lastChild.element(val);
-          } else {
-            lastChild = this.element(key, val);
-          }
-        }
-      } else {
-        if (!this.options.ignoreDecorators && this.stringify.convertTextKey && name.indexOf(this.stringify.convertTextKey) === 0) {
-          lastChild = this.text(text);
-        } else if (!this.options.ignoreDecorators && this.stringify.convertCDataKey && name.indexOf(this.stringify.convertCDataKey) === 0) {
-          lastChild = this.cdata(text);
-        } else if (!this.options.ignoreDecorators && this.stringify.convertCommentKey && name.indexOf(this.stringify.convertCommentKey) === 0) {
-          lastChild = this.comment(text);
-        } else if (!this.options.ignoreDecorators && this.stringify.convertRawKey && name.indexOf(this.stringify.convertRawKey) === 0) {
-          lastChild = this.raw(text);
-        } else if (!this.options.ignoreDecorators && this.stringify.convertPIKey && name.indexOf(this.stringify.convertPIKey) === 0) {
-          lastChild = this.instruction(name.substr(this.stringify.convertPIKey.length), text);
-        } else {
-          lastChild = this.node(name, attributes, text);
-        }
-      }
-      if (lastChild == null) {
-        throw new Error("Could not create any elements with: " + name);
-      }
-      return lastChild;
-    };
-
-    XMLNode.prototype.insertBefore = function(name, attributes, text) {
-      var child, i, removed;
-      if (this.isRoot) {
-        throw new Error("Cannot insert elements at root level");
-      }
-      i = this.parent.children.indexOf(this);
-      removed = this.parent.children.splice(i);
-      child = this.parent.element(name, attributes, text);
-      Array.prototype.push.apply(this.parent.children, removed);
-      return child;
-    };
-
-    XMLNode.prototype.insertAfter = function(name, attributes, text) {
-      var child, i, removed;
-      if (this.isRoot) {
-        throw new Error("Cannot insert elements at root level");
-      }
-      i = this.parent.children.indexOf(this);
-      removed = this.parent.children.splice(i + 1);
-      child = this.parent.element(name, attributes, text);
-      Array.prototype.push.apply(this.parent.children, removed);
-      return child;
-    };
-
-    XMLNode.prototype.remove = function() {
-      var i, ref1;
-      if (this.isRoot) {
-        throw new Error("Cannot remove the root element");
-      }
-      i = this.parent.children.indexOf(this);
-      [].splice.apply(this.parent.children, [i, i - i + 1].concat(ref1 = [])), ref1;
-      return this.parent;
-    };
-
-    XMLNode.prototype.node = function(name, attributes, text) {
-      var child, ref1;
-      if (name != null) {
-        name = name.valueOf();
-      }
-      attributes || (attributes = {});
-      attributes = attributes.valueOf();
-      if (!isObject(attributes)) {
-        ref1 = [attributes, text], text = ref1[0], attributes = ref1[1];
-      }
-      child = new XMLElement(this, name, attributes);
-      if (text != null) {
-        child.text(text);
-      }
-      this.children.push(child);
-      return child;
-    };
-
-    XMLNode.prototype.text = function(value) {
-      var child;
-      child = new XMLText(this, value);
-      this.children.push(child);
-      return this;
-    };
-
-    XMLNode.prototype.cdata = function(value) {
-      var child;
-      child = new XMLCData(this, value);
-      this.children.push(child);
-      return this;
-    };
-
-    XMLNode.prototype.comment = function(value) {
-      var child;
-      child = new XMLComment(this, value);
-      this.children.push(child);
-      return this;
-    };
-
-    XMLNode.prototype.commentBefore = function(value) {
-      var child, i, removed;
-      i = this.parent.children.indexOf(this);
-      removed = this.parent.children.splice(i);
-      child = this.parent.comment(value);
-      Array.prototype.push.apply(this.parent.children, removed);
-      return this;
-    };
-
-    XMLNode.prototype.commentAfter = function(value) {
-      var child, i, removed;
-      i = this.parent.children.indexOf(this);
-      removed = this.parent.children.splice(i + 1);
-      child = this.parent.comment(value);
-      Array.prototype.push.apply(this.parent.children, removed);
-      return this;
-    };
-
-    XMLNode.prototype.raw = function(value) {
-      var child;
-      child = new XMLRaw(this, value);
-      this.children.push(child);
-      return this;
-    };
-
-    XMLNode.prototype.instruction = function(target, value) {
-      var insTarget, insValue, instruction, j, len;
-      if (target != null) {
-        target = target.valueOf();
-      }
-      if (value != null) {
-        value = value.valueOf();
-      }
-      if (Array.isArray(target)) {
-        for (j = 0, len = target.length; j < len; j++) {
-          insTarget = target[j];
-          this.instruction(insTarget);
-        }
-      } else if (isObject(target)) {
-        for (insTarget in target) {
-          if (!hasProp.call(target, insTarget)) continue;
-          insValue = target[insTarget];
-          this.instruction(insTarget, insValue);
-        }
-      } else {
-        if (isFunction(value)) {
-          value = value.apply();
-        }
-        instruction = new XMLProcessingInstruction(this, target, value);
-        this.children.push(instruction);
-      }
-      return this;
-    };
-
-    XMLNode.prototype.instructionBefore = function(target, value) {
-      var child, i, removed;
-      i = this.parent.children.indexOf(this);
-      removed = this.parent.children.splice(i);
-      child = this.parent.instruction(target, value);
-      Array.prototype.push.apply(this.parent.children, removed);
-      return this;
-    };
-
-    XMLNode.prototype.instructionAfter = function(target, value) {
-      var child, i, removed;
-      i = this.parent.children.indexOf(this);
-      removed = this.parent.children.splice(i + 1);
-      child = this.parent.instruction(target, value);
-      Array.prototype.push.apply(this.parent.children, removed);
-      return this;
-    };
-
-    XMLNode.prototype.declaration = function(version, encoding, standalone) {
-      var doc, xmldec;
-      doc = this.document();
-      xmldec = new XMLDeclaration(doc, version, encoding, standalone);
-      if (doc.children[0] instanceof XMLDeclaration) {
-        doc.children[0] = xmldec;
-      } else {
-        doc.children.unshift(xmldec);
-      }
-      return doc.root() || doc;
-    };
-
-    XMLNode.prototype.doctype = function(pubID, sysID) {
-      var child, doc, doctype, i, j, k, len, len1, ref1, ref2;
-      doc = this.document();
-      doctype = new XMLDocType(doc, pubID, sysID);
-      ref1 = doc.children;
-      for (i = j = 0, len = ref1.length; j < len; i = ++j) {
-        child = ref1[i];
-        if (child instanceof XMLDocType) {
-          doc.children[i] = doctype;
-          return doctype;
-        }
-      }
-      ref2 = doc.children;
-      for (i = k = 0, len1 = ref2.length; k < len1; i = ++k) {
-        child = ref2[i];
-        if (child.isRoot) {
-          doc.children.splice(i, 0, doctype);
-          return doctype;
-        }
-      }
-      doc.children.push(doctype);
-      return doctype;
-    };
-
-    XMLNode.prototype.up = function() {
-      if (this.isRoot) {
-        throw new Error("The root node has no parent. Use doc() if you need to get the document object.");
-      }
-      return this.parent;
-    };
-
-    XMLNode.prototype.root = function() {
-      var node;
-      node = this;
-      while (node) {
-        if (node.isDocument) {
-          return node.rootObject;
-        } else if (node.isRoot) {
-          return node;
-        } else {
-          node = node.parent;
-        }
-      }
-    };
-
-    XMLNode.prototype.document = function() {
-      var node;
-      node = this;
-      while (node) {
-        if (node.isDocument) {
-          return node;
-        } else {
-          node = node.parent;
-        }
-      }
-    };
-
-    XMLNode.prototype.end = function(options) {
-      return this.document().end(options);
-    };
-
-    XMLNode.prototype.prev = function() {
-      var i;
-      i = this.parent.children.indexOf(this);
-      if (i < 1) {
-        throw new Error("Already at the first node");
-      }
-      return this.parent.children[i - 1];
-    };
-
-    XMLNode.prototype.next = function() {
-      var i;
-      i = this.parent.children.indexOf(this);
-      if (i === -1 || i === this.parent.children.length - 1) {
-        throw new Error("Already at the last node");
-      }
-      return this.parent.children[i + 1];
-    };
-
-    XMLNode.prototype.importDocument = function(doc) {
-      var clonedRoot;
-      clonedRoot = doc.root().clone();
-      clonedRoot.parent = this;
-      clonedRoot.isRoot = false;
-      this.children.push(clonedRoot);
-      return this;
-    };
-
-    XMLNode.prototype.ele = function(name, attributes, text) {
-      return this.element(name, attributes, text);
-    };
-
-    XMLNode.prototype.nod = function(name, attributes, text) {
-      return this.node(name, attributes, text);
-    };
-
-    XMLNode.prototype.txt = function(value) {
-      return this.text(value);
-    };
-
-    XMLNode.prototype.dat = function(value) {
-      return this.cdata(value);
-    };
-
-    XMLNode.prototype.com = function(value) {
-      return this.comment(value);
-    };
-
-    XMLNode.prototype.ins = function(target, value) {
-      return this.instruction(target, value);
-    };
-
-    XMLNode.prototype.doc = function() {
-      return this.document();
-    };
-
-    XMLNode.prototype.dec = function(version, encoding, standalone) {
-      return this.declaration(version, encoding, standalone);
-    };
-
-    XMLNode.prototype.dtd = function(pubID, sysID) {
-      return this.doctype(pubID, sysID);
-    };
-
-    XMLNode.prototype.e = function(name, attributes, text) {
-      return this.element(name, attributes, text);
-    };
-
-    XMLNode.prototype.n = function(name, attributes, text) {
-      return this.node(name, attributes, text);
-    };
-
-    XMLNode.prototype.t = function(value) {
-      return this.text(value);
-    };
-
-    XMLNode.prototype.d = function(value) {
-      return this.cdata(value);
-    };
-
-    XMLNode.prototype.c = function(value) {
-      return this.comment(value);
-    };
-
-    XMLNode.prototype.r = function(value) {
-      return this.raw(value);
-    };
-
-    XMLNode.prototype.i = function(target, value) {
-      return this.instruction(target, value);
-    };
-
-    XMLNode.prototype.u = function() {
-      return this.up();
-    };
-
-    XMLNode.prototype.importXMLBuilder = function(doc) {
-      return this.importDocument(doc);
-    };
-
-    return XMLNode;
-
-  })();
-
-}).call(this);
-
-
-/***/ }),
-
-/***/ 5809:
-/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
-
-// Generated by CoffeeScript 1.12.7
-(function() {
-  var XMLNode, XMLProcessingInstruction,
-    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty;
-
-  XMLNode = __nccwpck_require__(2482);
-
-  module.exports = XMLProcessingInstruction = (function(superClass) {
-    extend(XMLProcessingInstruction, superClass);
-
-    function XMLProcessingInstruction(parent, target, value) {
-      XMLProcessingInstruction.__super__.constructor.call(this, parent);
-      if (target == null) {
-        throw new Error("Missing instruction target");
-      }
-      this.target = this.stringify.insTarget(target);
-      if (value) {
-        this.value = this.stringify.insValue(value);
-      }
-    }
-
-    XMLProcessingInstruction.prototype.clone = function() {
-      return Object.create(this);
-    };
-
-    XMLProcessingInstruction.prototype.toString = function(options) {
-      return this.options.writer.set(options).processingInstruction(this);
-    };
-
-    return XMLProcessingInstruction;
-
-  })(XMLNode);
-
-}).call(this);
-
-
-/***/ }),
-
-/***/ 6782:
-/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
-
-// Generated by CoffeeScript 1.12.7
-(function() {
-  var XMLNode, XMLRaw,
-    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty;
-
-  XMLNode = __nccwpck_require__(2482);
-
-  module.exports = XMLRaw = (function(superClass) {
-    extend(XMLRaw, superClass);
-
-    function XMLRaw(parent, text) {
-      XMLRaw.__super__.constructor.call(this, parent);
-      if (text == null) {
-        throw new Error("Missing raw text");
-      }
-      this.value = this.stringify.raw(text);
-    }
-
-    XMLRaw.prototype.clone = function() {
-      return Object.create(this);
-    };
-
-    XMLRaw.prototype.toString = function(options) {
-      return this.options.writer.set(options).raw(this);
-    };
-
-    return XMLRaw;
-
-  })(XMLNode);
-
-}).call(this);
-
-
-/***/ }),
-
-/***/ 7953:
-/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
-
-// Generated by CoffeeScript 1.12.7
-(function() {
-  var XMLCData, XMLComment, XMLDTDAttList, XMLDTDElement, XMLDTDEntity, XMLDTDNotation, XMLDeclaration, XMLDocType, XMLElement, XMLProcessingInstruction, XMLRaw, XMLStreamWriter, XMLText, XMLWriterBase,
-    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty;
-
-  XMLDeclaration = __nccwpck_require__(6172);
-
-  XMLDocType = __nccwpck_require__(978);
-
-  XMLCData = __nccwpck_require__(4697);
-
-  XMLComment = __nccwpck_require__(413);
-
-  XMLElement = __nccwpck_require__(8616);
-
-  XMLRaw = __nccwpck_require__(6782);
-
-  XMLText = __nccwpck_require__(3469);
-
-  XMLProcessingInstruction = __nccwpck_require__(5809);
-
-  XMLDTDAttList = __nccwpck_require__(1833);
-
-  XMLDTDElement = __nccwpck_require__(714);
-
-  XMLDTDEntity = __nccwpck_require__(2615);
-
-  XMLDTDNotation = __nccwpck_require__(2878);
-
-  XMLWriterBase = __nccwpck_require__(1416);
-
-  module.exports = XMLStreamWriter = (function(superClass) {
-    extend(XMLStreamWriter, superClass);
-
-    function XMLStreamWriter(stream, options) {
-      XMLStreamWriter.__super__.constructor.call(this, options);
-      this.stream = stream;
-    }
-
-    XMLStreamWriter.prototype.document = function(doc) {
-      var child, i, j, len, len1, ref, ref1, results;
-      ref = doc.children;
-      for (i = 0, len = ref.length; i < len; i++) {
-        child = ref[i];
-        child.isLastRootNode = false;
-      }
-      doc.children[doc.children.length - 1].isLastRootNode = true;
-      ref1 = doc.children;
-      results = [];
-      for (j = 0, len1 = ref1.length; j < len1; j++) {
-        child = ref1[j];
-        switch (false) {
-          case !(child instanceof XMLDeclaration):
-            results.push(this.declaration(child));
-            break;
-          case !(child instanceof XMLDocType):
-            results.push(this.docType(child));
-            break;
-          case !(child instanceof XMLComment):
-            results.push(this.comment(child));
-            break;
-          case !(child instanceof XMLProcessingInstruction):
-            results.push(this.processingInstruction(child));
-            break;
-          default:
-            results.push(this.element(child));
-        }
-      }
-      return results;
-    };
-
-    XMLStreamWriter.prototype.attribute = function(att) {
-      return this.stream.write(' ' + att.name + '="' + att.value + '"');
-    };
-
-    XMLStreamWriter.prototype.cdata = function(node, level) {
-      return this.stream.write(this.space(level) + '<![CDATA[' + node.text + ']]>' + this.endline(node));
-    };
-
-    XMLStreamWriter.prototype.comment = function(node, level) {
-      return this.stream.write(this.space(level) + '<!-- ' + node.text + ' -->' + this.endline(node));
-    };
-
-    XMLStreamWriter.prototype.declaration = function(node, level) {
-      this.stream.write(this.space(level));
-      this.stream.write('<?xml version="' + node.version + '"');
-      if (node.encoding != null) {
-        this.stream.write(' encoding="' + node.encoding + '"');
-      }
-      if (node.standalone != null) {
-        this.stream.write(' standalone="' + node.standalone + '"');
-      }
-      this.stream.write(this.spacebeforeslash + '?>');
-      return this.stream.write(this.endline(node));
-    };
-
-    XMLStreamWriter.prototype.docType = function(node, level) {
-      var child, i, len, ref;
-      level || (level = 0);
-      this.stream.write(this.space(level));
-      this.stream.write('<!DOCTYPE ' + node.root().name);
-      if (node.pubID && node.sysID) {
-        this.stream.write(' PUBLIC "' + node.pubID + '" "' + node.sysID + '"');
-      } else if (node.sysID) {
-        this.stream.write(' SYSTEM "' + node.sysID + '"');
-      }
-      if (node.children.length > 0) {
-        this.stream.write(' [');
-        this.stream.write(this.endline(node));
-        ref = node.children;
-        for (i = 0, len = ref.length; i < len; i++) {
-          child = ref[i];
-          switch (false) {
-            case !(child instanceof XMLDTDAttList):
-              this.dtdAttList(child, level + 1);
-              break;
-            case !(child instanceof XMLDTDElement):
-              this.dtdElement(child, level + 1);
-              break;
-            case !(child instanceof XMLDTDEntity):
-              this.dtdEntity(child, level + 1);
-              break;
-            case !(child instanceof XMLDTDNotation):
-              this.dtdNotation(child, level + 1);
-              break;
-            case !(child instanceof XMLCData):
-              this.cdata(child, level + 1);
-              break;
-            case !(child instanceof XMLComment):
-              this.comment(child, level + 1);
-              break;
-            case !(child instanceof XMLProcessingInstruction):
-              this.processingInstruction(child, level + 1);
-              break;
-            default:
-              throw new Error("Unknown DTD node type: " + child.constructor.name);
-          }
-        }
-        this.stream.write(']');
-      }
-      this.stream.write(this.spacebeforeslash + '>');
-      return this.stream.write(this.endline(node));
-    };
-
-    XMLStreamWriter.prototype.element = function(node, level) {
-      var att, child, i, len, name, ref, ref1, space;
-      level || (level = 0);
-      space = this.space(level);
-      this.stream.write(space + '<' + node.name);
-      ref = node.attributes;
-      for (name in ref) {
-        if (!hasProp.call(ref, name)) continue;
-        att = ref[name];
-        this.attribute(att);
-      }
-      if (node.children.length === 0 || node.children.every(function(e) {
-        return e.value === '';
-      })) {
-        if (this.allowEmpty) {
-          this.stream.write('></' + node.name + '>');
-        } else {
-          this.stream.write(this.spacebeforeslash + '/>');
-        }
-      } else if (this.pretty && node.children.length === 1 && (node.children[0].value != null)) {
-        this.stream.write('>');
-        this.stream.write(node.children[0].value);
-        this.stream.write('</' + node.name + '>');
-      } else {
-        this.stream.write('>' + this.newline);
-        ref1 = node.children;
-        for (i = 0, len = ref1.length; i < len; i++) {
-          child = ref1[i];
-          switch (false) {
-            case !(child instanceof XMLCData):
-              this.cdata(child, level + 1);
-              break;
-            case !(child instanceof XMLComment):
-              this.comment(child, level + 1);
-              break;
-            case !(child instanceof XMLElement):
-              this.element(child, level + 1);
-              break;
-            case !(child instanceof XMLRaw):
-              this.raw(child, level + 1);
-              break;
-            case !(child instanceof XMLText):
-              this.text(child, level + 1);
-              break;
-            case !(child instanceof XMLProcessingInstruction):
-              this.processingInstruction(child, level + 1);
-              break;
-            default:
-              throw new Error("Unknown XML node type: " + child.constructor.name);
-          }
-        }
-        this.stream.write(space + '</' + node.name + '>');
-      }
-      return this.stream.write(this.endline(node));
-    };
-
-    XMLStreamWriter.prototype.processingInstruction = function(node, level) {
-      this.stream.write(this.space(level) + '<?' + node.target);
-      if (node.value) {
-        this.stream.write(' ' + node.value);
-      }
-      return this.stream.write(this.spacebeforeslash + '?>' + this.endline(node));
-    };
-
-    XMLStreamWriter.prototype.raw = function(node, level) {
-      return this.stream.write(this.space(level) + node.value + this.endline(node));
-    };
-
-    XMLStreamWriter.prototype.text = function(node, level) {
-      return this.stream.write(this.space(level) + node.value + this.endline(node));
-    };
-
-    XMLStreamWriter.prototype.dtdAttList = function(node, level) {
-      this.stream.write(this.space(level) + '<!ATTLIST ' + node.elementName + ' ' + node.attributeName + ' ' + node.attributeType);
-      if (node.defaultValueType !== '#DEFAULT') {
-        this.stream.write(' ' + node.defaultValueType);
-      }
-      if (node.defaultValue) {
-        this.stream.write(' "' + node.defaultValue + '"');
-      }
-      return this.stream.write(this.spacebeforeslash + '>' + this.endline(node));
-    };
-
-    XMLStreamWriter.prototype.dtdElement = function(node, level) {
-      this.stream.write(this.space(level) + '<!ELEMENT ' + node.name + ' ' + node.value);
-      return this.stream.write(this.spacebeforeslash + '>' + this.endline(node));
-    };
-
-    XMLStreamWriter.prototype.dtdEntity = function(node, level) {
-      this.stream.write(this.space(level) + '<!ENTITY');
-      if (node.pe) {
-        this.stream.write(' %');
-      }
-      this.stream.write(' ' + node.name);
-      if (node.value) {
-        this.stream.write(' "' + node.value + '"');
-      } else {
-        if (node.pubID && node.sysID) {
-          this.stream.write(' PUBLIC "' + node.pubID + '" "' + node.sysID + '"');
-        } else if (node.sysID) {
-          this.stream.write(' SYSTEM "' + node.sysID + '"');
-        }
-        if (node.nData) {
-          this.stream.write(' NDATA ' + node.nData);
-        }
-      }
-      return this.stream.write(this.spacebeforeslash + '>' + this.endline(node));
-    };
-
-    XMLStreamWriter.prototype.dtdNotation = function(node, level) {
-      this.stream.write(this.space(level) + '<!NOTATION ' + node.name);
-      if (node.pubID && node.sysID) {
-        this.stream.write(' PUBLIC "' + node.pubID + '" "' + node.sysID + '"');
-      } else if (node.pubID) {
-        this.stream.write(' PUBLIC "' + node.pubID + '"');
-      } else if (node.sysID) {
-        this.stream.write(' SYSTEM "' + node.sysID + '"');
-      }
-      return this.stream.write(this.spacebeforeslash + '>' + this.endline(node));
-    };
-
-    XMLStreamWriter.prototype.endline = function(node) {
-      if (!node.isLastRootNode) {
-        return this.newline;
-      } else {
-        return '';
-      }
-    };
-
-    return XMLStreamWriter;
-
-  })(XMLWriterBase);
-
-}).call(this);
-
-
-/***/ }),
-
-/***/ 4672:
-/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
-
-// Generated by CoffeeScript 1.12.7
-(function() {
-  var XMLCData, XMLComment, XMLDTDAttList, XMLDTDElement, XMLDTDEntity, XMLDTDNotation, XMLDeclaration, XMLDocType, XMLElement, XMLProcessingInstruction, XMLRaw, XMLStringWriter, XMLText, XMLWriterBase,
-    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty;
-
-  XMLDeclaration = __nccwpck_require__(6172);
-
-  XMLDocType = __nccwpck_require__(978);
-
-  XMLCData = __nccwpck_require__(4697);
-
-  XMLComment = __nccwpck_require__(413);
-
-  XMLElement = __nccwpck_require__(8616);
-
-  XMLRaw = __nccwpck_require__(6782);
-
-  XMLText = __nccwpck_require__(3469);
-
-  XMLProcessingInstruction = __nccwpck_require__(5809);
-
-  XMLDTDAttList = __nccwpck_require__(1833);
-
-  XMLDTDElement = __nccwpck_require__(714);
-
-  XMLDTDEntity = __nccwpck_require__(2615);
-
-  XMLDTDNotation = __nccwpck_require__(2878);
-
-  XMLWriterBase = __nccwpck_require__(1416);
-
-  module.exports = XMLStringWriter = (function(superClass) {
-    extend(XMLStringWriter, superClass);
-
-    function XMLStringWriter(options) {
-      XMLStringWriter.__super__.constructor.call(this, options);
-    }
-
-    XMLStringWriter.prototype.document = function(doc) {
-      var child, i, len, r, ref;
-      this.textispresent = false;
-      r = '';
-      ref = doc.children;
-      for (i = 0, len = ref.length; i < len; i++) {
-        child = ref[i];
-        r += (function() {
-          switch (false) {
-            case !(child instanceof XMLDeclaration):
-              return this.declaration(child);
-            case !(child instanceof XMLDocType):
-              return this.docType(child);
-            case !(child instanceof XMLComment):
-              return this.comment(child);
-            case !(child instanceof XMLProcessingInstruction):
-              return this.processingInstruction(child);
-            default:
-              return this.element(child, 0);
-          }
-        }).call(this);
-      }
-      if (this.pretty && r.slice(-this.newline.length) === this.newline) {
-        r = r.slice(0, -this.newline.length);
-      }
-      return r;
-    };
-
-    XMLStringWriter.prototype.attribute = function(att) {
-      return ' ' + att.name + '="' + att.value + '"';
-    };
-
-    XMLStringWriter.prototype.cdata = function(node, level) {
-      return this.space(level) + '<![CDATA[' + node.text + ']]>' + this.newline;
-    };
-
-    XMLStringWriter.prototype.comment = function(node, level) {
-      return this.space(level) + '<!-- ' + node.text + ' -->' + this.newline;
-    };
-
-    XMLStringWriter.prototype.declaration = function(node, level) {
-      var r;
-      r = this.space(level);
-      r += '<?xml version="' + node.version + '"';
-      if (node.encoding != null) {
-        r += ' encoding="' + node.encoding + '"';
-      }
-      if (node.standalone != null) {
-        r += ' standalone="' + node.standalone + '"';
-      }
-      r += this.spacebeforeslash + '?>';
-      r += this.newline;
-      return r;
-    };
-
-    XMLStringWriter.prototype.docType = function(node, level) {
-      var child, i, len, r, ref;
-      level || (level = 0);
-      r = this.space(level);
-      r += '<!DOCTYPE ' + node.root().name;
-      if (node.pubID && node.sysID) {
-        r += ' PUBLIC "' + node.pubID + '" "' + node.sysID + '"';
-      } else if (node.sysID) {
-        r += ' SYSTEM "' + node.sysID + '"';
-      }
-      if (node.children.length > 0) {
-        r += ' [';
-        r += this.newline;
-        ref = node.children;
-        for (i = 0, len = ref.length; i < len; i++) {
-          child = ref[i];
-          r += (function() {
-            switch (false) {
-              case !(child instanceof XMLDTDAttList):
-                return this.dtdAttList(child, level + 1);
-              case !(child instanceof XMLDTDElement):
-                return this.dtdElement(child, level + 1);
-              case !(child instanceof XMLDTDEntity):
-                return this.dtdEntity(child, level + 1);
-              case !(child instanceof XMLDTDNotation):
-                return this.dtdNotation(child, level + 1);
-              case !(child instanceof XMLCData):
-                return this.cdata(child, level + 1);
-              case !(child instanceof XMLComment):
-                return this.comment(child, level + 1);
-              case !(child instanceof XMLProcessingInstruction):
-                return this.processingInstruction(child, level + 1);
-              default:
-                throw new Error("Unknown DTD node type: " + child.constructor.name);
-            }
-          }).call(this);
-        }
-        r += ']';
-      }
-      r += this.spacebeforeslash + '>';
-      r += this.newline;
-      return r;
-    };
-
-    XMLStringWriter.prototype.element = function(node, level) {
-      var att, child, i, j, len, len1, name, r, ref, ref1, ref2, space, textispresentwasset;
-      level || (level = 0);
-      textispresentwasset = false;
-      if (this.textispresent) {
-        this.newline = '';
-        this.pretty = false;
-      } else {
-        this.newline = this.newlinedefault;
-        this.pretty = this.prettydefault;
-      }
-      space = this.space(level);
-      r = '';
-      r += space + '<' + node.name;
-      ref = node.attributes;
-      for (name in ref) {
-        if (!hasProp.call(ref, name)) continue;
-        att = ref[name];
-        r += this.attribute(att);
-      }
-      if (node.children.length === 0 || node.children.every(function(e) {
-        return e.value === '';
-      })) {
-        if (this.allowEmpty) {
-          r += '></' + node.name + '>' + this.newline;
-        } else {
-          r += this.spacebeforeslash + '/>' + this.newline;
-        }
-      } else if (this.pretty && node.children.length === 1 && (node.children[0].value != null)) {
-        r += '>';
-        r += node.children[0].value;
-        r += '</' + node.name + '>' + this.newline;
-      } else {
-        if (this.dontprettytextnodes) {
-          ref1 = node.children;
-          for (i = 0, len = ref1.length; i < len; i++) {
-            child = ref1[i];
-            if (child.value != null) {
-              this.textispresent++;
-              textispresentwasset = true;
-              break;
-            }
-          }
-        }
-        if (this.textispresent) {
-          this.newline = '';
-          this.pretty = false;
-          space = this.space(level);
-        }
-        r += '>' + this.newline;
-        ref2 = node.children;
-        for (j = 0, len1 = ref2.length; j < len1; j++) {
-          child = ref2[j];
-          r += (function() {
-            switch (false) {
-              case !(child instanceof XMLCData):
-                return this.cdata(child, level + 1);
-              case !(child instanceof XMLComment):
-                return this.comment(child, level + 1);
-              case !(child instanceof XMLElement):
-                return this.element(child, level + 1);
-              case !(child instanceof XMLRaw):
-                return this.raw(child, level + 1);
-              case !(child instanceof XMLText):
-                return this.text(child, level + 1);
-              case !(child instanceof XMLProcessingInstruction):
-                return this.processingInstruction(child, level + 1);
-              default:
-                throw new Error("Unknown XML node type: " + child.constructor.name);
-            }
-          }).call(this);
-        }
-        if (textispresentwasset) {
-          this.textispresent--;
-        }
-        if (!this.textispresent) {
-          this.newline = this.newlinedefault;
-          this.pretty = this.prettydefault;
-        }
-        r += space + '</' + node.name + '>' + this.newline;
-      }
-      return r;
-    };
-
-    XMLStringWriter.prototype.processingInstruction = function(node, level) {
-      var r;
-      r = this.space(level) + '<?' + node.target;
-      if (node.value) {
-        r += ' ' + node.value;
-      }
-      r += this.spacebeforeslash + '?>' + this.newline;
-      return r;
-    };
-
-    XMLStringWriter.prototype.raw = function(node, level) {
-      return this.space(level) + node.value + this.newline;
-    };
-
-    XMLStringWriter.prototype.text = function(node, level) {
-      return this.space(level) + node.value + this.newline;
-    };
-
-    XMLStringWriter.prototype.dtdAttList = function(node, level) {
-      var r;
-      r = this.space(level) + '<!ATTLIST ' + node.elementName + ' ' + node.attributeName + ' ' + node.attributeType;
-      if (node.defaultValueType !== '#DEFAULT') {
-        r += ' ' + node.defaultValueType;
-      }
-      if (node.defaultValue) {
-        r += ' "' + node.defaultValue + '"';
-      }
-      r += this.spacebeforeslash + '>' + this.newline;
-      return r;
-    };
-
-    XMLStringWriter.prototype.dtdElement = function(node, level) {
-      return this.space(level) + '<!ELEMENT ' + node.name + ' ' + node.value + this.spacebeforeslash + '>' + this.newline;
-    };
-
-    XMLStringWriter.prototype.dtdEntity = function(node, level) {
-      var r;
-      r = this.space(level) + '<!ENTITY';
-      if (node.pe) {
-        r += ' %';
-      }
-      r += ' ' + node.name;
-      if (node.value) {
-        r += ' "' + node.value + '"';
-      } else {
-        if (node.pubID && node.sysID) {
-          r += ' PUBLIC "' + node.pubID + '" "' + node.sysID + '"';
-        } else if (node.sysID) {
-          r += ' SYSTEM "' + node.sysID + '"';
-        }
-        if (node.nData) {
-          r += ' NDATA ' + node.nData;
-        }
-      }
-      r += this.spacebeforeslash + '>' + this.newline;
-      return r;
-    };
-
-    XMLStringWriter.prototype.dtdNotation = function(node, level) {
-      var r;
-      r = this.space(level) + '<!NOTATION ' + node.name;
-      if (node.pubID && node.sysID) {
-        r += ' PUBLIC "' + node.pubID + '" "' + node.sysID + '"';
-      } else if (node.pubID) {
-        r += ' PUBLIC "' + node.pubID + '"';
-      } else if (node.sysID) {
-        r += ' SYSTEM "' + node.sysID + '"';
-      }
-      r += this.spacebeforeslash + '>' + this.newline;
-      return r;
-    };
-
-    XMLStringWriter.prototype.openNode = function(node, level) {
-      var att, name, r, ref;
-      level || (level = 0);
-      if (node instanceof XMLElement) {
-        r = this.space(level) + '<' + node.name;
-        ref = node.attributes;
-        for (name in ref) {
-          if (!hasProp.call(ref, name)) continue;
-          att = ref[name];
-          r += this.attribute(att);
-        }
-        r += (node.children ? '>' : '/>') + this.newline;
-        return r;
-      } else {
-        r = this.space(level) + '<!DOCTYPE ' + node.rootNodeName;
-        if (node.pubID && node.sysID) {
-          r += ' PUBLIC "' + node.pubID + '" "' + node.sysID + '"';
-        } else if (node.sysID) {
-          r += ' SYSTEM "' + node.sysID + '"';
-        }
-        r += (node.children ? ' [' : '>') + this.newline;
-        return r;
-      }
-    };
-
-    XMLStringWriter.prototype.closeNode = function(node, level) {
-      level || (level = 0);
-      switch (false) {
-        case !(node instanceof XMLElement):
-          return this.space(level) + '</' + node.name + '>' + this.newline;
-        case !(node instanceof XMLDocType):
-          return this.space(level) + ']>' + this.newline;
-      }
-    };
-
-    return XMLStringWriter;
-
-  })(XMLWriterBase);
-
-}).call(this);
-
-
-/***/ }),
-
-/***/ 874:
-/***/ (function(module) {
-
-// Generated by CoffeeScript 1.12.7
-(function() {
-  var XMLStringifier,
-    bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
-    hasProp = {}.hasOwnProperty;
-
-  module.exports = XMLStringifier = (function() {
-    function XMLStringifier(options) {
-      this.assertLegalChar = bind(this.assertLegalChar, this);
-      var key, ref, value;
-      options || (options = {});
-      this.noDoubleEncoding = options.noDoubleEncoding;
-      ref = options.stringify || {};
-      for (key in ref) {
-        if (!hasProp.call(ref, key)) continue;
-        value = ref[key];
-        this[key] = value;
-      }
-    }
-
-    XMLStringifier.prototype.eleName = function(val) {
-      val = '' + val || '';
-      return this.assertLegalChar(val);
-    };
-
-    XMLStringifier.prototype.eleText = function(val) {
-      val = '' + val || '';
-      return this.assertLegalChar(this.elEscape(val));
-    };
-
-    XMLStringifier.prototype.cdata = function(val) {
-      val = '' + val || '';
-      val = val.replace(']]>', ']]]]><![CDATA[>');
-      return this.assertLegalChar(val);
-    };
-
-    XMLStringifier.prototype.comment = function(val) {
-      val = '' + val || '';
-      if (val.match(/--/)) {
-        throw new Error("Comment text cannot contain double-hypen: " + val);
-      }
-      return this.assertLegalChar(val);
-    };
-
-    XMLStringifier.prototype.raw = function(val) {
-      return '' + val || '';
-    };
-
-    XMLStringifier.prototype.attName = function(val) {
-      return val = '' + val || '';
-    };
-
-    XMLStringifier.prototype.attValue = function(val) {
-      val = '' + val || '';
-      return this.attEscape(val);
-    };
-
-    XMLStringifier.prototype.insTarget = function(val) {
-      return '' + val || '';
-    };
-
-    XMLStringifier.prototype.insValue = function(val) {
-      val = '' + val || '';
-      if (val.match(/\?>/)) {
-        throw new Error("Invalid processing instruction value: " + val);
-      }
-      return val;
-    };
-
-    XMLStringifier.prototype.xmlVersion = function(val) {
-      val = '' + val || '';
-      if (!val.match(/1\.[0-9]+/)) {
-        throw new Error("Invalid version number: " + val);
-      }
-      return val;
-    };
-
-    XMLStringifier.prototype.xmlEncoding = function(val) {
-      val = '' + val || '';
-      if (!val.match(/^[A-Za-z](?:[A-Za-z0-9._-])*$/)) {
-        throw new Error("Invalid encoding: " + val);
-      }
-      return val;
-    };
-
-    XMLStringifier.prototype.xmlStandalone = function(val) {
-      if (val) {
-        return "yes";
-      } else {
-        return "no";
-      }
-    };
-
-    XMLStringifier.prototype.dtdPubID = function(val) {
-      return '' + val || '';
-    };
-
-    XMLStringifier.prototype.dtdSysID = function(val) {
-      return '' + val || '';
-    };
-
-    XMLStringifier.prototype.dtdElementValue = function(val) {
-      return '' + val || '';
-    };
-
-    XMLStringifier.prototype.dtdAttType = function(val) {
-      return '' + val || '';
-    };
-
-    XMLStringifier.prototype.dtdAttDefault = function(val) {
-      if (val != null) {
-        return '' + val || '';
-      } else {
-        return val;
-      }
-    };
-
-    XMLStringifier.prototype.dtdEntityValue = function(val) {
-      return '' + val || '';
-    };
-
-    XMLStringifier.prototype.dtdNData = function(val) {
-      return '' + val || '';
-    };
-
-    XMLStringifier.prototype.convertAttKey = '@';
-
-    XMLStringifier.prototype.convertPIKey = '?';
-
-    XMLStringifier.prototype.convertTextKey = '#text';
-
-    XMLStringifier.prototype.convertCDataKey = '#cdata';
-
-    XMLStringifier.prototype.convertCommentKey = '#comment';
-
-    XMLStringifier.prototype.convertRawKey = '#raw';
-
-    XMLStringifier.prototype.assertLegalChar = function(str) {
-      var res;
-      res = str.match(/[\0\uFFFE\uFFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]/);
-      if (res) {
-        throw new Error("Invalid character in string: " + str + " at index " + res.index);
-      }
-      return str;
-    };
-
-    XMLStringifier.prototype.elEscape = function(str) {
-      var ampregex;
-      ampregex = this.noDoubleEncoding ? /(?!&\S+;)&/g : /&/g;
-      return str.replace(ampregex, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\r/g, '&#xD;');
-    };
-
-    XMLStringifier.prototype.attEscape = function(str) {
-      var ampregex;
-      ampregex = this.noDoubleEncoding ? /(?!&\S+;)&/g : /&/g;
-      return str.replace(ampregex, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;').replace(/\t/g, '&#x9;').replace(/\n/g, '&#xA;').replace(/\r/g, '&#xD;');
-    };
-
-    return XMLStringifier;
-
-  })();
-
-}).call(this);
-
-
-/***/ }),
-
-/***/ 3469:
-/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
-
-// Generated by CoffeeScript 1.12.7
-(function() {
-  var XMLNode, XMLText,
-    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty;
-
-  XMLNode = __nccwpck_require__(2482);
-
-  module.exports = XMLText = (function(superClass) {
-    extend(XMLText, superClass);
-
-    function XMLText(parent, text) {
-      XMLText.__super__.constructor.call(this, parent);
-      if (text == null) {
-        throw new Error("Missing element text");
-      }
-      this.value = this.stringify.eleText(text);
-    }
-
-    XMLText.prototype.clone = function() {
-      return Object.create(this);
-    };
-
-    XMLText.prototype.toString = function(options) {
-      return this.options.writer.set(options).text(this);
-    };
-
-    return XMLText;
-
-  })(XMLNode);
-
-}).call(this);
-
-
-/***/ }),
-
-/***/ 1416:
-/***/ (function(module) {
-
-// Generated by CoffeeScript 1.12.7
-(function() {
-  var XMLWriterBase,
-    hasProp = {}.hasOwnProperty;
-
-  module.exports = XMLWriterBase = (function() {
-    function XMLWriterBase(options) {
-      var key, ref, ref1, ref2, ref3, ref4, ref5, ref6, value;
-      options || (options = {});
-      this.pretty = options.pretty || false;
-      this.allowEmpty = (ref = options.allowEmpty) != null ? ref : false;
-      if (this.pretty) {
-        this.indent = (ref1 = options.indent) != null ? ref1 : '  ';
-        this.newline = (ref2 = options.newline) != null ? ref2 : '\n';
-        this.offset = (ref3 = options.offset) != null ? ref3 : 0;
-        this.dontprettytextnodes = (ref4 = options.dontprettytextnodes) != null ? ref4 : 0;
-      } else {
-        this.indent = '';
-        this.newline = '';
-        this.offset = 0;
-        this.dontprettytextnodes = 0;
-      }
-      this.spacebeforeslash = (ref5 = options.spacebeforeslash) != null ? ref5 : '';
-      if (this.spacebeforeslash === true) {
-        this.spacebeforeslash = ' ';
-      }
-      this.newlinedefault = this.newline;
-      this.prettydefault = this.pretty;
-      ref6 = options.writer || {};
-      for (key in ref6) {
-        if (!hasProp.call(ref6, key)) continue;
-        value = ref6[key];
-        this[key] = value;
-      }
-    }
-
-    XMLWriterBase.prototype.set = function(options) {
-      var key, ref, value;
-      options || (options = {});
-      if ("pretty" in options) {
-        this.pretty = options.pretty;
-      }
-      if ("allowEmpty" in options) {
-        this.allowEmpty = options.allowEmpty;
-      }
-      if (this.pretty) {
-        this.indent = "indent" in options ? options.indent : '  ';
-        this.newline = "newline" in options ? options.newline : '\n';
-        this.offset = "offset" in options ? options.offset : 0;
-        this.dontprettytextnodes = "dontprettytextnodes" in options ? options.dontprettytextnodes : 0;
-      } else {
-        this.indent = '';
-        this.newline = '';
-        this.offset = 0;
-        this.dontprettytextnodes = 0;
-      }
-      this.spacebeforeslash = "spacebeforeslash" in options ? options.spacebeforeslash : '';
-      if (this.spacebeforeslash === true) {
-        this.spacebeforeslash = ' ';
-      }
-      this.newlinedefault = this.newline;
-      this.prettydefault = this.pretty;
-      ref = options.writer || {};
-      for (key in ref) {
-        if (!hasProp.call(ref, key)) continue;
-        value = ref[key];
-        this[key] = value;
-      }
-      return this;
-    };
-
-    XMLWriterBase.prototype.space = function(level) {
-      var indent;
-      if (this.pretty) {
-        indent = (level || 0) + this.offset + 1;
-        if (indent > 0) {
-          return new Array(indent).join(this.indent);
-        } else {
-          return '';
-        }
-      } else {
-        return '';
-      }
-    };
-
-    return XMLWriterBase;
-
-  })();
-
-}).call(this);
-
-
-/***/ }),
-
-/***/ 9891:
-/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
-
-// Generated by CoffeeScript 1.12.7
-(function() {
-  var XMLDocument, XMLDocumentCB, XMLStreamWriter, XMLStringWriter, assign, isFunction, ref;
-
-  ref = __nccwpck_require__(2335), assign = ref.assign, isFunction = ref.isFunction;
-
-  XMLDocument = __nccwpck_require__(4879);
-
-  XMLDocumentCB = __nccwpck_require__(5706);
-
-  XMLStringWriter = __nccwpck_require__(4672);
-
-  XMLStreamWriter = __nccwpck_require__(7953);
-
-  module.exports.create = function(name, xmldec, doctype, options) {
-    var doc, root;
-    if (name == null) {
-      throw new Error("Root element needs a name");
-    }
-    options = assign({}, xmldec, doctype, options);
-    doc = new XMLDocument(options);
-    root = doc.element(name);
-    if (!options.headless) {
-      doc.declaration(options);
-      if ((options.pubID != null) || (options.sysID != null)) {
-        doc.doctype(options);
-      }
-    }
-    return root;
-  };
-
-  module.exports.begin = function(options, onData, onEnd) {
-    var ref1;
-    if (isFunction(options)) {
-      ref1 = [options, onData], onData = ref1[0], onEnd = ref1[1];
-      options = {};
-    }
-    if (onData) {
-      return new XMLDocumentCB(options, onData, onEnd);
-    } else {
-      return new XMLDocument(options);
-    }
-  };
-
-  module.exports.stringWriter = function(options) {
-    return new XMLStringWriter(options);
-  };
-
-  module.exports.streamWriter = function(stream, options) {
-    return new XMLStreamWriter(stream, options);
-  };
-
-}).call(this);
-
-
-/***/ }),
-
 /***/ 7293:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 
 
 var fs = __nccwpck_require__( 9896 );
-var parseString = (__nccwpck_require__(519).parseString);
+var parseString = (__nccwpck_require__(758).parseString);
 
 var parse = {};
 
@@ -13413,8 +9603,11 @@ function onceStrict (fn) {
 /***/ 2560:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
-;(function (sax) { // wrapper for non-node envs
-  sax.parser = function (strict, opt) { return new SAXParser(strict, opt) }
+;(function (sax) {
+  // wrapper for non-node envs
+  sax.parser = function (strict, opt) {
+    return new SAXParser(strict, opt)
+  }
   sax.SAXParser = SAXParser
   sax.SAXStream = SAXStream
   sax.createStream = createStream
@@ -13431,9 +9624,18 @@ function onceStrict (fn) {
   sax.MAX_BUFFER_LENGTH = 64 * 1024
 
   var buffers = [
-    'comment', 'sgmlDecl', 'textNode', 'tagName', 'doctype',
-    'procInstName', 'procInstBody', 'entity', 'attribName',
-    'attribValue', 'cdata', 'script'
+    'comment',
+    'sgmlDecl',
+    'textNode',
+    'tagName',
+    'doctype',
+    'procInstName',
+    'procInstBody',
+    'entity',
+    'attribName',
+    'attribValue',
+    'cdata',
+    'script',
   ]
 
   sax.EVENTS = [
@@ -13454,10 +9656,10 @@ function onceStrict (fn) {
     'ready',
     'script',
     'opennamespace',
-    'closenamespace'
+    'closenamespace',
   ]
 
-  function SAXParser (strict, opt) {
+  function SAXParser(strict, opt) {
     if (!(this instanceof SAXParser)) {
       return new SAXParser(strict, opt)
     }
@@ -13476,7 +9678,10 @@ function onceStrict (fn) {
     parser.noscript = !!(strict || parser.opt.noscript)
     parser.state = S.BEGIN
     parser.strictEntities = parser.opt.strictEntities
-    parser.ENTITIES = parser.strictEntities ? Object.create(sax.XML_ENTITIES) : Object.create(sax.ENTITIES)
+    parser.ENTITIES =
+      parser.strictEntities ?
+        Object.create(sax.XML_ENTITIES)
+      : Object.create(sax.ENTITIES)
     parser.attribList = []
 
     // namespaces form a prototype chain.
@@ -13484,6 +9689,12 @@ function onceStrict (fn) {
     // which protos to its parent tag.
     if (parser.opt.xmlns) {
       parser.ns = Object.create(rootNS)
+    }
+
+    // disallow unquoted attribute values if not otherwise configured
+    // and strict mode is true
+    if (parser.opt.unquotedAttributeValues === undefined) {
+      parser.opt.unquotedAttributeValues = !strict
     }
 
     // mostly just for error reporting
@@ -13496,7 +9707,7 @@ function onceStrict (fn) {
 
   if (!Object.create) {
     Object.create = function (o) {
-      function F () {}
+      function F() {}
       F.prototype = o
       var newf = new F()
       return newf
@@ -13511,7 +9722,7 @@ function onceStrict (fn) {
     }
   }
 
-  function checkBufferLength (parser) {
+  function checkBufferLength(parser) {
     var maxAllowed = Math.max(sax.MAX_BUFFER_LENGTH, 10)
     var maxActual = 0
     for (var i = 0, l = buffers.length; i < l; i++) {
@@ -13547,13 +9758,13 @@ function onceStrict (fn) {
     parser.bufferCheckPosition = m + parser.position
   }
 
-  function clearBuffers (parser) {
+  function clearBuffers(parser) {
     for (var i = 0, l = buffers.length; i < l; i++) {
       parser[buffers[i]] = ''
     }
   }
 
-  function flushBuffers (parser) {
+  function flushBuffers(parser) {
     closeText(parser)
     if (parser.cdata !== '') {
       emitNode(parser, 'oncdata', parser.cdata)
@@ -13566,11 +9777,20 @@ function onceStrict (fn) {
   }
 
   SAXParser.prototype = {
-    end: function () { end(this) },
+    end: function () {
+      end(this)
+    },
     write: write,
-    resume: function () { this.error = null; return this },
-    close: function () { return this.write(null) },
-    flush: function () { flushBuffers(this) }
+    resume: function () {
+      this.error = null
+      return this
+    },
+    close: function () {
+      return this.write(null)
+    },
+    flush: function () {
+      flushBuffers(this)
+    },
   }
 
   var Stream
@@ -13585,11 +9805,11 @@ function onceStrict (fn) {
     return ev !== 'error' && ev !== 'end'
   })
 
-  function createStream (strict, opt) {
+  function createStream(strict, opt) {
     return new SAXStream(strict, opt)
   }
 
-  function SAXStream (strict, opt) {
+  function SAXStream(strict, opt) {
     if (!(this instanceof SAXStream)) {
       return new SAXStream(strict, opt)
     }
@@ -13630,26 +9850,27 @@ function onceStrict (fn) {
           me.on(ev, h)
         },
         enumerable: true,
-        configurable: false
+        configurable: false,
       })
     })
   }
 
   SAXStream.prototype = Object.create(Stream.prototype, {
     constructor: {
-      value: SAXStream
-    }
+      value: SAXStream,
+    },
   })
 
   SAXStream.prototype.write = function (data) {
-    if (typeof Buffer === 'function' &&
+    if (
+      typeof Buffer === 'function' &&
       typeof Buffer.isBuffer === 'function' &&
-      Buffer.isBuffer(data)) {
+      Buffer.isBuffer(data)
+    ) {
       if (!this._decoder) {
-        var SD = (__nccwpck_require__(3193).StringDecoder)
-        this._decoder = new SD('utf8')
+        this._decoder = new TextDecoder('utf8')
       }
-      data = this._decoder.write(data)
+      data = this._decoder.decode(data, { stream: true })
     }
 
     this._parser.write(data.toString())
@@ -13661,6 +9882,14 @@ function onceStrict (fn) {
     if (chunk && chunk.length) {
       this.write(chunk)
     }
+    // Flush any remaining decoded data from the TextDecoder
+    if (this._decoder) {
+      var remaining = this._decoder.decode()
+      if (remaining) {
+        this._parser.write(remaining)
+        this.emit('data', remaining)
+      }
+    }
     this._parser.end()
     return true
   }
@@ -13669,7 +9898,10 @@ function onceStrict (fn) {
     var me = this
     if (!me._parser['on' + ev] && streamWraps.indexOf(ev) !== -1) {
       me._parser['on' + ev] = function () {
-        var args = arguments.length === 1 ? [arguments[0]] : Array.apply(null, arguments)
+        var args =
+          arguments.length === 1 ?
+            [arguments[0]]
+          : Array.apply(null, arguments)
         args.splice(0, 0, ev)
         me.emit.apply(me, args)
       }
@@ -13692,30 +9924,34 @@ function onceStrict (fn) {
   // without a significant breaking change to either this  parser, or the
   // JavaScript language.  Implementation of an emoji-capable xml parser
   // is left as an exercise for the reader.
-  var nameStart = /[:_A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]/
+  var nameStart =
+    /[:_A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]/
 
-  var nameBody = /[:_A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u00B7\u0300-\u036F\u203F-\u2040.\d-]/
+  var nameBody =
+    /[:_A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u00B7\u0300-\u036F\u203F-\u2040.\d-]/
 
-  var entityStart = /[#:_A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]/
-  var entityBody = /[#:_A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u00B7\u0300-\u036F\u203F-\u2040.\d-]/
+  var entityStart =
+    /[#:_A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]/
+  var entityBody =
+    /[#:_A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u00B7\u0300-\u036F\u203F-\u2040.\d-]/
 
-  function isWhitespace (c) {
+  function isWhitespace(c) {
     return c === ' ' || c === '\n' || c === '\r' || c === '\t'
   }
 
-  function isQuote (c) {
-    return c === '"' || c === '\''
+  function isQuote(c) {
+    return c === '"' || c === "'"
   }
 
-  function isAttribEnd (c) {
+  function isAttribEnd(c) {
     return c === '>' || isWhitespace(c)
   }
 
-  function isMatch (regex, c) {
+  function isMatch(regex, c) {
     return regex.test(c)
   }
 
-  function notMatch (regex, c) {
+  function notMatch(regex, c) {
     return !isMatch(regex, c)
   }
 
@@ -13756,271 +9992,271 @@ function onceStrict (fn) {
     CLOSE_TAG: S++, // </a
     CLOSE_TAG_SAW_WHITE: S++, // </a   >
     SCRIPT: S++, // <script> ...
-    SCRIPT_ENDING: S++ // <script> ... <
+    SCRIPT_ENDING: S++, // <script> ... <
   }
 
   sax.XML_ENTITIES = {
-    'amp': '&',
-    'gt': '>',
-    'lt': '<',
-    'quot': '"',
-    'apos': "'"
+    amp: '&',
+    gt: '>',
+    lt: '<',
+    quot: '"',
+    apos: "'",
   }
 
   sax.ENTITIES = {
-    'amp': '&',
-    'gt': '>',
-    'lt': '<',
-    'quot': '"',
-    'apos': "'",
-    'AElig': 198,
-    'Aacute': 193,
-    'Acirc': 194,
-    'Agrave': 192,
-    'Aring': 197,
-    'Atilde': 195,
-    'Auml': 196,
-    'Ccedil': 199,
-    'ETH': 208,
-    'Eacute': 201,
-    'Ecirc': 202,
-    'Egrave': 200,
-    'Euml': 203,
-    'Iacute': 205,
-    'Icirc': 206,
-    'Igrave': 204,
-    'Iuml': 207,
-    'Ntilde': 209,
-    'Oacute': 211,
-    'Ocirc': 212,
-    'Ograve': 210,
-    'Oslash': 216,
-    'Otilde': 213,
-    'Ouml': 214,
-    'THORN': 222,
-    'Uacute': 218,
-    'Ucirc': 219,
-    'Ugrave': 217,
-    'Uuml': 220,
-    'Yacute': 221,
-    'aacute': 225,
-    'acirc': 226,
-    'aelig': 230,
-    'agrave': 224,
-    'aring': 229,
-    'atilde': 227,
-    'auml': 228,
-    'ccedil': 231,
-    'eacute': 233,
-    'ecirc': 234,
-    'egrave': 232,
-    'eth': 240,
-    'euml': 235,
-    'iacute': 237,
-    'icirc': 238,
-    'igrave': 236,
-    'iuml': 239,
-    'ntilde': 241,
-    'oacute': 243,
-    'ocirc': 244,
-    'ograve': 242,
-    'oslash': 248,
-    'otilde': 245,
-    'ouml': 246,
-    'szlig': 223,
-    'thorn': 254,
-    'uacute': 250,
-    'ucirc': 251,
-    'ugrave': 249,
-    'uuml': 252,
-    'yacute': 253,
-    'yuml': 255,
-    'copy': 169,
-    'reg': 174,
-    'nbsp': 160,
-    'iexcl': 161,
-    'cent': 162,
-    'pound': 163,
-    'curren': 164,
-    'yen': 165,
-    'brvbar': 166,
-    'sect': 167,
-    'uml': 168,
-    'ordf': 170,
-    'laquo': 171,
-    'not': 172,
-    'shy': 173,
-    'macr': 175,
-    'deg': 176,
-    'plusmn': 177,
-    'sup1': 185,
-    'sup2': 178,
-    'sup3': 179,
-    'acute': 180,
-    'micro': 181,
-    'para': 182,
-    'middot': 183,
-    'cedil': 184,
-    'ordm': 186,
-    'raquo': 187,
-    'frac14': 188,
-    'frac12': 189,
-    'frac34': 190,
-    'iquest': 191,
-    'times': 215,
-    'divide': 247,
-    'OElig': 338,
-    'oelig': 339,
-    'Scaron': 352,
-    'scaron': 353,
-    'Yuml': 376,
-    'fnof': 402,
-    'circ': 710,
-    'tilde': 732,
-    'Alpha': 913,
-    'Beta': 914,
-    'Gamma': 915,
-    'Delta': 916,
-    'Epsilon': 917,
-    'Zeta': 918,
-    'Eta': 919,
-    'Theta': 920,
-    'Iota': 921,
-    'Kappa': 922,
-    'Lambda': 923,
-    'Mu': 924,
-    'Nu': 925,
-    'Xi': 926,
-    'Omicron': 927,
-    'Pi': 928,
-    'Rho': 929,
-    'Sigma': 931,
-    'Tau': 932,
-    'Upsilon': 933,
-    'Phi': 934,
-    'Chi': 935,
-    'Psi': 936,
-    'Omega': 937,
-    'alpha': 945,
-    'beta': 946,
-    'gamma': 947,
-    'delta': 948,
-    'epsilon': 949,
-    'zeta': 950,
-    'eta': 951,
-    'theta': 952,
-    'iota': 953,
-    'kappa': 954,
-    'lambda': 955,
-    'mu': 956,
-    'nu': 957,
-    'xi': 958,
-    'omicron': 959,
-    'pi': 960,
-    'rho': 961,
-    'sigmaf': 962,
-    'sigma': 963,
-    'tau': 964,
-    'upsilon': 965,
-    'phi': 966,
-    'chi': 967,
-    'psi': 968,
-    'omega': 969,
-    'thetasym': 977,
-    'upsih': 978,
-    'piv': 982,
-    'ensp': 8194,
-    'emsp': 8195,
-    'thinsp': 8201,
-    'zwnj': 8204,
-    'zwj': 8205,
-    'lrm': 8206,
-    'rlm': 8207,
-    'ndash': 8211,
-    'mdash': 8212,
-    'lsquo': 8216,
-    'rsquo': 8217,
-    'sbquo': 8218,
-    'ldquo': 8220,
-    'rdquo': 8221,
-    'bdquo': 8222,
-    'dagger': 8224,
-    'Dagger': 8225,
-    'bull': 8226,
-    'hellip': 8230,
-    'permil': 8240,
-    'prime': 8242,
-    'Prime': 8243,
-    'lsaquo': 8249,
-    'rsaquo': 8250,
-    'oline': 8254,
-    'frasl': 8260,
-    'euro': 8364,
-    'image': 8465,
-    'weierp': 8472,
-    'real': 8476,
-    'trade': 8482,
-    'alefsym': 8501,
-    'larr': 8592,
-    'uarr': 8593,
-    'rarr': 8594,
-    'darr': 8595,
-    'harr': 8596,
-    'crarr': 8629,
-    'lArr': 8656,
-    'uArr': 8657,
-    'rArr': 8658,
-    'dArr': 8659,
-    'hArr': 8660,
-    'forall': 8704,
-    'part': 8706,
-    'exist': 8707,
-    'empty': 8709,
-    'nabla': 8711,
-    'isin': 8712,
-    'notin': 8713,
-    'ni': 8715,
-    'prod': 8719,
-    'sum': 8721,
-    'minus': 8722,
-    'lowast': 8727,
-    'radic': 8730,
-    'prop': 8733,
-    'infin': 8734,
-    'ang': 8736,
-    'and': 8743,
-    'or': 8744,
-    'cap': 8745,
-    'cup': 8746,
-    'int': 8747,
-    'there4': 8756,
-    'sim': 8764,
-    'cong': 8773,
-    'asymp': 8776,
-    'ne': 8800,
-    'equiv': 8801,
-    'le': 8804,
-    'ge': 8805,
-    'sub': 8834,
-    'sup': 8835,
-    'nsub': 8836,
-    'sube': 8838,
-    'supe': 8839,
-    'oplus': 8853,
-    'otimes': 8855,
-    'perp': 8869,
-    'sdot': 8901,
-    'lceil': 8968,
-    'rceil': 8969,
-    'lfloor': 8970,
-    'rfloor': 8971,
-    'lang': 9001,
-    'rang': 9002,
-    'loz': 9674,
-    'spades': 9824,
-    'clubs': 9827,
-    'hearts': 9829,
-    'diams': 9830
+    amp: '&',
+    gt: '>',
+    lt: '<',
+    quot: '"',
+    apos: "'",
+    AElig: 198,
+    Aacute: 193,
+    Acirc: 194,
+    Agrave: 192,
+    Aring: 197,
+    Atilde: 195,
+    Auml: 196,
+    Ccedil: 199,
+    ETH: 208,
+    Eacute: 201,
+    Ecirc: 202,
+    Egrave: 200,
+    Euml: 203,
+    Iacute: 205,
+    Icirc: 206,
+    Igrave: 204,
+    Iuml: 207,
+    Ntilde: 209,
+    Oacute: 211,
+    Ocirc: 212,
+    Ograve: 210,
+    Oslash: 216,
+    Otilde: 213,
+    Ouml: 214,
+    THORN: 222,
+    Uacute: 218,
+    Ucirc: 219,
+    Ugrave: 217,
+    Uuml: 220,
+    Yacute: 221,
+    aacute: 225,
+    acirc: 226,
+    aelig: 230,
+    agrave: 224,
+    aring: 229,
+    atilde: 227,
+    auml: 228,
+    ccedil: 231,
+    eacute: 233,
+    ecirc: 234,
+    egrave: 232,
+    eth: 240,
+    euml: 235,
+    iacute: 237,
+    icirc: 238,
+    igrave: 236,
+    iuml: 239,
+    ntilde: 241,
+    oacute: 243,
+    ocirc: 244,
+    ograve: 242,
+    oslash: 248,
+    otilde: 245,
+    ouml: 246,
+    szlig: 223,
+    thorn: 254,
+    uacute: 250,
+    ucirc: 251,
+    ugrave: 249,
+    uuml: 252,
+    yacute: 253,
+    yuml: 255,
+    copy: 169,
+    reg: 174,
+    nbsp: 160,
+    iexcl: 161,
+    cent: 162,
+    pound: 163,
+    curren: 164,
+    yen: 165,
+    brvbar: 166,
+    sect: 167,
+    uml: 168,
+    ordf: 170,
+    laquo: 171,
+    not: 172,
+    shy: 173,
+    macr: 175,
+    deg: 176,
+    plusmn: 177,
+    sup1: 185,
+    sup2: 178,
+    sup3: 179,
+    acute: 180,
+    micro: 181,
+    para: 182,
+    middot: 183,
+    cedil: 184,
+    ordm: 186,
+    raquo: 187,
+    frac14: 188,
+    frac12: 189,
+    frac34: 190,
+    iquest: 191,
+    times: 215,
+    divide: 247,
+    OElig: 338,
+    oelig: 339,
+    Scaron: 352,
+    scaron: 353,
+    Yuml: 376,
+    fnof: 402,
+    circ: 710,
+    tilde: 732,
+    Alpha: 913,
+    Beta: 914,
+    Gamma: 915,
+    Delta: 916,
+    Epsilon: 917,
+    Zeta: 918,
+    Eta: 919,
+    Theta: 920,
+    Iota: 921,
+    Kappa: 922,
+    Lambda: 923,
+    Mu: 924,
+    Nu: 925,
+    Xi: 926,
+    Omicron: 927,
+    Pi: 928,
+    Rho: 929,
+    Sigma: 931,
+    Tau: 932,
+    Upsilon: 933,
+    Phi: 934,
+    Chi: 935,
+    Psi: 936,
+    Omega: 937,
+    alpha: 945,
+    beta: 946,
+    gamma: 947,
+    delta: 948,
+    epsilon: 949,
+    zeta: 950,
+    eta: 951,
+    theta: 952,
+    iota: 953,
+    kappa: 954,
+    lambda: 955,
+    mu: 956,
+    nu: 957,
+    xi: 958,
+    omicron: 959,
+    pi: 960,
+    rho: 961,
+    sigmaf: 962,
+    sigma: 963,
+    tau: 964,
+    upsilon: 965,
+    phi: 966,
+    chi: 967,
+    psi: 968,
+    omega: 969,
+    thetasym: 977,
+    upsih: 978,
+    piv: 982,
+    ensp: 8194,
+    emsp: 8195,
+    thinsp: 8201,
+    zwnj: 8204,
+    zwj: 8205,
+    lrm: 8206,
+    rlm: 8207,
+    ndash: 8211,
+    mdash: 8212,
+    lsquo: 8216,
+    rsquo: 8217,
+    sbquo: 8218,
+    ldquo: 8220,
+    rdquo: 8221,
+    bdquo: 8222,
+    dagger: 8224,
+    Dagger: 8225,
+    bull: 8226,
+    hellip: 8230,
+    permil: 8240,
+    prime: 8242,
+    Prime: 8243,
+    lsaquo: 8249,
+    rsaquo: 8250,
+    oline: 8254,
+    frasl: 8260,
+    euro: 8364,
+    image: 8465,
+    weierp: 8472,
+    real: 8476,
+    trade: 8482,
+    alefsym: 8501,
+    larr: 8592,
+    uarr: 8593,
+    rarr: 8594,
+    darr: 8595,
+    harr: 8596,
+    crarr: 8629,
+    lArr: 8656,
+    uArr: 8657,
+    rArr: 8658,
+    dArr: 8659,
+    hArr: 8660,
+    forall: 8704,
+    part: 8706,
+    exist: 8707,
+    empty: 8709,
+    nabla: 8711,
+    isin: 8712,
+    notin: 8713,
+    ni: 8715,
+    prod: 8719,
+    sum: 8721,
+    minus: 8722,
+    lowast: 8727,
+    radic: 8730,
+    prop: 8733,
+    infin: 8734,
+    ang: 8736,
+    and: 8743,
+    or: 8744,
+    cap: 8745,
+    cup: 8746,
+    int: 8747,
+    there4: 8756,
+    sim: 8764,
+    cong: 8773,
+    asymp: 8776,
+    ne: 8800,
+    equiv: 8801,
+    le: 8804,
+    ge: 8805,
+    sub: 8834,
+    sup: 8835,
+    nsub: 8836,
+    sube: 8838,
+    supe: 8839,
+    oplus: 8853,
+    otimes: 8855,
+    perp: 8869,
+    sdot: 8901,
+    lceil: 8968,
+    rceil: 8969,
+    lfloor: 8970,
+    rfloor: 8971,
+    lang: 9001,
+    rang: 9002,
+    loz: 9674,
+    spades: 9824,
+    clubs: 9827,
+    hearts: 9829,
+    diams: 9830,
   }
 
   Object.keys(sax.ENTITIES).forEach(function (key) {
@@ -14036,33 +10272,37 @@ function onceStrict (fn) {
   // shorthand
   S = sax.STATE
 
-  function emit (parser, event, data) {
+  function emit(parser, event, data) {
     parser[event] && parser[event](data)
   }
 
-  function emitNode (parser, nodeType, data) {
+  function emitNode(parser, nodeType, data) {
     if (parser.textNode) closeText(parser)
     emit(parser, nodeType, data)
   }
 
-  function closeText (parser) {
+  function closeText(parser) {
     parser.textNode = textopts(parser.opt, parser.textNode)
     if (parser.textNode) emit(parser, 'ontext', parser.textNode)
     parser.textNode = ''
   }
 
-  function textopts (opt, text) {
+  function textopts(opt, text) {
     if (opt.trim) text = text.trim()
     if (opt.normalize) text = text.replace(/\s+/g, ' ')
     return text
   }
 
-  function error (parser, er) {
+  function error(parser, er) {
     closeText(parser)
     if (parser.trackPosition) {
-      er += '\nLine: ' + parser.line +
-        '\nColumn: ' + parser.column +
-        '\nChar: ' + parser.c
+      er +=
+        '\nLine: ' +
+        parser.line +
+        '\nColumn: ' +
+        parser.column +
+        '\nChar: ' +
+        parser.c
     }
     er = new Error(er)
     parser.error = er
@@ -14070,11 +10310,14 @@ function onceStrict (fn) {
     return parser
   }
 
-  function end (parser) {
-    if (parser.sawRoot && !parser.closedRoot) strictFail(parser, 'Unclosed root tag')
-    if ((parser.state !== S.BEGIN) &&
-      (parser.state !== S.BEGIN_WHITESPACE) &&
-      (parser.state !== S.TEXT)) {
+  function end(parser) {
+    if (parser.sawRoot && !parser.closedRoot)
+      strictFail(parser, 'Unclosed root tag')
+    if (
+      parser.state !== S.BEGIN &&
+      parser.state !== S.BEGIN_WHITESPACE &&
+      parser.state !== S.TEXT
+    ) {
       error(parser, 'Unexpected end')
     }
     closeText(parser)
@@ -14085,7 +10328,7 @@ function onceStrict (fn) {
     return parser
   }
 
-  function strictFail (parser, message) {
+  function strictFail(parser, message) {
     if (typeof parser !== 'object' || !(parser instanceof SAXParser)) {
       throw new Error('bad call to strictFail')
     }
@@ -14094,10 +10337,10 @@ function onceStrict (fn) {
     }
   }
 
-  function newTag (parser) {
+  function newTag(parser) {
     if (!parser.strict) parser.tagName = parser.tagName[parser.looseCase]()
     var parent = parser.tags[parser.tags.length - 1] || parser
-    var tag = parser.tag = { name: parser.tagName, attributes: {} }
+    var tag = (parser.tag = { name: parser.tagName, attributes: {} })
 
     // will be overridden if tag contails an xmlns="foo" or xmlns:foo="bar"
     if (parser.opt.xmlns) {
@@ -14107,9 +10350,9 @@ function onceStrict (fn) {
     emitNode(parser, 'onopentagstart', tag)
   }
 
-  function qname (name, attribute) {
+  function qname(name, attribute) {
     var i = name.indexOf(':')
-    var qualName = i < 0 ? [ '', name ] : name.split(':')
+    var qualName = i < 0 ? ['', name] : name.split(':')
     var prefix = qualName[0]
     var local = qualName[1]
 
@@ -14122,13 +10365,15 @@ function onceStrict (fn) {
     return { prefix: prefix, local: local }
   }
 
-  function attrib (parser) {
+  function attrib(parser) {
     if (!parser.strict) {
       parser.attribName = parser.attribName[parser.looseCase]()
     }
 
-    if (parser.attribList.indexOf(parser.attribName) !== -1 ||
-      parser.tag.attributes.hasOwnProperty(parser.attribName)) {
+    if (
+      parser.attribList.indexOf(parser.attribName) !== -1 ||
+      parser.tag.attributes.hasOwnProperty(parser.attribName)
+    ) {
       parser.attribName = parser.attribValue = ''
       return
     }
@@ -14141,13 +10386,26 @@ function onceStrict (fn) {
       if (prefix === 'xmlns') {
         // namespace binding attribute. push the binding into scope
         if (local === 'xml' && parser.attribValue !== XML_NAMESPACE) {
-          strictFail(parser,
-            'xml: prefix must be bound to ' + XML_NAMESPACE + '\n' +
-            'Actual: ' + parser.attribValue)
-        } else if (local === 'xmlns' && parser.attribValue !== XMLNS_NAMESPACE) {
-          strictFail(parser,
-            'xmlns: prefix must be bound to ' + XMLNS_NAMESPACE + '\n' +
-            'Actual: ' + parser.attribValue)
+          strictFail(
+            parser,
+            'xml: prefix must be bound to ' +
+              XML_NAMESPACE +
+              '\n' +
+              'Actual: ' +
+              parser.attribValue
+          )
+        } else if (
+          local === 'xmlns' &&
+          parser.attribValue !== XMLNS_NAMESPACE
+        ) {
+          strictFail(
+            parser,
+            'xmlns: prefix must be bound to ' +
+              XMLNS_NAMESPACE +
+              '\n' +
+              'Actual: ' +
+              parser.attribValue
+          )
         } else {
           var tag = parser.tag
           var parent = parser.tags[parser.tags.length - 1] || parser
@@ -14167,14 +10425,14 @@ function onceStrict (fn) {
       parser.tag.attributes[parser.attribName] = parser.attribValue
       emitNode(parser, 'onattribute', {
         name: parser.attribName,
-        value: parser.attribValue
+        value: parser.attribValue,
       })
     }
 
     parser.attribName = parser.attribValue = ''
   }
 
-  function openTag (parser, selfClosing) {
+  function openTag(parser, selfClosing) {
     if (parser.opt.xmlns) {
       // emit namespace binding events
       var tag = parser.tag
@@ -14186,8 +10444,10 @@ function onceStrict (fn) {
       tag.uri = tag.ns[qn.prefix] || ''
 
       if (tag.prefix && !tag.uri) {
-        strictFail(parser, 'Unbound namespace prefix: ' +
-          JSON.stringify(parser.tagName))
+        strictFail(
+          parser,
+          'Unbound namespace prefix: ' + JSON.stringify(parser.tagName)
+        )
         tag.uri = qn.prefix
       }
 
@@ -14196,7 +10456,7 @@ function onceStrict (fn) {
         Object.keys(tag.ns).forEach(function (p) {
           emitNode(parser, 'onopennamespace', {
             prefix: p,
-            uri: tag.ns[p]
+            uri: tag.ns[p],
           })
         })
       }
@@ -14211,20 +10471,22 @@ function onceStrict (fn) {
         var qualName = qname(name, true)
         var prefix = qualName.prefix
         var local = qualName.local
-        var uri = prefix === '' ? '' : (tag.ns[prefix] || '')
+        var uri = prefix === '' ? '' : tag.ns[prefix] || ''
         var a = {
           name: name,
           value: value,
           prefix: prefix,
           local: local,
-          uri: uri
+          uri: uri,
         }
 
         // if there's any attributes with an undefined namespace,
         // then fail on them now.
         if (prefix && prefix !== 'xmlns' && !uri) {
-          strictFail(parser, 'Unbound namespace prefix: ' +
-            JSON.stringify(prefix))
+          strictFail(
+            parser,
+            'Unbound namespace prefix: ' + JSON.stringify(prefix)
+          )
           a.uri = prefix
         }
         parser.tag.attributes[name] = a
@@ -14253,7 +10515,7 @@ function onceStrict (fn) {
     parser.attribList.length = 0
   }
 
-  function closeTag (parser) {
+  function closeTag(parser) {
     if (!parser.tagName) {
       strictFail(parser, 'Weird empty close tag.')
       parser.textNode += '</>'
@@ -14300,7 +10562,7 @@ function onceStrict (fn) {
     parser.tagName = tagName
     var s = parser.tags.length
     while (s-- > t) {
-      var tag = parser.tag = parser.tags.pop()
+      var tag = (parser.tag = parser.tags.pop())
       parser.tagName = parser.tag.name
       emitNode(parser, 'onclosetag', parser.tagName)
 
@@ -14324,7 +10586,7 @@ function onceStrict (fn) {
     parser.state = S.TEXT
   }
 
-  function parseEntity (parser) {
+  function parseEntity(parser) {
     var entity = parser.entity
     var entityLC = entity.toLowerCase()
     var num
@@ -14349,7 +10611,12 @@ function onceStrict (fn) {
       }
     }
     entity = entity.replace(/^0+/, '')
-    if (isNaN(num) || numStr.toLowerCase() !== entity) {
+    if (
+      isNaN(num) ||
+      numStr.toLowerCase() !== entity ||
+      num < 0 ||
+      num > 0x10ffff
+    ) {
       strictFail(parser, 'Invalid character entity')
       return '&' + parser.entity + ';'
     }
@@ -14357,7 +10624,7 @@ function onceStrict (fn) {
     return String.fromCodePoint(num)
   }
 
-  function beginWhiteSpace (parser, c) {
+  function beginWhiteSpace(parser, c) {
     if (c === '<') {
       parser.state = S.OPEN_WAKA
       parser.startTagPosition = parser.position
@@ -14370,7 +10637,7 @@ function onceStrict (fn) {
     }
   }
 
-  function charAt (chunk, i) {
+  function charAt(chunk, i) {
     var result = ''
     if (i < chunk.length) {
       result = chunk.charAt(i)
@@ -14378,14 +10645,16 @@ function onceStrict (fn) {
     return result
   }
 
-  function write (chunk) {
+  function write(chunk) {
     var parser = this
     if (this.error) {
       throw this.error
     }
     if (parser.closed) {
-      return error(parser,
-        'Cannot write after close. Assign an onready handler.')
+      return error(
+        parser,
+        'Cannot write after close. Assign an onready handler.'
+      )
     }
     if (chunk === null) {
       return end(parser)
@@ -14443,11 +10712,17 @@ function onceStrict (fn) {
             }
             parser.textNode += chunk.substring(starti, i - 1)
           }
-          if (c === '<' && !(parser.sawRoot && parser.closedRoot && !parser.strict)) {
+          if (
+            c === '<' &&
+            !(parser.sawRoot && parser.closedRoot && !parser.strict)
+          ) {
             parser.state = S.OPEN_WAKA
             parser.startTagPosition = parser.position
           } else {
-            if (!isWhitespace(c) && (!parser.sawRoot || parser.closedRoot)) {
+            if (
+              !isWhitespace(c) &&
+              (!parser.sawRoot || parser.closedRoot)
+            ) {
               strictFail(parser, 'Text data outside of root node.')
             }
             if (c === '&') {
@@ -14505,20 +10780,33 @@ function onceStrict (fn) {
           continue
 
         case S.SGML_DECL:
-          if ((parser.sgmlDecl + c).toUpperCase() === CDATA) {
+          if (parser.sgmlDecl + c === '--') {
+            parser.state = S.COMMENT
+            parser.comment = ''
+            parser.sgmlDecl = ''
+            continue
+          }
+
+          if (
+            parser.doctype &&
+            parser.doctype !== true &&
+            parser.sgmlDecl
+          ) {
+            parser.state = S.DOCTYPE_DTD
+            parser.doctype += '<!' + parser.sgmlDecl + c
+            parser.sgmlDecl = ''
+          } else if ((parser.sgmlDecl + c).toUpperCase() === CDATA) {
             emitNode(parser, 'onopencdata')
             parser.state = S.CDATA
             parser.sgmlDecl = ''
             parser.cdata = ''
-          } else if (parser.sgmlDecl + c === '--') {
-            parser.state = S.COMMENT
-            parser.comment = ''
-            parser.sgmlDecl = ''
           } else if ((parser.sgmlDecl + c).toUpperCase() === DOCTYPE) {
             parser.state = S.DOCTYPE
             if (parser.doctype || parser.sawRoot) {
-              strictFail(parser,
-                'Inappropriately located doctype declaration')
+              strictFail(
+                parser,
+                'Inappropriately located doctype declaration'
+              )
             }
             parser.doctype = ''
             parser.sgmlDecl = ''
@@ -14567,12 +10855,18 @@ function onceStrict (fn) {
           continue
 
         case S.DOCTYPE_DTD:
-          parser.doctype += c
           if (c === ']') {
+            parser.doctype += c
             parser.state = S.DOCTYPE
+          } else if (c === '<') {
+            parser.state = S.OPEN_WAKA
+            parser.startTagPosition = parser.position
           } else if (isQuote(c)) {
+            parser.doctype += c
             parser.state = S.DOCTYPE_DTD_QUOTED
             parser.q = c
+          } else {
+            parser.doctype += c
           }
           continue
 
@@ -14613,16 +10907,30 @@ function onceStrict (fn) {
             // which is a comment of " blah -- bloo "
             parser.comment += '--' + c
             parser.state = S.COMMENT
+          } else if (parser.doctype && parser.doctype !== true) {
+            parser.state = S.DOCTYPE_DTD
           } else {
             parser.state = S.TEXT
           }
           continue
 
         case S.CDATA:
+          var starti = i - 1
+          while (c && c !== ']') {
+            c = charAt(chunk, i++)
+            if (c && parser.trackPosition) {
+              parser.position++
+              if (c === '\n') {
+                parser.line++
+                parser.column = 0
+              } else {
+                parser.column++
+              }
+            }
+          }
+          parser.cdata += chunk.substring(starti, i - 1)
           if (c === ']') {
             parser.state = S.CDATA_ENDING
-          } else {
-            parser.cdata += c
           }
           continue
 
@@ -14675,7 +10983,7 @@ function onceStrict (fn) {
           if (c === '>') {
             emitNode(parser, 'onprocessinginstruction', {
               name: parser.procInstName,
-              body: parser.procInstBody
+              body: parser.procInstBody,
             })
             parser.procInstName = parser.procInstBody = ''
             parser.state = S.TEXT
@@ -14708,7 +11016,10 @@ function onceStrict (fn) {
             openTag(parser, true)
             closeTag(parser)
           } else {
-            strictFail(parser, 'Forward-slash in opening tag not followed by >')
+            strictFail(
+              parser,
+              'Forward-slash in opening tag not followed by >'
+            )
             parser.state = S.ATTRIB
           }
           continue
@@ -14758,7 +11069,7 @@ function onceStrict (fn) {
             parser.attribValue = ''
             emitNode(parser, 'onattribute', {
               name: parser.attribName,
-              value: ''
+              value: '',
             })
             parser.attribName = ''
             if (c === '>') {
@@ -14780,7 +11091,9 @@ function onceStrict (fn) {
             parser.q = c
             parser.state = S.ATTRIB_VALUE_QUOTED
           } else {
-            strictFail(parser, 'Unquoted attribute value')
+            if (!parser.opt.unquotedAttributeValues) {
+              error(parser, 'Unquoted attribute value')
+            }
             parser.state = S.ATTRIB_VALUE_UNQUOTED
             parser.attribValue = c
           }
@@ -14853,7 +11166,7 @@ function onceStrict (fn) {
           } else if (isMatch(nameBody, c)) {
             parser.tagName += c
           } else if (parser.script) {
-            parser.script += '</' + parser.tagName
+            parser.script += '</' + parser.tagName + c
             parser.tagName = ''
             parser.state = S.SCRIPT
           } else {
@@ -14898,17 +11211,22 @@ function onceStrict (fn) {
           }
 
           if (c === ';') {
-            if (parser.opt.unparsedEntities) {
-              var parsedEntity = parseEntity(parser)
+            var parsedEntity = parseEntity(parser)
+            if (
+              parser.opt.unparsedEntities &&
+              !Object.values(sax.XML_ENTITIES).includes(parsedEntity)
+            ) {
               parser.entity = ''
               parser.state = returnState
               parser.write(parsedEntity)
             } else {
-              parser[buffer] += parseEntity(parser)
+              parser[buffer] += parsedEntity
               parser.entity = ''
               parser.state = returnState
             }
-          } else if (isMatch(parser.entity.length ? entityBody : entityStart, c)) {
+          } else if (
+            isMatch(parser.entity.length ? entityBody : entityStart, c)
+          ) {
             parser.entity += c
           } else {
             strictFail(parser, 'Invalid character in entity name')
@@ -14934,7 +11252,7 @@ function onceStrict (fn) {
   /*! http://mths.be/fromcodepoint v0.1.0 by @mathias */
   /* istanbul ignore next */
   if (!String.fromCodePoint) {
-    (function () {
+    ;(function () {
       var stringFromCharCode = String.fromCharCode
       var floor = Math.floor
       var fromCodePoint = function () {
@@ -14953,18 +11271,20 @@ function onceStrict (fn) {
           if (
             !isFinite(codePoint) || // `NaN`, `+Infinity`, or `-Infinity`
             codePoint < 0 || // not a valid Unicode code point
-            codePoint > 0x10FFFF || // not a valid Unicode code point
+            codePoint > 0x10ffff || // not a valid Unicode code point
             floor(codePoint) !== codePoint // not an integer
           ) {
             throw RangeError('Invalid code point: ' + codePoint)
           }
-          if (codePoint <= 0xFFFF) { // BMP code point
+          if (codePoint <= 0xffff) {
+            // BMP code point
             codeUnits.push(codePoint)
-          } else { // Astral code point; split in surrogate halves
+          } else {
+            // Astral code point; split in surrogate halves
             // http://mathiasbynens.be/notes/javascript-encoding#surrogate-formulae
             codePoint -= 0x10000
-            highSurrogate = (codePoint >> 10) + 0xD800
-            lowSurrogate = (codePoint % 0x400) + 0xDC00
+            highSurrogate = (codePoint >> 10) + 0xd800
+            lowSurrogate = (codePoint % 0x400) + 0xdc00
             codeUnits.push(highSurrogate, lowSurrogate)
           }
           if (index + 1 === length || codeUnits.length > MAX_SIZE) {
@@ -14979,14 +11299,14 @@ function onceStrict (fn) {
         Object.defineProperty(String, 'fromCodePoint', {
           value: fromCodePoint,
           configurable: true,
-          writable: true
+          writable: true,
         })
       } else {
         String.fromCodePoint = fromCodePoint
       }
-    }())
+    })()
   }
-})( false ? 0 : exports)
+})( false ? (0) : exports)
 
 
 /***/ }),
@@ -37366,6 +33686,31 @@ module.exports = {
 
 /***/ }),
 
+/***/ 3843:
+/***/ ((__unused_webpack_module, exports) => {
+
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+
+function getUserAgent() {
+  if (typeof navigator === "object" && "userAgent" in navigator) {
+    return navigator.userAgent;
+  }
+
+  if (typeof process === "object" && process.version !== undefined) {
+    return `Node.js/${process.version.substr(1)} (${process.platform}; ${process.arch})`;
+  }
+
+  return "<environment undetectable>";
+}
+
+exports.getUserAgent = getUserAgent;
+//# sourceMappingURL=index.js.map
+
+
+/***/ }),
+
 /***/ 8264:
 /***/ ((module) => {
 
@@ -37402,6 +33747,3345 @@ function wrappy (fn, cb) {
     return ret
   }
 }
+
+
+/***/ }),
+
+/***/ 8736:
+/***/ (function(__unused_webpack_module, exports) {
+
+// Generated by CoffeeScript 1.12.7
+(function() {
+  "use strict";
+  exports.stripBOM = function(str) {
+    if (str[0] === '\uFEFF') {
+      return str.substring(1);
+    } else {
+      return str;
+    }
+  };
+
+}).call(this);
+
+
+/***/ }),
+
+/***/ 9669:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+// Generated by CoffeeScript 1.12.7
+(function() {
+  "use strict";
+  var builder, defaults, escapeCDATA, requiresCDATA, wrapCDATA,
+    hasProp = {}.hasOwnProperty;
+
+  builder = __nccwpck_require__(8004);
+
+  defaults = (__nccwpck_require__(6078).defaults);
+
+  requiresCDATA = function(entry) {
+    return typeof entry === "string" && (entry.indexOf('&') >= 0 || entry.indexOf('>') >= 0 || entry.indexOf('<') >= 0);
+  };
+
+  wrapCDATA = function(entry) {
+    return "<![CDATA[" + (escapeCDATA(entry)) + "]]>";
+  };
+
+  escapeCDATA = function(entry) {
+    return entry.replace(']]>', ']]]]><![CDATA[>');
+  };
+
+  exports.Builder = (function() {
+    function Builder(opts) {
+      var key, ref, value;
+      this.options = {};
+      ref = defaults["0.2"];
+      for (key in ref) {
+        if (!hasProp.call(ref, key)) continue;
+        value = ref[key];
+        this.options[key] = value;
+      }
+      for (key in opts) {
+        if (!hasProp.call(opts, key)) continue;
+        value = opts[key];
+        this.options[key] = value;
+      }
+    }
+
+    Builder.prototype.buildObject = function(rootObj) {
+      var attrkey, charkey, render, rootElement, rootName;
+      attrkey = this.options.attrkey;
+      charkey = this.options.charkey;
+      if ((Object.keys(rootObj).length === 1) && (this.options.rootName === defaults['0.2'].rootName)) {
+        rootName = Object.keys(rootObj)[0];
+        rootObj = rootObj[rootName];
+      } else {
+        rootName = this.options.rootName;
+      }
+      render = (function(_this) {
+        return function(element, obj) {
+          var attr, child, entry, index, key, value;
+          if (typeof obj !== 'object') {
+            if (_this.options.cdata && requiresCDATA(obj)) {
+              element.raw(wrapCDATA(obj));
+            } else {
+              element.txt(obj);
+            }
+          } else if (Array.isArray(obj)) {
+            for (index in obj) {
+              if (!hasProp.call(obj, index)) continue;
+              child = obj[index];
+              for (key in child) {
+                entry = child[key];
+                element = render(element.ele(key), entry).up();
+              }
+            }
+          } else {
+            for (key in obj) {
+              if (!hasProp.call(obj, key)) continue;
+              child = obj[key];
+              if (key === attrkey) {
+                if (typeof child === "object") {
+                  for (attr in child) {
+                    value = child[attr];
+                    element = element.att(attr, value);
+                  }
+                }
+              } else if (key === charkey) {
+                if (_this.options.cdata && requiresCDATA(child)) {
+                  element = element.raw(wrapCDATA(child));
+                } else {
+                  element = element.txt(child);
+                }
+              } else if (Array.isArray(child)) {
+                for (index in child) {
+                  if (!hasProp.call(child, index)) continue;
+                  entry = child[index];
+                  if (typeof entry === 'string') {
+                    if (_this.options.cdata && requiresCDATA(entry)) {
+                      element = element.ele(key).raw(wrapCDATA(entry)).up();
+                    } else {
+                      element = element.ele(key, entry).up();
+                    }
+                  } else {
+                    element = render(element.ele(key), entry).up();
+                  }
+                }
+              } else if (typeof child === "object") {
+                element = render(element.ele(key), child).up();
+              } else {
+                if (typeof child === 'string' && _this.options.cdata && requiresCDATA(child)) {
+                  element = element.ele(key).raw(wrapCDATA(child)).up();
+                } else {
+                  if (child == null) {
+                    child = '';
+                  }
+                  element = element.ele(key, child.toString()).up();
+                }
+              }
+            }
+          }
+          return element;
+        };
+      })(this);
+      rootElement = builder.create(rootName, this.options.xmldec, this.options.doctype, {
+        headless: this.options.headless,
+        allowSurrogateChars: this.options.allowSurrogateChars
+      });
+      return render(rootElement, rootObj).end(this.options.renderOpts);
+    };
+
+    return Builder;
+
+  })();
+
+}).call(this);
+
+
+/***/ }),
+
+/***/ 6078:
+/***/ (function(__unused_webpack_module, exports) {
+
+// Generated by CoffeeScript 1.12.7
+(function() {
+  exports.defaults = {
+    "0.1": {
+      explicitCharkey: false,
+      trim: true,
+      normalize: true,
+      normalizeTags: false,
+      attrkey: "@",
+      charkey: "#",
+      explicitArray: false,
+      ignoreAttrs: false,
+      mergeAttrs: false,
+      explicitRoot: false,
+      validator: null,
+      xmlns: false,
+      explicitChildren: false,
+      childkey: '@@',
+      charsAsChildren: false,
+      includeWhiteChars: false,
+      async: false,
+      strict: true,
+      attrNameProcessors: null,
+      attrValueProcessors: null,
+      tagNameProcessors: null,
+      valueProcessors: null,
+      emptyTag: ''
+    },
+    "0.2": {
+      explicitCharkey: false,
+      trim: false,
+      normalize: false,
+      normalizeTags: false,
+      attrkey: "$",
+      charkey: "_",
+      explicitArray: true,
+      ignoreAttrs: false,
+      mergeAttrs: false,
+      explicitRoot: true,
+      validator: null,
+      xmlns: false,
+      explicitChildren: false,
+      preserveChildrenOrder: false,
+      childkey: '$$',
+      charsAsChildren: false,
+      includeWhiteChars: false,
+      async: false,
+      strict: true,
+      attrNameProcessors: null,
+      attrValueProcessors: null,
+      tagNameProcessors: null,
+      valueProcessors: null,
+      rootName: 'root',
+      xmldec: {
+        'version': '1.0',
+        'encoding': 'UTF-8',
+        'standalone': true
+      },
+      doctype: null,
+      renderOpts: {
+        'pretty': true,
+        'indent': '  ',
+        'newline': '\n'
+      },
+      headless: false,
+      chunkSize: 10000,
+      emptyTag: '',
+      cdata: false
+    }
+  };
+
+}).call(this);
+
+
+/***/ }),
+
+/***/ 2563:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+// Generated by CoffeeScript 1.12.7
+(function() {
+  "use strict";
+  var bom, defaults, events, isEmpty, processItem, processors, sax, setImmediate,
+    bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  sax = __nccwpck_require__(2560);
+
+  events = __nccwpck_require__(4434);
+
+  bom = __nccwpck_require__(8736);
+
+  processors = __nccwpck_require__(4261);
+
+  setImmediate = (__nccwpck_require__(3557).setImmediate);
+
+  defaults = (__nccwpck_require__(6078).defaults);
+
+  isEmpty = function(thing) {
+    return typeof thing === "object" && (thing != null) && Object.keys(thing).length === 0;
+  };
+
+  processItem = function(processors, item, key) {
+    var i, len, process;
+    for (i = 0, len = processors.length; i < len; i++) {
+      process = processors[i];
+      item = process(item, key);
+    }
+    return item;
+  };
+
+  exports.Parser = (function(superClass) {
+    extend(Parser, superClass);
+
+    function Parser(opts) {
+      this.parseString = bind(this.parseString, this);
+      this.reset = bind(this.reset, this);
+      this.assignOrPush = bind(this.assignOrPush, this);
+      this.processAsync = bind(this.processAsync, this);
+      var key, ref, value;
+      if (!(this instanceof exports.Parser)) {
+        return new exports.Parser(opts);
+      }
+      this.options = {};
+      ref = defaults["0.2"];
+      for (key in ref) {
+        if (!hasProp.call(ref, key)) continue;
+        value = ref[key];
+        this.options[key] = value;
+      }
+      for (key in opts) {
+        if (!hasProp.call(opts, key)) continue;
+        value = opts[key];
+        this.options[key] = value;
+      }
+      if (this.options.xmlns) {
+        this.options.xmlnskey = this.options.attrkey + "ns";
+      }
+      if (this.options.normalizeTags) {
+        if (!this.options.tagNameProcessors) {
+          this.options.tagNameProcessors = [];
+        }
+        this.options.tagNameProcessors.unshift(processors.normalize);
+      }
+      this.reset();
+    }
+
+    Parser.prototype.processAsync = function() {
+      var chunk, err;
+      try {
+        if (this.remaining.length <= this.options.chunkSize) {
+          chunk = this.remaining;
+          this.remaining = '';
+          this.saxParser = this.saxParser.write(chunk);
+          return this.saxParser.close();
+        } else {
+          chunk = this.remaining.substr(0, this.options.chunkSize);
+          this.remaining = this.remaining.substr(this.options.chunkSize, this.remaining.length);
+          this.saxParser = this.saxParser.write(chunk);
+          return setImmediate(this.processAsync);
+        }
+      } catch (error1) {
+        err = error1;
+        if (!this.saxParser.errThrown) {
+          this.saxParser.errThrown = true;
+          return this.emit(err);
+        }
+      }
+    };
+
+    Parser.prototype.assignOrPush = function(obj, key, newValue) {
+      if (!(key in obj)) {
+        if (!this.options.explicitArray) {
+          return obj[key] = newValue;
+        } else {
+          return obj[key] = [newValue];
+        }
+      } else {
+        if (!(obj[key] instanceof Array)) {
+          obj[key] = [obj[key]];
+        }
+        return obj[key].push(newValue);
+      }
+    };
+
+    Parser.prototype.reset = function() {
+      var attrkey, charkey, ontext, stack;
+      this.removeAllListeners();
+      this.saxParser = sax.parser(this.options.strict, {
+        trim: false,
+        normalize: false,
+        xmlns: this.options.xmlns
+      });
+      this.saxParser.errThrown = false;
+      this.saxParser.onerror = (function(_this) {
+        return function(error) {
+          _this.saxParser.resume();
+          if (!_this.saxParser.errThrown) {
+            _this.saxParser.errThrown = true;
+            return _this.emit("error", error);
+          }
+        };
+      })(this);
+      this.saxParser.onend = (function(_this) {
+        return function() {
+          if (!_this.saxParser.ended) {
+            _this.saxParser.ended = true;
+            return _this.emit("end", _this.resultObject);
+          }
+        };
+      })(this);
+      this.saxParser.ended = false;
+      this.EXPLICIT_CHARKEY = this.options.explicitCharkey;
+      this.resultObject = null;
+      stack = [];
+      attrkey = this.options.attrkey;
+      charkey = this.options.charkey;
+      this.saxParser.onopentag = (function(_this) {
+        return function(node) {
+          var key, newValue, obj, processedKey, ref;
+          obj = {};
+          obj[charkey] = "";
+          if (!_this.options.ignoreAttrs) {
+            ref = node.attributes;
+            for (key in ref) {
+              if (!hasProp.call(ref, key)) continue;
+              if (!(attrkey in obj) && !_this.options.mergeAttrs) {
+                obj[attrkey] = {};
+              }
+              newValue = _this.options.attrValueProcessors ? processItem(_this.options.attrValueProcessors, node.attributes[key], key) : node.attributes[key];
+              processedKey = _this.options.attrNameProcessors ? processItem(_this.options.attrNameProcessors, key) : key;
+              if (_this.options.mergeAttrs) {
+                _this.assignOrPush(obj, processedKey, newValue);
+              } else {
+                obj[attrkey][processedKey] = newValue;
+              }
+            }
+          }
+          obj["#name"] = _this.options.tagNameProcessors ? processItem(_this.options.tagNameProcessors, node.name) : node.name;
+          if (_this.options.xmlns) {
+            obj[_this.options.xmlnskey] = {
+              uri: node.uri,
+              local: node.local
+            };
+          }
+          return stack.push(obj);
+        };
+      })(this);
+      this.saxParser.onclosetag = (function(_this) {
+        return function() {
+          var cdata, emptyStr, key, node, nodeName, obj, objClone, old, s, xpath;
+          obj = stack.pop();
+          nodeName = obj["#name"];
+          if (!_this.options.explicitChildren || !_this.options.preserveChildrenOrder) {
+            delete obj["#name"];
+          }
+          if (obj.cdata === true) {
+            cdata = obj.cdata;
+            delete obj.cdata;
+          }
+          s = stack[stack.length - 1];
+          if (obj[charkey].match(/^\s*$/) && !cdata) {
+            emptyStr = obj[charkey];
+            delete obj[charkey];
+          } else {
+            if (_this.options.trim) {
+              obj[charkey] = obj[charkey].trim();
+            }
+            if (_this.options.normalize) {
+              obj[charkey] = obj[charkey].replace(/\s{2,}/g, " ").trim();
+            }
+            obj[charkey] = _this.options.valueProcessors ? processItem(_this.options.valueProcessors, obj[charkey], nodeName) : obj[charkey];
+            if (Object.keys(obj).length === 1 && charkey in obj && !_this.EXPLICIT_CHARKEY) {
+              obj = obj[charkey];
+            }
+          }
+          if (isEmpty(obj)) {
+            obj = _this.options.emptyTag !== '' ? _this.options.emptyTag : emptyStr;
+          }
+          if (_this.options.validator != null) {
+            xpath = "/" + ((function() {
+              var i, len, results;
+              results = [];
+              for (i = 0, len = stack.length; i < len; i++) {
+                node = stack[i];
+                results.push(node["#name"]);
+              }
+              return results;
+            })()).concat(nodeName).join("/");
+            (function() {
+              var err;
+              try {
+                return obj = _this.options.validator(xpath, s && s[nodeName], obj);
+              } catch (error1) {
+                err = error1;
+                return _this.emit("error", err);
+              }
+            })();
+          }
+          if (_this.options.explicitChildren && !_this.options.mergeAttrs && typeof obj === 'object') {
+            if (!_this.options.preserveChildrenOrder) {
+              node = {};
+              if (_this.options.attrkey in obj) {
+                node[_this.options.attrkey] = obj[_this.options.attrkey];
+                delete obj[_this.options.attrkey];
+              }
+              if (!_this.options.charsAsChildren && _this.options.charkey in obj) {
+                node[_this.options.charkey] = obj[_this.options.charkey];
+                delete obj[_this.options.charkey];
+              }
+              if (Object.getOwnPropertyNames(obj).length > 0) {
+                node[_this.options.childkey] = obj;
+              }
+              obj = node;
+            } else if (s) {
+              s[_this.options.childkey] = s[_this.options.childkey] || [];
+              objClone = {};
+              for (key in obj) {
+                if (!hasProp.call(obj, key)) continue;
+                objClone[key] = obj[key];
+              }
+              s[_this.options.childkey].push(objClone);
+              delete obj["#name"];
+              if (Object.keys(obj).length === 1 && charkey in obj && !_this.EXPLICIT_CHARKEY) {
+                obj = obj[charkey];
+              }
+            }
+          }
+          if (stack.length > 0) {
+            return _this.assignOrPush(s, nodeName, obj);
+          } else {
+            if (_this.options.explicitRoot) {
+              old = obj;
+              obj = {};
+              obj[nodeName] = old;
+            }
+            _this.resultObject = obj;
+            _this.saxParser.ended = true;
+            return _this.emit("end", _this.resultObject);
+          }
+        };
+      })(this);
+      ontext = (function(_this) {
+        return function(text) {
+          var charChild, s;
+          s = stack[stack.length - 1];
+          if (s) {
+            s[charkey] += text;
+            if (_this.options.explicitChildren && _this.options.preserveChildrenOrder && _this.options.charsAsChildren && (_this.options.includeWhiteChars || text.replace(/\\n/g, '').trim() !== '')) {
+              s[_this.options.childkey] = s[_this.options.childkey] || [];
+              charChild = {
+                '#name': '__text__'
+              };
+              charChild[charkey] = text;
+              if (_this.options.normalize) {
+                charChild[charkey] = charChild[charkey].replace(/\s{2,}/g, " ").trim();
+              }
+              s[_this.options.childkey].push(charChild);
+            }
+            return s;
+          }
+        };
+      })(this);
+      this.saxParser.ontext = ontext;
+      return this.saxParser.oncdata = (function(_this) {
+        return function(text) {
+          var s;
+          s = ontext(text);
+          if (s) {
+            return s.cdata = true;
+          }
+        };
+      })(this);
+    };
+
+    Parser.prototype.parseString = function(str, cb) {
+      var err;
+      if ((cb != null) && typeof cb === "function") {
+        this.on("end", function(result) {
+          this.reset();
+          return cb(null, result);
+        });
+        this.on("error", function(err) {
+          this.reset();
+          return cb(err);
+        });
+      }
+      try {
+        str = str.toString();
+        if (str.trim() === '') {
+          this.emit("end", null);
+          return true;
+        }
+        str = bom.stripBOM(str);
+        if (this.options.async) {
+          this.remaining = str;
+          setImmediate(this.processAsync);
+          return this.saxParser;
+        }
+        return this.saxParser.write(str).close();
+      } catch (error1) {
+        err = error1;
+        if (!(this.saxParser.errThrown || this.saxParser.ended)) {
+          this.emit('error', err);
+          return this.saxParser.errThrown = true;
+        } else if (this.saxParser.ended) {
+          throw err;
+        }
+      }
+    };
+
+    return Parser;
+
+  })(events.EventEmitter);
+
+  exports.parseString = function(str, a, b) {
+    var cb, options, parser;
+    if (b != null) {
+      if (typeof b === 'function') {
+        cb = b;
+      }
+      if (typeof a === 'object') {
+        options = a;
+      }
+    } else {
+      if (typeof a === 'function') {
+        cb = a;
+      }
+      options = {};
+    }
+    parser = new exports.Parser(options);
+    return parser.parseString(str, cb);
+  };
+
+}).call(this);
+
+
+/***/ }),
+
+/***/ 4261:
+/***/ (function(__unused_webpack_module, exports) {
+
+// Generated by CoffeeScript 1.12.7
+(function() {
+  "use strict";
+  var prefixMatch;
+
+  prefixMatch = new RegExp(/(?!xmlns)^.*:/);
+
+  exports.normalize = function(str) {
+    return str.toLowerCase();
+  };
+
+  exports.firstCharLowerCase = function(str) {
+    return str.charAt(0).toLowerCase() + str.slice(1);
+  };
+
+  exports.stripPrefix = function(str) {
+    return str.replace(prefixMatch, '');
+  };
+
+  exports.parseNumbers = function(str) {
+    if (!isNaN(str)) {
+      str = str % 1 === 0 ? parseInt(str, 10) : parseFloat(str);
+    }
+    return str;
+  };
+
+  exports.parseBooleans = function(str) {
+    if (/^(?:true|false)$/i.test(str)) {
+      str = str.toLowerCase() === 'true';
+    }
+    return str;
+  };
+
+}).call(this);
+
+
+/***/ }),
+
+/***/ 758:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+// Generated by CoffeeScript 1.12.7
+(function() {
+  "use strict";
+  var builder, defaults, parser, processors,
+    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  defaults = __nccwpck_require__(6078);
+
+  builder = __nccwpck_require__(9669);
+
+  parser = __nccwpck_require__(2563);
+
+  processors = __nccwpck_require__(4261);
+
+  exports.defaults = defaults.defaults;
+
+  exports.processors = processors;
+
+  exports.ValidationError = (function(superClass) {
+    extend(ValidationError, superClass);
+
+    function ValidationError(message) {
+      this.message = message;
+    }
+
+    return ValidationError;
+
+  })(Error);
+
+  exports.Builder = builder.Builder;
+
+  exports.Parser = parser.Parser;
+
+  exports.parseString = parser.parseString;
+
+}).call(this);
+
+
+/***/ }),
+
+/***/ 4576:
+/***/ (function(module) {
+
+// Generated by CoffeeScript 1.12.7
+(function() {
+  var assign, isArray, isEmpty, isFunction, isObject, isPlainObject,
+    slice = [].slice,
+    hasProp = {}.hasOwnProperty;
+
+  assign = function() {
+    var i, key, len, source, sources, target;
+    target = arguments[0], sources = 2 <= arguments.length ? slice.call(arguments, 1) : [];
+    if (isFunction(Object.assign)) {
+      Object.assign.apply(null, arguments);
+    } else {
+      for (i = 0, len = sources.length; i < len; i++) {
+        source = sources[i];
+        if (source != null) {
+          for (key in source) {
+            if (!hasProp.call(source, key)) continue;
+            target[key] = source[key];
+          }
+        }
+      }
+    }
+    return target;
+  };
+
+  isFunction = function(val) {
+    return !!val && Object.prototype.toString.call(val) === '[object Function]';
+  };
+
+  isObject = function(val) {
+    var ref;
+    return !!val && ((ref = typeof val) === 'function' || ref === 'object');
+  };
+
+  isArray = function(val) {
+    if (isFunction(Array.isArray)) {
+      return Array.isArray(val);
+    } else {
+      return Object.prototype.toString.call(val) === '[object Array]';
+    }
+  };
+
+  isEmpty = function(val) {
+    var key;
+    if (isArray(val)) {
+      return !val.length;
+    } else {
+      for (key in val) {
+        if (!hasProp.call(val, key)) continue;
+        return false;
+      }
+      return true;
+    }
+  };
+
+  isPlainObject = function(val) {
+    var ctor, proto;
+    return isObject(val) && (proto = Object.getPrototypeOf(val)) && (ctor = proto.constructor) && (typeof ctor === 'function') && (ctor instanceof ctor) && (Function.prototype.toString.call(ctor) === Function.prototype.toString.call(Object));
+  };
+
+  module.exports.assign = assign;
+
+  module.exports.isFunction = isFunction;
+
+  module.exports.isObject = isObject;
+
+  module.exports.isArray = isArray;
+
+  module.exports.isEmpty = isEmpty;
+
+  module.exports.isPlainObject = isPlainObject;
+
+}).call(this);
+
+
+/***/ }),
+
+/***/ 3977:
+/***/ (function(module) {
+
+// Generated by CoffeeScript 1.12.7
+(function() {
+  var XMLAttribute;
+
+  module.exports = XMLAttribute = (function() {
+    function XMLAttribute(parent, name, value) {
+      this.options = parent.options;
+      this.stringify = parent.stringify;
+      if (name == null) {
+        throw new Error("Missing attribute name of element " + parent.name);
+      }
+      if (value == null) {
+        throw new Error("Missing attribute value for attribute " + name + " of element " + parent.name);
+      }
+      this.name = this.stringify.attName(name);
+      this.value = this.stringify.attValue(value);
+    }
+
+    XMLAttribute.prototype.clone = function() {
+      return Object.create(this);
+    };
+
+    XMLAttribute.prototype.toString = function(options) {
+      return this.options.writer.set(options).attribute(this);
+    };
+
+    return XMLAttribute;
+
+  })();
+
+}).call(this);
+
+
+/***/ }),
+
+/***/ 728:
+/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
+
+// Generated by CoffeeScript 1.12.7
+(function() {
+  var XMLCData, XMLNode,
+    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  XMLNode = __nccwpck_require__(3401);
+
+  module.exports = XMLCData = (function(superClass) {
+    extend(XMLCData, superClass);
+
+    function XMLCData(parent, text) {
+      XMLCData.__super__.constructor.call(this, parent);
+      if (text == null) {
+        throw new Error("Missing CDATA text");
+      }
+      this.text = this.stringify.cdata(text);
+    }
+
+    XMLCData.prototype.clone = function() {
+      return Object.create(this);
+    };
+
+    XMLCData.prototype.toString = function(options) {
+      return this.options.writer.set(options).cdata(this);
+    };
+
+    return XMLCData;
+
+  })(XMLNode);
+
+}).call(this);
+
+
+/***/ }),
+
+/***/ 9620:
+/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
+
+// Generated by CoffeeScript 1.12.7
+(function() {
+  var XMLComment, XMLNode,
+    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  XMLNode = __nccwpck_require__(3401);
+
+  module.exports = XMLComment = (function(superClass) {
+    extend(XMLComment, superClass);
+
+    function XMLComment(parent, text) {
+      XMLComment.__super__.constructor.call(this, parent);
+      if (text == null) {
+        throw new Error("Missing comment text");
+      }
+      this.text = this.stringify.comment(text);
+    }
+
+    XMLComment.prototype.clone = function() {
+      return Object.create(this);
+    };
+
+    XMLComment.prototype.toString = function(options) {
+      return this.options.writer.set(options).comment(this);
+    };
+
+    return XMLComment;
+
+  })(XMLNode);
+
+}).call(this);
+
+
+/***/ }),
+
+/***/ 3742:
+/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
+
+// Generated by CoffeeScript 1.12.7
+(function() {
+  var XMLDTDAttList, XMLNode,
+    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  XMLNode = __nccwpck_require__(3401);
+
+  module.exports = XMLDTDAttList = (function(superClass) {
+    extend(XMLDTDAttList, superClass);
+
+    function XMLDTDAttList(parent, elementName, attributeName, attributeType, defaultValueType, defaultValue) {
+      XMLDTDAttList.__super__.constructor.call(this, parent);
+      if (elementName == null) {
+        throw new Error("Missing DTD element name");
+      }
+      if (attributeName == null) {
+        throw new Error("Missing DTD attribute name");
+      }
+      if (!attributeType) {
+        throw new Error("Missing DTD attribute type");
+      }
+      if (!defaultValueType) {
+        throw new Error("Missing DTD attribute default");
+      }
+      if (defaultValueType.indexOf('#') !== 0) {
+        defaultValueType = '#' + defaultValueType;
+      }
+      if (!defaultValueType.match(/^(#REQUIRED|#IMPLIED|#FIXED|#DEFAULT)$/)) {
+        throw new Error("Invalid default value type; expected: #REQUIRED, #IMPLIED, #FIXED or #DEFAULT");
+      }
+      if (defaultValue && !defaultValueType.match(/^(#FIXED|#DEFAULT)$/)) {
+        throw new Error("Default value only applies to #FIXED or #DEFAULT");
+      }
+      this.elementName = this.stringify.eleName(elementName);
+      this.attributeName = this.stringify.attName(attributeName);
+      this.attributeType = this.stringify.dtdAttType(attributeType);
+      this.defaultValue = this.stringify.dtdAttDefault(defaultValue);
+      this.defaultValueType = defaultValueType;
+    }
+
+    XMLDTDAttList.prototype.toString = function(options) {
+      return this.options.writer.set(options).dtdAttList(this);
+    };
+
+    return XMLDTDAttList;
+
+  })(XMLNode);
+
+}).call(this);
+
+
+/***/ }),
+
+/***/ 6189:
+/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
+
+// Generated by CoffeeScript 1.12.7
+(function() {
+  var XMLDTDElement, XMLNode,
+    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  XMLNode = __nccwpck_require__(3401);
+
+  module.exports = XMLDTDElement = (function(superClass) {
+    extend(XMLDTDElement, superClass);
+
+    function XMLDTDElement(parent, name, value) {
+      XMLDTDElement.__super__.constructor.call(this, parent);
+      if (name == null) {
+        throw new Error("Missing DTD element name");
+      }
+      if (!value) {
+        value = '(#PCDATA)';
+      }
+      if (Array.isArray(value)) {
+        value = '(' + value.join(',') + ')';
+      }
+      this.name = this.stringify.eleName(name);
+      this.value = this.stringify.dtdElementValue(value);
+    }
+
+    XMLDTDElement.prototype.toString = function(options) {
+      return this.options.writer.set(options).dtdElement(this);
+    };
+
+    return XMLDTDElement;
+
+  })(XMLNode);
+
+}).call(this);
+
+
+/***/ }),
+
+/***/ 6906:
+/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
+
+// Generated by CoffeeScript 1.12.7
+(function() {
+  var XMLDTDEntity, XMLNode, isObject,
+    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  isObject = (__nccwpck_require__(4576).isObject);
+
+  XMLNode = __nccwpck_require__(3401);
+
+  module.exports = XMLDTDEntity = (function(superClass) {
+    extend(XMLDTDEntity, superClass);
+
+    function XMLDTDEntity(parent, pe, name, value) {
+      XMLDTDEntity.__super__.constructor.call(this, parent);
+      if (name == null) {
+        throw new Error("Missing entity name");
+      }
+      if (value == null) {
+        throw new Error("Missing entity value");
+      }
+      this.pe = !!pe;
+      this.name = this.stringify.eleName(name);
+      if (!isObject(value)) {
+        this.value = this.stringify.dtdEntityValue(value);
+      } else {
+        if (!value.pubID && !value.sysID) {
+          throw new Error("Public and/or system identifiers are required for an external entity");
+        }
+        if (value.pubID && !value.sysID) {
+          throw new Error("System identifier is required for a public external entity");
+        }
+        if (value.pubID != null) {
+          this.pubID = this.stringify.dtdPubID(value.pubID);
+        }
+        if (value.sysID != null) {
+          this.sysID = this.stringify.dtdSysID(value.sysID);
+        }
+        if (value.nData != null) {
+          this.nData = this.stringify.dtdNData(value.nData);
+        }
+        if (this.pe && this.nData) {
+          throw new Error("Notation declaration is not allowed in a parameter entity");
+        }
+      }
+    }
+
+    XMLDTDEntity.prototype.toString = function(options) {
+      return this.options.writer.set(options).dtdEntity(this);
+    };
+
+    return XMLDTDEntity;
+
+  })(XMLNode);
+
+}).call(this);
+
+
+/***/ }),
+
+/***/ 7083:
+/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
+
+// Generated by CoffeeScript 1.12.7
+(function() {
+  var XMLDTDNotation, XMLNode,
+    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  XMLNode = __nccwpck_require__(3401);
+
+  module.exports = XMLDTDNotation = (function(superClass) {
+    extend(XMLDTDNotation, superClass);
+
+    function XMLDTDNotation(parent, name, value) {
+      XMLDTDNotation.__super__.constructor.call(this, parent);
+      if (name == null) {
+        throw new Error("Missing notation name");
+      }
+      if (!value.pubID && !value.sysID) {
+        throw new Error("Public or system identifiers are required for an external entity");
+      }
+      this.name = this.stringify.eleName(name);
+      if (value.pubID != null) {
+        this.pubID = this.stringify.dtdPubID(value.pubID);
+      }
+      if (value.sysID != null) {
+        this.sysID = this.stringify.dtdSysID(value.sysID);
+      }
+    }
+
+    XMLDTDNotation.prototype.toString = function(options) {
+      return this.options.writer.set(options).dtdNotation(this);
+    };
+
+    return XMLDTDNotation;
+
+  })(XMLNode);
+
+}).call(this);
+
+
+/***/ }),
+
+/***/ 7645:
+/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
+
+// Generated by CoffeeScript 1.12.7
+(function() {
+  var XMLDeclaration, XMLNode, isObject,
+    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  isObject = (__nccwpck_require__(4576).isObject);
+
+  XMLNode = __nccwpck_require__(3401);
+
+  module.exports = XMLDeclaration = (function(superClass) {
+    extend(XMLDeclaration, superClass);
+
+    function XMLDeclaration(parent, version, encoding, standalone) {
+      var ref;
+      XMLDeclaration.__super__.constructor.call(this, parent);
+      if (isObject(version)) {
+        ref = version, version = ref.version, encoding = ref.encoding, standalone = ref.standalone;
+      }
+      if (!version) {
+        version = '1.0';
+      }
+      this.version = this.stringify.xmlVersion(version);
+      if (encoding != null) {
+        this.encoding = this.stringify.xmlEncoding(encoding);
+      }
+      if (standalone != null) {
+        this.standalone = this.stringify.xmlStandalone(standalone);
+      }
+    }
+
+    XMLDeclaration.prototype.toString = function(options) {
+      return this.options.writer.set(options).declaration(this);
+    };
+
+    return XMLDeclaration;
+
+  })(XMLNode);
+
+}).call(this);
+
+
+/***/ }),
+
+/***/ 7827:
+/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
+
+// Generated by CoffeeScript 1.12.7
+(function() {
+  var XMLDTDAttList, XMLDTDElement, XMLDTDEntity, XMLDTDNotation, XMLDocType, XMLNode, isObject,
+    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  isObject = (__nccwpck_require__(4576).isObject);
+
+  XMLNode = __nccwpck_require__(3401);
+
+  XMLDTDAttList = __nccwpck_require__(3742);
+
+  XMLDTDEntity = __nccwpck_require__(6906);
+
+  XMLDTDElement = __nccwpck_require__(6189);
+
+  XMLDTDNotation = __nccwpck_require__(7083);
+
+  module.exports = XMLDocType = (function(superClass) {
+    extend(XMLDocType, superClass);
+
+    function XMLDocType(parent, pubID, sysID) {
+      var ref, ref1;
+      XMLDocType.__super__.constructor.call(this, parent);
+      this.documentObject = parent;
+      if (isObject(pubID)) {
+        ref = pubID, pubID = ref.pubID, sysID = ref.sysID;
+      }
+      if (sysID == null) {
+        ref1 = [pubID, sysID], sysID = ref1[0], pubID = ref1[1];
+      }
+      if (pubID != null) {
+        this.pubID = this.stringify.dtdPubID(pubID);
+      }
+      if (sysID != null) {
+        this.sysID = this.stringify.dtdSysID(sysID);
+      }
+    }
+
+    XMLDocType.prototype.element = function(name, value) {
+      var child;
+      child = new XMLDTDElement(this, name, value);
+      this.children.push(child);
+      return this;
+    };
+
+    XMLDocType.prototype.attList = function(elementName, attributeName, attributeType, defaultValueType, defaultValue) {
+      var child;
+      child = new XMLDTDAttList(this, elementName, attributeName, attributeType, defaultValueType, defaultValue);
+      this.children.push(child);
+      return this;
+    };
+
+    XMLDocType.prototype.entity = function(name, value) {
+      var child;
+      child = new XMLDTDEntity(this, false, name, value);
+      this.children.push(child);
+      return this;
+    };
+
+    XMLDocType.prototype.pEntity = function(name, value) {
+      var child;
+      child = new XMLDTDEntity(this, true, name, value);
+      this.children.push(child);
+      return this;
+    };
+
+    XMLDocType.prototype.notation = function(name, value) {
+      var child;
+      child = new XMLDTDNotation(this, name, value);
+      this.children.push(child);
+      return this;
+    };
+
+    XMLDocType.prototype.toString = function(options) {
+      return this.options.writer.set(options).docType(this);
+    };
+
+    XMLDocType.prototype.ele = function(name, value) {
+      return this.element(name, value);
+    };
+
+    XMLDocType.prototype.att = function(elementName, attributeName, attributeType, defaultValueType, defaultValue) {
+      return this.attList(elementName, attributeName, attributeType, defaultValueType, defaultValue);
+    };
+
+    XMLDocType.prototype.ent = function(name, value) {
+      return this.entity(name, value);
+    };
+
+    XMLDocType.prototype.pent = function(name, value) {
+      return this.pEntity(name, value);
+    };
+
+    XMLDocType.prototype.not = function(name, value) {
+      return this.notation(name, value);
+    };
+
+    XMLDocType.prototype.up = function() {
+      return this.root() || this.documentObject;
+    };
+
+    return XMLDocType;
+
+  })(XMLNode);
+
+}).call(this);
+
+
+/***/ }),
+
+/***/ 6500:
+/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
+
+// Generated by CoffeeScript 1.12.7
+(function() {
+  var XMLDocument, XMLNode, XMLStringWriter, XMLStringifier, isPlainObject,
+    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  isPlainObject = (__nccwpck_require__(4576).isPlainObject);
+
+  XMLNode = __nccwpck_require__(3401);
+
+  XMLStringifier = __nccwpck_require__(7431);
+
+  XMLStringWriter = __nccwpck_require__(9867);
+
+  module.exports = XMLDocument = (function(superClass) {
+    extend(XMLDocument, superClass);
+
+    function XMLDocument(options) {
+      XMLDocument.__super__.constructor.call(this, null);
+      options || (options = {});
+      if (!options.writer) {
+        options.writer = new XMLStringWriter();
+      }
+      this.options = options;
+      this.stringify = new XMLStringifier(options);
+      this.isDocument = true;
+    }
+
+    XMLDocument.prototype.end = function(writer) {
+      var writerOptions;
+      if (!writer) {
+        writer = this.options.writer;
+      } else if (isPlainObject(writer)) {
+        writerOptions = writer;
+        writer = this.options.writer.set(writerOptions);
+      }
+      return writer.document(this);
+    };
+
+    XMLDocument.prototype.toString = function(options) {
+      return this.options.writer.set(options).document(this);
+    };
+
+    return XMLDocument;
+
+  })(XMLNode);
+
+}).call(this);
+
+
+/***/ }),
+
+/***/ 7789:
+/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
+
+// Generated by CoffeeScript 1.12.7
+(function() {
+  var XMLAttribute, XMLCData, XMLComment, XMLDTDAttList, XMLDTDElement, XMLDTDEntity, XMLDTDNotation, XMLDeclaration, XMLDocType, XMLDocumentCB, XMLElement, XMLProcessingInstruction, XMLRaw, XMLStringWriter, XMLStringifier, XMLText, isFunction, isObject, isPlainObject, ref,
+    hasProp = {}.hasOwnProperty;
+
+  ref = __nccwpck_require__(4576), isObject = ref.isObject, isFunction = ref.isFunction, isPlainObject = ref.isPlainObject;
+
+  XMLElement = __nccwpck_require__(3965);
+
+  XMLCData = __nccwpck_require__(728);
+
+  XMLComment = __nccwpck_require__(9620);
+
+  XMLRaw = __nccwpck_require__(2083);
+
+  XMLText = __nccwpck_require__(9946);
+
+  XMLProcessingInstruction = __nccwpck_require__(1368);
+
+  XMLDeclaration = __nccwpck_require__(7645);
+
+  XMLDocType = __nccwpck_require__(7827);
+
+  XMLDTDAttList = __nccwpck_require__(3742);
+
+  XMLDTDEntity = __nccwpck_require__(6906);
+
+  XMLDTDElement = __nccwpck_require__(6189);
+
+  XMLDTDNotation = __nccwpck_require__(7083);
+
+  XMLAttribute = __nccwpck_require__(3977);
+
+  XMLStringifier = __nccwpck_require__(7431);
+
+  XMLStringWriter = __nccwpck_require__(9867);
+
+  module.exports = XMLDocumentCB = (function() {
+    function XMLDocumentCB(options, onData, onEnd) {
+      var writerOptions;
+      options || (options = {});
+      if (!options.writer) {
+        options.writer = new XMLStringWriter(options);
+      } else if (isPlainObject(options.writer)) {
+        writerOptions = options.writer;
+        options.writer = new XMLStringWriter(writerOptions);
+      }
+      this.options = options;
+      this.writer = options.writer;
+      this.stringify = new XMLStringifier(options);
+      this.onDataCallback = onData || function() {};
+      this.onEndCallback = onEnd || function() {};
+      this.currentNode = null;
+      this.currentLevel = -1;
+      this.openTags = {};
+      this.documentStarted = false;
+      this.documentCompleted = false;
+      this.root = null;
+    }
+
+    XMLDocumentCB.prototype.node = function(name, attributes, text) {
+      var ref1;
+      if (name == null) {
+        throw new Error("Missing node name");
+      }
+      if (this.root && this.currentLevel === -1) {
+        throw new Error("Document can only have one root node");
+      }
+      this.openCurrent();
+      name = name.valueOf();
+      if (attributes == null) {
+        attributes = {};
+      }
+      attributes = attributes.valueOf();
+      if (!isObject(attributes)) {
+        ref1 = [attributes, text], text = ref1[0], attributes = ref1[1];
+      }
+      this.currentNode = new XMLElement(this, name, attributes);
+      this.currentNode.children = false;
+      this.currentLevel++;
+      this.openTags[this.currentLevel] = this.currentNode;
+      if (text != null) {
+        this.text(text);
+      }
+      return this;
+    };
+
+    XMLDocumentCB.prototype.element = function(name, attributes, text) {
+      if (this.currentNode && this.currentNode instanceof XMLDocType) {
+        return this.dtdElement.apply(this, arguments);
+      } else {
+        return this.node(name, attributes, text);
+      }
+    };
+
+    XMLDocumentCB.prototype.attribute = function(name, value) {
+      var attName, attValue;
+      if (!this.currentNode || this.currentNode.children) {
+        throw new Error("att() can only be used immediately after an ele() call in callback mode");
+      }
+      if (name != null) {
+        name = name.valueOf();
+      }
+      if (isObject(name)) {
+        for (attName in name) {
+          if (!hasProp.call(name, attName)) continue;
+          attValue = name[attName];
+          this.attribute(attName, attValue);
+        }
+      } else {
+        if (isFunction(value)) {
+          value = value.apply();
+        }
+        if (!this.options.skipNullAttributes || (value != null)) {
+          this.currentNode.attributes[name] = new XMLAttribute(this, name, value);
+        }
+      }
+      return this;
+    };
+
+    XMLDocumentCB.prototype.text = function(value) {
+      var node;
+      this.openCurrent();
+      node = new XMLText(this, value);
+      this.onData(this.writer.text(node, this.currentLevel + 1));
+      return this;
+    };
+
+    XMLDocumentCB.prototype.cdata = function(value) {
+      var node;
+      this.openCurrent();
+      node = new XMLCData(this, value);
+      this.onData(this.writer.cdata(node, this.currentLevel + 1));
+      return this;
+    };
+
+    XMLDocumentCB.prototype.comment = function(value) {
+      var node;
+      this.openCurrent();
+      node = new XMLComment(this, value);
+      this.onData(this.writer.comment(node, this.currentLevel + 1));
+      return this;
+    };
+
+    XMLDocumentCB.prototype.raw = function(value) {
+      var node;
+      this.openCurrent();
+      node = new XMLRaw(this, value);
+      this.onData(this.writer.raw(node, this.currentLevel + 1));
+      return this;
+    };
+
+    XMLDocumentCB.prototype.instruction = function(target, value) {
+      var i, insTarget, insValue, len, node;
+      this.openCurrent();
+      if (target != null) {
+        target = target.valueOf();
+      }
+      if (value != null) {
+        value = value.valueOf();
+      }
+      if (Array.isArray(target)) {
+        for (i = 0, len = target.length; i < len; i++) {
+          insTarget = target[i];
+          this.instruction(insTarget);
+        }
+      } else if (isObject(target)) {
+        for (insTarget in target) {
+          if (!hasProp.call(target, insTarget)) continue;
+          insValue = target[insTarget];
+          this.instruction(insTarget, insValue);
+        }
+      } else {
+        if (isFunction(value)) {
+          value = value.apply();
+        }
+        node = new XMLProcessingInstruction(this, target, value);
+        this.onData(this.writer.processingInstruction(node, this.currentLevel + 1));
+      }
+      return this;
+    };
+
+    XMLDocumentCB.prototype.declaration = function(version, encoding, standalone) {
+      var node;
+      this.openCurrent();
+      if (this.documentStarted) {
+        throw new Error("declaration() must be the first node");
+      }
+      node = new XMLDeclaration(this, version, encoding, standalone);
+      this.onData(this.writer.declaration(node, this.currentLevel + 1));
+      return this;
+    };
+
+    XMLDocumentCB.prototype.doctype = function(root, pubID, sysID) {
+      this.openCurrent();
+      if (root == null) {
+        throw new Error("Missing root node name");
+      }
+      if (this.root) {
+        throw new Error("dtd() must come before the root node");
+      }
+      this.currentNode = new XMLDocType(this, pubID, sysID);
+      this.currentNode.rootNodeName = root;
+      this.currentNode.children = false;
+      this.currentLevel++;
+      this.openTags[this.currentLevel] = this.currentNode;
+      return this;
+    };
+
+    XMLDocumentCB.prototype.dtdElement = function(name, value) {
+      var node;
+      this.openCurrent();
+      node = new XMLDTDElement(this, name, value);
+      this.onData(this.writer.dtdElement(node, this.currentLevel + 1));
+      return this;
+    };
+
+    XMLDocumentCB.prototype.attList = function(elementName, attributeName, attributeType, defaultValueType, defaultValue) {
+      var node;
+      this.openCurrent();
+      node = new XMLDTDAttList(this, elementName, attributeName, attributeType, defaultValueType, defaultValue);
+      this.onData(this.writer.dtdAttList(node, this.currentLevel + 1));
+      return this;
+    };
+
+    XMLDocumentCB.prototype.entity = function(name, value) {
+      var node;
+      this.openCurrent();
+      node = new XMLDTDEntity(this, false, name, value);
+      this.onData(this.writer.dtdEntity(node, this.currentLevel + 1));
+      return this;
+    };
+
+    XMLDocumentCB.prototype.pEntity = function(name, value) {
+      var node;
+      this.openCurrent();
+      node = new XMLDTDEntity(this, true, name, value);
+      this.onData(this.writer.dtdEntity(node, this.currentLevel + 1));
+      return this;
+    };
+
+    XMLDocumentCB.prototype.notation = function(name, value) {
+      var node;
+      this.openCurrent();
+      node = new XMLDTDNotation(this, name, value);
+      this.onData(this.writer.dtdNotation(node, this.currentLevel + 1));
+      return this;
+    };
+
+    XMLDocumentCB.prototype.up = function() {
+      if (this.currentLevel < 0) {
+        throw new Error("The document node has no parent");
+      }
+      if (this.currentNode) {
+        if (this.currentNode.children) {
+          this.closeNode(this.currentNode);
+        } else {
+          this.openNode(this.currentNode);
+        }
+        this.currentNode = null;
+      } else {
+        this.closeNode(this.openTags[this.currentLevel]);
+      }
+      delete this.openTags[this.currentLevel];
+      this.currentLevel--;
+      return this;
+    };
+
+    XMLDocumentCB.prototype.end = function() {
+      while (this.currentLevel >= 0) {
+        this.up();
+      }
+      return this.onEnd();
+    };
+
+    XMLDocumentCB.prototype.openCurrent = function() {
+      if (this.currentNode) {
+        this.currentNode.children = true;
+        return this.openNode(this.currentNode);
+      }
+    };
+
+    XMLDocumentCB.prototype.openNode = function(node) {
+      if (!node.isOpen) {
+        if (!this.root && this.currentLevel === 0 && node instanceof XMLElement) {
+          this.root = node;
+        }
+        this.onData(this.writer.openNode(node, this.currentLevel));
+        return node.isOpen = true;
+      }
+    };
+
+    XMLDocumentCB.prototype.closeNode = function(node) {
+      if (!node.isClosed) {
+        this.onData(this.writer.closeNode(node, this.currentLevel));
+        return node.isClosed = true;
+      }
+    };
+
+    XMLDocumentCB.prototype.onData = function(chunk) {
+      this.documentStarted = true;
+      return this.onDataCallback(chunk);
+    };
+
+    XMLDocumentCB.prototype.onEnd = function() {
+      this.documentCompleted = true;
+      return this.onEndCallback();
+    };
+
+    XMLDocumentCB.prototype.ele = function() {
+      return this.element.apply(this, arguments);
+    };
+
+    XMLDocumentCB.prototype.nod = function(name, attributes, text) {
+      return this.node(name, attributes, text);
+    };
+
+    XMLDocumentCB.prototype.txt = function(value) {
+      return this.text(value);
+    };
+
+    XMLDocumentCB.prototype.dat = function(value) {
+      return this.cdata(value);
+    };
+
+    XMLDocumentCB.prototype.com = function(value) {
+      return this.comment(value);
+    };
+
+    XMLDocumentCB.prototype.ins = function(target, value) {
+      return this.instruction(target, value);
+    };
+
+    XMLDocumentCB.prototype.dec = function(version, encoding, standalone) {
+      return this.declaration(version, encoding, standalone);
+    };
+
+    XMLDocumentCB.prototype.dtd = function(root, pubID, sysID) {
+      return this.doctype(root, pubID, sysID);
+    };
+
+    XMLDocumentCB.prototype.e = function(name, attributes, text) {
+      return this.element(name, attributes, text);
+    };
+
+    XMLDocumentCB.prototype.n = function(name, attributes, text) {
+      return this.node(name, attributes, text);
+    };
+
+    XMLDocumentCB.prototype.t = function(value) {
+      return this.text(value);
+    };
+
+    XMLDocumentCB.prototype.d = function(value) {
+      return this.cdata(value);
+    };
+
+    XMLDocumentCB.prototype.c = function(value) {
+      return this.comment(value);
+    };
+
+    XMLDocumentCB.prototype.r = function(value) {
+      return this.raw(value);
+    };
+
+    XMLDocumentCB.prototype.i = function(target, value) {
+      return this.instruction(target, value);
+    };
+
+    XMLDocumentCB.prototype.att = function() {
+      if (this.currentNode && this.currentNode instanceof XMLDocType) {
+        return this.attList.apply(this, arguments);
+      } else {
+        return this.attribute.apply(this, arguments);
+      }
+    };
+
+    XMLDocumentCB.prototype.a = function() {
+      if (this.currentNode && this.currentNode instanceof XMLDocType) {
+        return this.attList.apply(this, arguments);
+      } else {
+        return this.attribute.apply(this, arguments);
+      }
+    };
+
+    XMLDocumentCB.prototype.ent = function(name, value) {
+      return this.entity(name, value);
+    };
+
+    XMLDocumentCB.prototype.pent = function(name, value) {
+      return this.pEntity(name, value);
+    };
+
+    XMLDocumentCB.prototype.not = function(name, value) {
+      return this.notation(name, value);
+    };
+
+    return XMLDocumentCB;
+
+  })();
+
+}).call(this);
+
+
+/***/ }),
+
+/***/ 3965:
+/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
+
+// Generated by CoffeeScript 1.12.7
+(function() {
+  var XMLAttribute, XMLElement, XMLNode, isFunction, isObject, ref,
+    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  ref = __nccwpck_require__(4576), isObject = ref.isObject, isFunction = ref.isFunction;
+
+  XMLNode = __nccwpck_require__(3401);
+
+  XMLAttribute = __nccwpck_require__(3977);
+
+  module.exports = XMLElement = (function(superClass) {
+    extend(XMLElement, superClass);
+
+    function XMLElement(parent, name, attributes) {
+      XMLElement.__super__.constructor.call(this, parent);
+      if (name == null) {
+        throw new Error("Missing element name");
+      }
+      this.name = this.stringify.eleName(name);
+      this.attributes = {};
+      if (attributes != null) {
+        this.attribute(attributes);
+      }
+      if (parent.isDocument) {
+        this.isRoot = true;
+        this.documentObject = parent;
+        parent.rootObject = this;
+      }
+    }
+
+    XMLElement.prototype.clone = function() {
+      var att, attName, clonedSelf, ref1;
+      clonedSelf = Object.create(this);
+      if (clonedSelf.isRoot) {
+        clonedSelf.documentObject = null;
+      }
+      clonedSelf.attributes = {};
+      ref1 = this.attributes;
+      for (attName in ref1) {
+        if (!hasProp.call(ref1, attName)) continue;
+        att = ref1[attName];
+        clonedSelf.attributes[attName] = att.clone();
+      }
+      clonedSelf.children = [];
+      this.children.forEach(function(child) {
+        var clonedChild;
+        clonedChild = child.clone();
+        clonedChild.parent = clonedSelf;
+        return clonedSelf.children.push(clonedChild);
+      });
+      return clonedSelf;
+    };
+
+    XMLElement.prototype.attribute = function(name, value) {
+      var attName, attValue;
+      if (name != null) {
+        name = name.valueOf();
+      }
+      if (isObject(name)) {
+        for (attName in name) {
+          if (!hasProp.call(name, attName)) continue;
+          attValue = name[attName];
+          this.attribute(attName, attValue);
+        }
+      } else {
+        if (isFunction(value)) {
+          value = value.apply();
+        }
+        if (!this.options.skipNullAttributes || (value != null)) {
+          this.attributes[name] = new XMLAttribute(this, name, value);
+        }
+      }
+      return this;
+    };
+
+    XMLElement.prototype.removeAttribute = function(name) {
+      var attName, i, len;
+      if (name == null) {
+        throw new Error("Missing attribute name");
+      }
+      name = name.valueOf();
+      if (Array.isArray(name)) {
+        for (i = 0, len = name.length; i < len; i++) {
+          attName = name[i];
+          delete this.attributes[attName];
+        }
+      } else {
+        delete this.attributes[name];
+      }
+      return this;
+    };
+
+    XMLElement.prototype.toString = function(options) {
+      return this.options.writer.set(options).element(this);
+    };
+
+    XMLElement.prototype.att = function(name, value) {
+      return this.attribute(name, value);
+    };
+
+    XMLElement.prototype.a = function(name, value) {
+      return this.attribute(name, value);
+    };
+
+    return XMLElement;
+
+  })(XMLNode);
+
+}).call(this);
+
+
+/***/ }),
+
+/***/ 3401:
+/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
+
+// Generated by CoffeeScript 1.12.7
+(function() {
+  var XMLCData, XMLComment, XMLDeclaration, XMLDocType, XMLElement, XMLNode, XMLProcessingInstruction, XMLRaw, XMLText, isEmpty, isFunction, isObject, ref,
+    hasProp = {}.hasOwnProperty;
+
+  ref = __nccwpck_require__(4576), isObject = ref.isObject, isFunction = ref.isFunction, isEmpty = ref.isEmpty;
+
+  XMLElement = null;
+
+  XMLCData = null;
+
+  XMLComment = null;
+
+  XMLDeclaration = null;
+
+  XMLDocType = null;
+
+  XMLRaw = null;
+
+  XMLText = null;
+
+  XMLProcessingInstruction = null;
+
+  module.exports = XMLNode = (function() {
+    function XMLNode(parent) {
+      this.parent = parent;
+      if (this.parent) {
+        this.options = this.parent.options;
+        this.stringify = this.parent.stringify;
+      }
+      this.children = [];
+      if (!XMLElement) {
+        XMLElement = __nccwpck_require__(3965);
+        XMLCData = __nccwpck_require__(728);
+        XMLComment = __nccwpck_require__(9620);
+        XMLDeclaration = __nccwpck_require__(7645);
+        XMLDocType = __nccwpck_require__(7827);
+        XMLRaw = __nccwpck_require__(2083);
+        XMLText = __nccwpck_require__(9946);
+        XMLProcessingInstruction = __nccwpck_require__(1368);
+      }
+    }
+
+    XMLNode.prototype.element = function(name, attributes, text) {
+      var childNode, item, j, k, key, lastChild, len, len1, ref1, val;
+      lastChild = null;
+      if (attributes == null) {
+        attributes = {};
+      }
+      attributes = attributes.valueOf();
+      if (!isObject(attributes)) {
+        ref1 = [attributes, text], text = ref1[0], attributes = ref1[1];
+      }
+      if (name != null) {
+        name = name.valueOf();
+      }
+      if (Array.isArray(name)) {
+        for (j = 0, len = name.length; j < len; j++) {
+          item = name[j];
+          lastChild = this.element(item);
+        }
+      } else if (isFunction(name)) {
+        lastChild = this.element(name.apply());
+      } else if (isObject(name)) {
+        for (key in name) {
+          if (!hasProp.call(name, key)) continue;
+          val = name[key];
+          if (isFunction(val)) {
+            val = val.apply();
+          }
+          if ((isObject(val)) && (isEmpty(val))) {
+            val = null;
+          }
+          if (!this.options.ignoreDecorators && this.stringify.convertAttKey && key.indexOf(this.stringify.convertAttKey) === 0) {
+            lastChild = this.attribute(key.substr(this.stringify.convertAttKey.length), val);
+          } else if (!this.options.separateArrayItems && Array.isArray(val)) {
+            for (k = 0, len1 = val.length; k < len1; k++) {
+              item = val[k];
+              childNode = {};
+              childNode[key] = item;
+              lastChild = this.element(childNode);
+            }
+          } else if (isObject(val)) {
+            lastChild = this.element(key);
+            lastChild.element(val);
+          } else {
+            lastChild = this.element(key, val);
+          }
+        }
+      } else {
+        if (!this.options.ignoreDecorators && this.stringify.convertTextKey && name.indexOf(this.stringify.convertTextKey) === 0) {
+          lastChild = this.text(text);
+        } else if (!this.options.ignoreDecorators && this.stringify.convertCDataKey && name.indexOf(this.stringify.convertCDataKey) === 0) {
+          lastChild = this.cdata(text);
+        } else if (!this.options.ignoreDecorators && this.stringify.convertCommentKey && name.indexOf(this.stringify.convertCommentKey) === 0) {
+          lastChild = this.comment(text);
+        } else if (!this.options.ignoreDecorators && this.stringify.convertRawKey && name.indexOf(this.stringify.convertRawKey) === 0) {
+          lastChild = this.raw(text);
+        } else if (!this.options.ignoreDecorators && this.stringify.convertPIKey && name.indexOf(this.stringify.convertPIKey) === 0) {
+          lastChild = this.instruction(name.substr(this.stringify.convertPIKey.length), text);
+        } else {
+          lastChild = this.node(name, attributes, text);
+        }
+      }
+      if (lastChild == null) {
+        throw new Error("Could not create any elements with: " + name);
+      }
+      return lastChild;
+    };
+
+    XMLNode.prototype.insertBefore = function(name, attributes, text) {
+      var child, i, removed;
+      if (this.isRoot) {
+        throw new Error("Cannot insert elements at root level");
+      }
+      i = this.parent.children.indexOf(this);
+      removed = this.parent.children.splice(i);
+      child = this.parent.element(name, attributes, text);
+      Array.prototype.push.apply(this.parent.children, removed);
+      return child;
+    };
+
+    XMLNode.prototype.insertAfter = function(name, attributes, text) {
+      var child, i, removed;
+      if (this.isRoot) {
+        throw new Error("Cannot insert elements at root level");
+      }
+      i = this.parent.children.indexOf(this);
+      removed = this.parent.children.splice(i + 1);
+      child = this.parent.element(name, attributes, text);
+      Array.prototype.push.apply(this.parent.children, removed);
+      return child;
+    };
+
+    XMLNode.prototype.remove = function() {
+      var i, ref1;
+      if (this.isRoot) {
+        throw new Error("Cannot remove the root element");
+      }
+      i = this.parent.children.indexOf(this);
+      [].splice.apply(this.parent.children, [i, i - i + 1].concat(ref1 = [])), ref1;
+      return this.parent;
+    };
+
+    XMLNode.prototype.node = function(name, attributes, text) {
+      var child, ref1;
+      if (name != null) {
+        name = name.valueOf();
+      }
+      attributes || (attributes = {});
+      attributes = attributes.valueOf();
+      if (!isObject(attributes)) {
+        ref1 = [attributes, text], text = ref1[0], attributes = ref1[1];
+      }
+      child = new XMLElement(this, name, attributes);
+      if (text != null) {
+        child.text(text);
+      }
+      this.children.push(child);
+      return child;
+    };
+
+    XMLNode.prototype.text = function(value) {
+      var child;
+      child = new XMLText(this, value);
+      this.children.push(child);
+      return this;
+    };
+
+    XMLNode.prototype.cdata = function(value) {
+      var child;
+      child = new XMLCData(this, value);
+      this.children.push(child);
+      return this;
+    };
+
+    XMLNode.prototype.comment = function(value) {
+      var child;
+      child = new XMLComment(this, value);
+      this.children.push(child);
+      return this;
+    };
+
+    XMLNode.prototype.commentBefore = function(value) {
+      var child, i, removed;
+      i = this.parent.children.indexOf(this);
+      removed = this.parent.children.splice(i);
+      child = this.parent.comment(value);
+      Array.prototype.push.apply(this.parent.children, removed);
+      return this;
+    };
+
+    XMLNode.prototype.commentAfter = function(value) {
+      var child, i, removed;
+      i = this.parent.children.indexOf(this);
+      removed = this.parent.children.splice(i + 1);
+      child = this.parent.comment(value);
+      Array.prototype.push.apply(this.parent.children, removed);
+      return this;
+    };
+
+    XMLNode.prototype.raw = function(value) {
+      var child;
+      child = new XMLRaw(this, value);
+      this.children.push(child);
+      return this;
+    };
+
+    XMLNode.prototype.instruction = function(target, value) {
+      var insTarget, insValue, instruction, j, len;
+      if (target != null) {
+        target = target.valueOf();
+      }
+      if (value != null) {
+        value = value.valueOf();
+      }
+      if (Array.isArray(target)) {
+        for (j = 0, len = target.length; j < len; j++) {
+          insTarget = target[j];
+          this.instruction(insTarget);
+        }
+      } else if (isObject(target)) {
+        for (insTarget in target) {
+          if (!hasProp.call(target, insTarget)) continue;
+          insValue = target[insTarget];
+          this.instruction(insTarget, insValue);
+        }
+      } else {
+        if (isFunction(value)) {
+          value = value.apply();
+        }
+        instruction = new XMLProcessingInstruction(this, target, value);
+        this.children.push(instruction);
+      }
+      return this;
+    };
+
+    XMLNode.prototype.instructionBefore = function(target, value) {
+      var child, i, removed;
+      i = this.parent.children.indexOf(this);
+      removed = this.parent.children.splice(i);
+      child = this.parent.instruction(target, value);
+      Array.prototype.push.apply(this.parent.children, removed);
+      return this;
+    };
+
+    XMLNode.prototype.instructionAfter = function(target, value) {
+      var child, i, removed;
+      i = this.parent.children.indexOf(this);
+      removed = this.parent.children.splice(i + 1);
+      child = this.parent.instruction(target, value);
+      Array.prototype.push.apply(this.parent.children, removed);
+      return this;
+    };
+
+    XMLNode.prototype.declaration = function(version, encoding, standalone) {
+      var doc, xmldec;
+      doc = this.document();
+      xmldec = new XMLDeclaration(doc, version, encoding, standalone);
+      if (doc.children[0] instanceof XMLDeclaration) {
+        doc.children[0] = xmldec;
+      } else {
+        doc.children.unshift(xmldec);
+      }
+      return doc.root() || doc;
+    };
+
+    XMLNode.prototype.doctype = function(pubID, sysID) {
+      var child, doc, doctype, i, j, k, len, len1, ref1, ref2;
+      doc = this.document();
+      doctype = new XMLDocType(doc, pubID, sysID);
+      ref1 = doc.children;
+      for (i = j = 0, len = ref1.length; j < len; i = ++j) {
+        child = ref1[i];
+        if (child instanceof XMLDocType) {
+          doc.children[i] = doctype;
+          return doctype;
+        }
+      }
+      ref2 = doc.children;
+      for (i = k = 0, len1 = ref2.length; k < len1; i = ++k) {
+        child = ref2[i];
+        if (child.isRoot) {
+          doc.children.splice(i, 0, doctype);
+          return doctype;
+        }
+      }
+      doc.children.push(doctype);
+      return doctype;
+    };
+
+    XMLNode.prototype.up = function() {
+      if (this.isRoot) {
+        throw new Error("The root node has no parent. Use doc() if you need to get the document object.");
+      }
+      return this.parent;
+    };
+
+    XMLNode.prototype.root = function() {
+      var node;
+      node = this;
+      while (node) {
+        if (node.isDocument) {
+          return node.rootObject;
+        } else if (node.isRoot) {
+          return node;
+        } else {
+          node = node.parent;
+        }
+      }
+    };
+
+    XMLNode.prototype.document = function() {
+      var node;
+      node = this;
+      while (node) {
+        if (node.isDocument) {
+          return node;
+        } else {
+          node = node.parent;
+        }
+      }
+    };
+
+    XMLNode.prototype.end = function(options) {
+      return this.document().end(options);
+    };
+
+    XMLNode.prototype.prev = function() {
+      var i;
+      i = this.parent.children.indexOf(this);
+      if (i < 1) {
+        throw new Error("Already at the first node");
+      }
+      return this.parent.children[i - 1];
+    };
+
+    XMLNode.prototype.next = function() {
+      var i;
+      i = this.parent.children.indexOf(this);
+      if (i === -1 || i === this.parent.children.length - 1) {
+        throw new Error("Already at the last node");
+      }
+      return this.parent.children[i + 1];
+    };
+
+    XMLNode.prototype.importDocument = function(doc) {
+      var clonedRoot;
+      clonedRoot = doc.root().clone();
+      clonedRoot.parent = this;
+      clonedRoot.isRoot = false;
+      this.children.push(clonedRoot);
+      return this;
+    };
+
+    XMLNode.prototype.ele = function(name, attributes, text) {
+      return this.element(name, attributes, text);
+    };
+
+    XMLNode.prototype.nod = function(name, attributes, text) {
+      return this.node(name, attributes, text);
+    };
+
+    XMLNode.prototype.txt = function(value) {
+      return this.text(value);
+    };
+
+    XMLNode.prototype.dat = function(value) {
+      return this.cdata(value);
+    };
+
+    XMLNode.prototype.com = function(value) {
+      return this.comment(value);
+    };
+
+    XMLNode.prototype.ins = function(target, value) {
+      return this.instruction(target, value);
+    };
+
+    XMLNode.prototype.doc = function() {
+      return this.document();
+    };
+
+    XMLNode.prototype.dec = function(version, encoding, standalone) {
+      return this.declaration(version, encoding, standalone);
+    };
+
+    XMLNode.prototype.dtd = function(pubID, sysID) {
+      return this.doctype(pubID, sysID);
+    };
+
+    XMLNode.prototype.e = function(name, attributes, text) {
+      return this.element(name, attributes, text);
+    };
+
+    XMLNode.prototype.n = function(name, attributes, text) {
+      return this.node(name, attributes, text);
+    };
+
+    XMLNode.prototype.t = function(value) {
+      return this.text(value);
+    };
+
+    XMLNode.prototype.d = function(value) {
+      return this.cdata(value);
+    };
+
+    XMLNode.prototype.c = function(value) {
+      return this.comment(value);
+    };
+
+    XMLNode.prototype.r = function(value) {
+      return this.raw(value);
+    };
+
+    XMLNode.prototype.i = function(target, value) {
+      return this.instruction(target, value);
+    };
+
+    XMLNode.prototype.u = function() {
+      return this.up();
+    };
+
+    XMLNode.prototype.importXMLBuilder = function(doc) {
+      return this.importDocument(doc);
+    };
+
+    return XMLNode;
+
+  })();
+
+}).call(this);
+
+
+/***/ }),
+
+/***/ 1368:
+/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
+
+// Generated by CoffeeScript 1.12.7
+(function() {
+  var XMLNode, XMLProcessingInstruction,
+    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  XMLNode = __nccwpck_require__(3401);
+
+  module.exports = XMLProcessingInstruction = (function(superClass) {
+    extend(XMLProcessingInstruction, superClass);
+
+    function XMLProcessingInstruction(parent, target, value) {
+      XMLProcessingInstruction.__super__.constructor.call(this, parent);
+      if (target == null) {
+        throw new Error("Missing instruction target");
+      }
+      this.target = this.stringify.insTarget(target);
+      if (value) {
+        this.value = this.stringify.insValue(value);
+      }
+    }
+
+    XMLProcessingInstruction.prototype.clone = function() {
+      return Object.create(this);
+    };
+
+    XMLProcessingInstruction.prototype.toString = function(options) {
+      return this.options.writer.set(options).processingInstruction(this);
+    };
+
+    return XMLProcessingInstruction;
+
+  })(XMLNode);
+
+}).call(this);
+
+
+/***/ }),
+
+/***/ 2083:
+/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
+
+// Generated by CoffeeScript 1.12.7
+(function() {
+  var XMLNode, XMLRaw,
+    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  XMLNode = __nccwpck_require__(3401);
+
+  module.exports = XMLRaw = (function(superClass) {
+    extend(XMLRaw, superClass);
+
+    function XMLRaw(parent, text) {
+      XMLRaw.__super__.constructor.call(this, parent);
+      if (text == null) {
+        throw new Error("Missing raw text");
+      }
+      this.value = this.stringify.raw(text);
+    }
+
+    XMLRaw.prototype.clone = function() {
+      return Object.create(this);
+    };
+
+    XMLRaw.prototype.toString = function(options) {
+      return this.options.writer.set(options).raw(this);
+    };
+
+    return XMLRaw;
+
+  })(XMLNode);
+
+}).call(this);
+
+
+/***/ }),
+
+/***/ 7798:
+/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
+
+// Generated by CoffeeScript 1.12.7
+(function() {
+  var XMLCData, XMLComment, XMLDTDAttList, XMLDTDElement, XMLDTDEntity, XMLDTDNotation, XMLDeclaration, XMLDocType, XMLElement, XMLProcessingInstruction, XMLRaw, XMLStreamWriter, XMLText, XMLWriterBase,
+    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  XMLDeclaration = __nccwpck_require__(7645);
+
+  XMLDocType = __nccwpck_require__(7827);
+
+  XMLCData = __nccwpck_require__(728);
+
+  XMLComment = __nccwpck_require__(9620);
+
+  XMLElement = __nccwpck_require__(3965);
+
+  XMLRaw = __nccwpck_require__(2083);
+
+  XMLText = __nccwpck_require__(9946);
+
+  XMLProcessingInstruction = __nccwpck_require__(1368);
+
+  XMLDTDAttList = __nccwpck_require__(3742);
+
+  XMLDTDElement = __nccwpck_require__(6189);
+
+  XMLDTDEntity = __nccwpck_require__(6906);
+
+  XMLDTDNotation = __nccwpck_require__(7083);
+
+  XMLWriterBase = __nccwpck_require__(6943);
+
+  module.exports = XMLStreamWriter = (function(superClass) {
+    extend(XMLStreamWriter, superClass);
+
+    function XMLStreamWriter(stream, options) {
+      XMLStreamWriter.__super__.constructor.call(this, options);
+      this.stream = stream;
+    }
+
+    XMLStreamWriter.prototype.document = function(doc) {
+      var child, i, j, len, len1, ref, ref1, results;
+      ref = doc.children;
+      for (i = 0, len = ref.length; i < len; i++) {
+        child = ref[i];
+        child.isLastRootNode = false;
+      }
+      doc.children[doc.children.length - 1].isLastRootNode = true;
+      ref1 = doc.children;
+      results = [];
+      for (j = 0, len1 = ref1.length; j < len1; j++) {
+        child = ref1[j];
+        switch (false) {
+          case !(child instanceof XMLDeclaration):
+            results.push(this.declaration(child));
+            break;
+          case !(child instanceof XMLDocType):
+            results.push(this.docType(child));
+            break;
+          case !(child instanceof XMLComment):
+            results.push(this.comment(child));
+            break;
+          case !(child instanceof XMLProcessingInstruction):
+            results.push(this.processingInstruction(child));
+            break;
+          default:
+            results.push(this.element(child));
+        }
+      }
+      return results;
+    };
+
+    XMLStreamWriter.prototype.attribute = function(att) {
+      return this.stream.write(' ' + att.name + '="' + att.value + '"');
+    };
+
+    XMLStreamWriter.prototype.cdata = function(node, level) {
+      return this.stream.write(this.space(level) + '<![CDATA[' + node.text + ']]>' + this.endline(node));
+    };
+
+    XMLStreamWriter.prototype.comment = function(node, level) {
+      return this.stream.write(this.space(level) + '<!-- ' + node.text + ' -->' + this.endline(node));
+    };
+
+    XMLStreamWriter.prototype.declaration = function(node, level) {
+      this.stream.write(this.space(level));
+      this.stream.write('<?xml version="' + node.version + '"');
+      if (node.encoding != null) {
+        this.stream.write(' encoding="' + node.encoding + '"');
+      }
+      if (node.standalone != null) {
+        this.stream.write(' standalone="' + node.standalone + '"');
+      }
+      this.stream.write(this.spacebeforeslash + '?>');
+      return this.stream.write(this.endline(node));
+    };
+
+    XMLStreamWriter.prototype.docType = function(node, level) {
+      var child, i, len, ref;
+      level || (level = 0);
+      this.stream.write(this.space(level));
+      this.stream.write('<!DOCTYPE ' + node.root().name);
+      if (node.pubID && node.sysID) {
+        this.stream.write(' PUBLIC "' + node.pubID + '" "' + node.sysID + '"');
+      } else if (node.sysID) {
+        this.stream.write(' SYSTEM "' + node.sysID + '"');
+      }
+      if (node.children.length > 0) {
+        this.stream.write(' [');
+        this.stream.write(this.endline(node));
+        ref = node.children;
+        for (i = 0, len = ref.length; i < len; i++) {
+          child = ref[i];
+          switch (false) {
+            case !(child instanceof XMLDTDAttList):
+              this.dtdAttList(child, level + 1);
+              break;
+            case !(child instanceof XMLDTDElement):
+              this.dtdElement(child, level + 1);
+              break;
+            case !(child instanceof XMLDTDEntity):
+              this.dtdEntity(child, level + 1);
+              break;
+            case !(child instanceof XMLDTDNotation):
+              this.dtdNotation(child, level + 1);
+              break;
+            case !(child instanceof XMLCData):
+              this.cdata(child, level + 1);
+              break;
+            case !(child instanceof XMLComment):
+              this.comment(child, level + 1);
+              break;
+            case !(child instanceof XMLProcessingInstruction):
+              this.processingInstruction(child, level + 1);
+              break;
+            default:
+              throw new Error("Unknown DTD node type: " + child.constructor.name);
+          }
+        }
+        this.stream.write(']');
+      }
+      this.stream.write(this.spacebeforeslash + '>');
+      return this.stream.write(this.endline(node));
+    };
+
+    XMLStreamWriter.prototype.element = function(node, level) {
+      var att, child, i, len, name, ref, ref1, space;
+      level || (level = 0);
+      space = this.space(level);
+      this.stream.write(space + '<' + node.name);
+      ref = node.attributes;
+      for (name in ref) {
+        if (!hasProp.call(ref, name)) continue;
+        att = ref[name];
+        this.attribute(att);
+      }
+      if (node.children.length === 0 || node.children.every(function(e) {
+        return e.value === '';
+      })) {
+        if (this.allowEmpty) {
+          this.stream.write('></' + node.name + '>');
+        } else {
+          this.stream.write(this.spacebeforeslash + '/>');
+        }
+      } else if (this.pretty && node.children.length === 1 && (node.children[0].value != null)) {
+        this.stream.write('>');
+        this.stream.write(node.children[0].value);
+        this.stream.write('</' + node.name + '>');
+      } else {
+        this.stream.write('>' + this.newline);
+        ref1 = node.children;
+        for (i = 0, len = ref1.length; i < len; i++) {
+          child = ref1[i];
+          switch (false) {
+            case !(child instanceof XMLCData):
+              this.cdata(child, level + 1);
+              break;
+            case !(child instanceof XMLComment):
+              this.comment(child, level + 1);
+              break;
+            case !(child instanceof XMLElement):
+              this.element(child, level + 1);
+              break;
+            case !(child instanceof XMLRaw):
+              this.raw(child, level + 1);
+              break;
+            case !(child instanceof XMLText):
+              this.text(child, level + 1);
+              break;
+            case !(child instanceof XMLProcessingInstruction):
+              this.processingInstruction(child, level + 1);
+              break;
+            default:
+              throw new Error("Unknown XML node type: " + child.constructor.name);
+          }
+        }
+        this.stream.write(space + '</' + node.name + '>');
+      }
+      return this.stream.write(this.endline(node));
+    };
+
+    XMLStreamWriter.prototype.processingInstruction = function(node, level) {
+      this.stream.write(this.space(level) + '<?' + node.target);
+      if (node.value) {
+        this.stream.write(' ' + node.value);
+      }
+      return this.stream.write(this.spacebeforeslash + '?>' + this.endline(node));
+    };
+
+    XMLStreamWriter.prototype.raw = function(node, level) {
+      return this.stream.write(this.space(level) + node.value + this.endline(node));
+    };
+
+    XMLStreamWriter.prototype.text = function(node, level) {
+      return this.stream.write(this.space(level) + node.value + this.endline(node));
+    };
+
+    XMLStreamWriter.prototype.dtdAttList = function(node, level) {
+      this.stream.write(this.space(level) + '<!ATTLIST ' + node.elementName + ' ' + node.attributeName + ' ' + node.attributeType);
+      if (node.defaultValueType !== '#DEFAULT') {
+        this.stream.write(' ' + node.defaultValueType);
+      }
+      if (node.defaultValue) {
+        this.stream.write(' "' + node.defaultValue + '"');
+      }
+      return this.stream.write(this.spacebeforeslash + '>' + this.endline(node));
+    };
+
+    XMLStreamWriter.prototype.dtdElement = function(node, level) {
+      this.stream.write(this.space(level) + '<!ELEMENT ' + node.name + ' ' + node.value);
+      return this.stream.write(this.spacebeforeslash + '>' + this.endline(node));
+    };
+
+    XMLStreamWriter.prototype.dtdEntity = function(node, level) {
+      this.stream.write(this.space(level) + '<!ENTITY');
+      if (node.pe) {
+        this.stream.write(' %');
+      }
+      this.stream.write(' ' + node.name);
+      if (node.value) {
+        this.stream.write(' "' + node.value + '"');
+      } else {
+        if (node.pubID && node.sysID) {
+          this.stream.write(' PUBLIC "' + node.pubID + '" "' + node.sysID + '"');
+        } else if (node.sysID) {
+          this.stream.write(' SYSTEM "' + node.sysID + '"');
+        }
+        if (node.nData) {
+          this.stream.write(' NDATA ' + node.nData);
+        }
+      }
+      return this.stream.write(this.spacebeforeslash + '>' + this.endline(node));
+    };
+
+    XMLStreamWriter.prototype.dtdNotation = function(node, level) {
+      this.stream.write(this.space(level) + '<!NOTATION ' + node.name);
+      if (node.pubID && node.sysID) {
+        this.stream.write(' PUBLIC "' + node.pubID + '" "' + node.sysID + '"');
+      } else if (node.pubID) {
+        this.stream.write(' PUBLIC "' + node.pubID + '"');
+      } else if (node.sysID) {
+        this.stream.write(' SYSTEM "' + node.sysID + '"');
+      }
+      return this.stream.write(this.spacebeforeslash + '>' + this.endline(node));
+    };
+
+    XMLStreamWriter.prototype.endline = function(node) {
+      if (!node.isLastRootNode) {
+        return this.newline;
+      } else {
+        return '';
+      }
+    };
+
+    return XMLStreamWriter;
+
+  })(XMLWriterBase);
+
+}).call(this);
+
+
+/***/ }),
+
+/***/ 9867:
+/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
+
+// Generated by CoffeeScript 1.12.7
+(function() {
+  var XMLCData, XMLComment, XMLDTDAttList, XMLDTDElement, XMLDTDEntity, XMLDTDNotation, XMLDeclaration, XMLDocType, XMLElement, XMLProcessingInstruction, XMLRaw, XMLStringWriter, XMLText, XMLWriterBase,
+    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  XMLDeclaration = __nccwpck_require__(7645);
+
+  XMLDocType = __nccwpck_require__(7827);
+
+  XMLCData = __nccwpck_require__(728);
+
+  XMLComment = __nccwpck_require__(9620);
+
+  XMLElement = __nccwpck_require__(3965);
+
+  XMLRaw = __nccwpck_require__(2083);
+
+  XMLText = __nccwpck_require__(9946);
+
+  XMLProcessingInstruction = __nccwpck_require__(1368);
+
+  XMLDTDAttList = __nccwpck_require__(3742);
+
+  XMLDTDElement = __nccwpck_require__(6189);
+
+  XMLDTDEntity = __nccwpck_require__(6906);
+
+  XMLDTDNotation = __nccwpck_require__(7083);
+
+  XMLWriterBase = __nccwpck_require__(6943);
+
+  module.exports = XMLStringWriter = (function(superClass) {
+    extend(XMLStringWriter, superClass);
+
+    function XMLStringWriter(options) {
+      XMLStringWriter.__super__.constructor.call(this, options);
+    }
+
+    XMLStringWriter.prototype.document = function(doc) {
+      var child, i, len, r, ref;
+      this.textispresent = false;
+      r = '';
+      ref = doc.children;
+      for (i = 0, len = ref.length; i < len; i++) {
+        child = ref[i];
+        r += (function() {
+          switch (false) {
+            case !(child instanceof XMLDeclaration):
+              return this.declaration(child);
+            case !(child instanceof XMLDocType):
+              return this.docType(child);
+            case !(child instanceof XMLComment):
+              return this.comment(child);
+            case !(child instanceof XMLProcessingInstruction):
+              return this.processingInstruction(child);
+            default:
+              return this.element(child, 0);
+          }
+        }).call(this);
+      }
+      if (this.pretty && r.slice(-this.newline.length) === this.newline) {
+        r = r.slice(0, -this.newline.length);
+      }
+      return r;
+    };
+
+    XMLStringWriter.prototype.attribute = function(att) {
+      return ' ' + att.name + '="' + att.value + '"';
+    };
+
+    XMLStringWriter.prototype.cdata = function(node, level) {
+      return this.space(level) + '<![CDATA[' + node.text + ']]>' + this.newline;
+    };
+
+    XMLStringWriter.prototype.comment = function(node, level) {
+      return this.space(level) + '<!-- ' + node.text + ' -->' + this.newline;
+    };
+
+    XMLStringWriter.prototype.declaration = function(node, level) {
+      var r;
+      r = this.space(level);
+      r += '<?xml version="' + node.version + '"';
+      if (node.encoding != null) {
+        r += ' encoding="' + node.encoding + '"';
+      }
+      if (node.standalone != null) {
+        r += ' standalone="' + node.standalone + '"';
+      }
+      r += this.spacebeforeslash + '?>';
+      r += this.newline;
+      return r;
+    };
+
+    XMLStringWriter.prototype.docType = function(node, level) {
+      var child, i, len, r, ref;
+      level || (level = 0);
+      r = this.space(level);
+      r += '<!DOCTYPE ' + node.root().name;
+      if (node.pubID && node.sysID) {
+        r += ' PUBLIC "' + node.pubID + '" "' + node.sysID + '"';
+      } else if (node.sysID) {
+        r += ' SYSTEM "' + node.sysID + '"';
+      }
+      if (node.children.length > 0) {
+        r += ' [';
+        r += this.newline;
+        ref = node.children;
+        for (i = 0, len = ref.length; i < len; i++) {
+          child = ref[i];
+          r += (function() {
+            switch (false) {
+              case !(child instanceof XMLDTDAttList):
+                return this.dtdAttList(child, level + 1);
+              case !(child instanceof XMLDTDElement):
+                return this.dtdElement(child, level + 1);
+              case !(child instanceof XMLDTDEntity):
+                return this.dtdEntity(child, level + 1);
+              case !(child instanceof XMLDTDNotation):
+                return this.dtdNotation(child, level + 1);
+              case !(child instanceof XMLCData):
+                return this.cdata(child, level + 1);
+              case !(child instanceof XMLComment):
+                return this.comment(child, level + 1);
+              case !(child instanceof XMLProcessingInstruction):
+                return this.processingInstruction(child, level + 1);
+              default:
+                throw new Error("Unknown DTD node type: " + child.constructor.name);
+            }
+          }).call(this);
+        }
+        r += ']';
+      }
+      r += this.spacebeforeslash + '>';
+      r += this.newline;
+      return r;
+    };
+
+    XMLStringWriter.prototype.element = function(node, level) {
+      var att, child, i, j, len, len1, name, r, ref, ref1, ref2, space, textispresentwasset;
+      level || (level = 0);
+      textispresentwasset = false;
+      if (this.textispresent) {
+        this.newline = '';
+        this.pretty = false;
+      } else {
+        this.newline = this.newlinedefault;
+        this.pretty = this.prettydefault;
+      }
+      space = this.space(level);
+      r = '';
+      r += space + '<' + node.name;
+      ref = node.attributes;
+      for (name in ref) {
+        if (!hasProp.call(ref, name)) continue;
+        att = ref[name];
+        r += this.attribute(att);
+      }
+      if (node.children.length === 0 || node.children.every(function(e) {
+        return e.value === '';
+      })) {
+        if (this.allowEmpty) {
+          r += '></' + node.name + '>' + this.newline;
+        } else {
+          r += this.spacebeforeslash + '/>' + this.newline;
+        }
+      } else if (this.pretty && node.children.length === 1 && (node.children[0].value != null)) {
+        r += '>';
+        r += node.children[0].value;
+        r += '</' + node.name + '>' + this.newline;
+      } else {
+        if (this.dontprettytextnodes) {
+          ref1 = node.children;
+          for (i = 0, len = ref1.length; i < len; i++) {
+            child = ref1[i];
+            if (child.value != null) {
+              this.textispresent++;
+              textispresentwasset = true;
+              break;
+            }
+          }
+        }
+        if (this.textispresent) {
+          this.newline = '';
+          this.pretty = false;
+          space = this.space(level);
+        }
+        r += '>' + this.newline;
+        ref2 = node.children;
+        for (j = 0, len1 = ref2.length; j < len1; j++) {
+          child = ref2[j];
+          r += (function() {
+            switch (false) {
+              case !(child instanceof XMLCData):
+                return this.cdata(child, level + 1);
+              case !(child instanceof XMLComment):
+                return this.comment(child, level + 1);
+              case !(child instanceof XMLElement):
+                return this.element(child, level + 1);
+              case !(child instanceof XMLRaw):
+                return this.raw(child, level + 1);
+              case !(child instanceof XMLText):
+                return this.text(child, level + 1);
+              case !(child instanceof XMLProcessingInstruction):
+                return this.processingInstruction(child, level + 1);
+              default:
+                throw new Error("Unknown XML node type: " + child.constructor.name);
+            }
+          }).call(this);
+        }
+        if (textispresentwasset) {
+          this.textispresent--;
+        }
+        if (!this.textispresent) {
+          this.newline = this.newlinedefault;
+          this.pretty = this.prettydefault;
+        }
+        r += space + '</' + node.name + '>' + this.newline;
+      }
+      return r;
+    };
+
+    XMLStringWriter.prototype.processingInstruction = function(node, level) {
+      var r;
+      r = this.space(level) + '<?' + node.target;
+      if (node.value) {
+        r += ' ' + node.value;
+      }
+      r += this.spacebeforeslash + '?>' + this.newline;
+      return r;
+    };
+
+    XMLStringWriter.prototype.raw = function(node, level) {
+      return this.space(level) + node.value + this.newline;
+    };
+
+    XMLStringWriter.prototype.text = function(node, level) {
+      return this.space(level) + node.value + this.newline;
+    };
+
+    XMLStringWriter.prototype.dtdAttList = function(node, level) {
+      var r;
+      r = this.space(level) + '<!ATTLIST ' + node.elementName + ' ' + node.attributeName + ' ' + node.attributeType;
+      if (node.defaultValueType !== '#DEFAULT') {
+        r += ' ' + node.defaultValueType;
+      }
+      if (node.defaultValue) {
+        r += ' "' + node.defaultValue + '"';
+      }
+      r += this.spacebeforeslash + '>' + this.newline;
+      return r;
+    };
+
+    XMLStringWriter.prototype.dtdElement = function(node, level) {
+      return this.space(level) + '<!ELEMENT ' + node.name + ' ' + node.value + this.spacebeforeslash + '>' + this.newline;
+    };
+
+    XMLStringWriter.prototype.dtdEntity = function(node, level) {
+      var r;
+      r = this.space(level) + '<!ENTITY';
+      if (node.pe) {
+        r += ' %';
+      }
+      r += ' ' + node.name;
+      if (node.value) {
+        r += ' "' + node.value + '"';
+      } else {
+        if (node.pubID && node.sysID) {
+          r += ' PUBLIC "' + node.pubID + '" "' + node.sysID + '"';
+        } else if (node.sysID) {
+          r += ' SYSTEM "' + node.sysID + '"';
+        }
+        if (node.nData) {
+          r += ' NDATA ' + node.nData;
+        }
+      }
+      r += this.spacebeforeslash + '>' + this.newline;
+      return r;
+    };
+
+    XMLStringWriter.prototype.dtdNotation = function(node, level) {
+      var r;
+      r = this.space(level) + '<!NOTATION ' + node.name;
+      if (node.pubID && node.sysID) {
+        r += ' PUBLIC "' + node.pubID + '" "' + node.sysID + '"';
+      } else if (node.pubID) {
+        r += ' PUBLIC "' + node.pubID + '"';
+      } else if (node.sysID) {
+        r += ' SYSTEM "' + node.sysID + '"';
+      }
+      r += this.spacebeforeslash + '>' + this.newline;
+      return r;
+    };
+
+    XMLStringWriter.prototype.openNode = function(node, level) {
+      var att, name, r, ref;
+      level || (level = 0);
+      if (node instanceof XMLElement) {
+        r = this.space(level) + '<' + node.name;
+        ref = node.attributes;
+        for (name in ref) {
+          if (!hasProp.call(ref, name)) continue;
+          att = ref[name];
+          r += this.attribute(att);
+        }
+        r += (node.children ? '>' : '/>') + this.newline;
+        return r;
+      } else {
+        r = this.space(level) + '<!DOCTYPE ' + node.rootNodeName;
+        if (node.pubID && node.sysID) {
+          r += ' PUBLIC "' + node.pubID + '" "' + node.sysID + '"';
+        } else if (node.sysID) {
+          r += ' SYSTEM "' + node.sysID + '"';
+        }
+        r += (node.children ? ' [' : '>') + this.newline;
+        return r;
+      }
+    };
+
+    XMLStringWriter.prototype.closeNode = function(node, level) {
+      level || (level = 0);
+      switch (false) {
+        case !(node instanceof XMLElement):
+          return this.space(level) + '</' + node.name + '>' + this.newline;
+        case !(node instanceof XMLDocType):
+          return this.space(level) + ']>' + this.newline;
+      }
+    };
+
+    return XMLStringWriter;
+
+  })(XMLWriterBase);
+
+}).call(this);
+
+
+/***/ }),
+
+/***/ 7431:
+/***/ (function(module) {
+
+// Generated by CoffeeScript 1.12.7
+(function() {
+  var XMLStringifier,
+    bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    hasProp = {}.hasOwnProperty;
+
+  module.exports = XMLStringifier = (function() {
+    function XMLStringifier(options) {
+      this.assertLegalChar = bind(this.assertLegalChar, this);
+      var key, ref, value;
+      options || (options = {});
+      this.noDoubleEncoding = options.noDoubleEncoding;
+      ref = options.stringify || {};
+      for (key in ref) {
+        if (!hasProp.call(ref, key)) continue;
+        value = ref[key];
+        this[key] = value;
+      }
+    }
+
+    XMLStringifier.prototype.eleName = function(val) {
+      val = '' + val || '';
+      return this.assertLegalChar(val);
+    };
+
+    XMLStringifier.prototype.eleText = function(val) {
+      val = '' + val || '';
+      return this.assertLegalChar(this.elEscape(val));
+    };
+
+    XMLStringifier.prototype.cdata = function(val) {
+      val = '' + val || '';
+      val = val.replace(']]>', ']]]]><![CDATA[>');
+      return this.assertLegalChar(val);
+    };
+
+    XMLStringifier.prototype.comment = function(val) {
+      val = '' + val || '';
+      if (val.match(/--/)) {
+        throw new Error("Comment text cannot contain double-hypen: " + val);
+      }
+      return this.assertLegalChar(val);
+    };
+
+    XMLStringifier.prototype.raw = function(val) {
+      return '' + val || '';
+    };
+
+    XMLStringifier.prototype.attName = function(val) {
+      return val = '' + val || '';
+    };
+
+    XMLStringifier.prototype.attValue = function(val) {
+      val = '' + val || '';
+      return this.attEscape(val);
+    };
+
+    XMLStringifier.prototype.insTarget = function(val) {
+      return '' + val || '';
+    };
+
+    XMLStringifier.prototype.insValue = function(val) {
+      val = '' + val || '';
+      if (val.match(/\?>/)) {
+        throw new Error("Invalid processing instruction value: " + val);
+      }
+      return val;
+    };
+
+    XMLStringifier.prototype.xmlVersion = function(val) {
+      val = '' + val || '';
+      if (!val.match(/1\.[0-9]+/)) {
+        throw new Error("Invalid version number: " + val);
+      }
+      return val;
+    };
+
+    XMLStringifier.prototype.xmlEncoding = function(val) {
+      val = '' + val || '';
+      if (!val.match(/^[A-Za-z](?:[A-Za-z0-9._-])*$/)) {
+        throw new Error("Invalid encoding: " + val);
+      }
+      return val;
+    };
+
+    XMLStringifier.prototype.xmlStandalone = function(val) {
+      if (val) {
+        return "yes";
+      } else {
+        return "no";
+      }
+    };
+
+    XMLStringifier.prototype.dtdPubID = function(val) {
+      return '' + val || '';
+    };
+
+    XMLStringifier.prototype.dtdSysID = function(val) {
+      return '' + val || '';
+    };
+
+    XMLStringifier.prototype.dtdElementValue = function(val) {
+      return '' + val || '';
+    };
+
+    XMLStringifier.prototype.dtdAttType = function(val) {
+      return '' + val || '';
+    };
+
+    XMLStringifier.prototype.dtdAttDefault = function(val) {
+      if (val != null) {
+        return '' + val || '';
+      } else {
+        return val;
+      }
+    };
+
+    XMLStringifier.prototype.dtdEntityValue = function(val) {
+      return '' + val || '';
+    };
+
+    XMLStringifier.prototype.dtdNData = function(val) {
+      return '' + val || '';
+    };
+
+    XMLStringifier.prototype.convertAttKey = '@';
+
+    XMLStringifier.prototype.convertPIKey = '?';
+
+    XMLStringifier.prototype.convertTextKey = '#text';
+
+    XMLStringifier.prototype.convertCDataKey = '#cdata';
+
+    XMLStringifier.prototype.convertCommentKey = '#comment';
+
+    XMLStringifier.prototype.convertRawKey = '#raw';
+
+    XMLStringifier.prototype.assertLegalChar = function(str) {
+      var res;
+      res = str.match(/[\0\uFFFE\uFFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]/);
+      if (res) {
+        throw new Error("Invalid character in string: " + str + " at index " + res.index);
+      }
+      return str;
+    };
+
+    XMLStringifier.prototype.elEscape = function(str) {
+      var ampregex;
+      ampregex = this.noDoubleEncoding ? /(?!&\S+;)&/g : /&/g;
+      return str.replace(ampregex, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\r/g, '&#xD;');
+    };
+
+    XMLStringifier.prototype.attEscape = function(str) {
+      var ampregex;
+      ampregex = this.noDoubleEncoding ? /(?!&\S+;)&/g : /&/g;
+      return str.replace(ampregex, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;').replace(/\t/g, '&#x9;').replace(/\n/g, '&#xA;').replace(/\r/g, '&#xD;');
+    };
+
+    return XMLStringifier;
+
+  })();
+
+}).call(this);
+
+
+/***/ }),
+
+/***/ 9946:
+/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
+
+// Generated by CoffeeScript 1.12.7
+(function() {
+  var XMLNode, XMLText,
+    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  XMLNode = __nccwpck_require__(3401);
+
+  module.exports = XMLText = (function(superClass) {
+    extend(XMLText, superClass);
+
+    function XMLText(parent, text) {
+      XMLText.__super__.constructor.call(this, parent);
+      if (text == null) {
+        throw new Error("Missing element text");
+      }
+      this.value = this.stringify.eleText(text);
+    }
+
+    XMLText.prototype.clone = function() {
+      return Object.create(this);
+    };
+
+    XMLText.prototype.toString = function(options) {
+      return this.options.writer.set(options).text(this);
+    };
+
+    return XMLText;
+
+  })(XMLNode);
+
+}).call(this);
+
+
+/***/ }),
+
+/***/ 6943:
+/***/ (function(module) {
+
+// Generated by CoffeeScript 1.12.7
+(function() {
+  var XMLWriterBase,
+    hasProp = {}.hasOwnProperty;
+
+  module.exports = XMLWriterBase = (function() {
+    function XMLWriterBase(options) {
+      var key, ref, ref1, ref2, ref3, ref4, ref5, ref6, value;
+      options || (options = {});
+      this.pretty = options.pretty || false;
+      this.allowEmpty = (ref = options.allowEmpty) != null ? ref : false;
+      if (this.pretty) {
+        this.indent = (ref1 = options.indent) != null ? ref1 : '  ';
+        this.newline = (ref2 = options.newline) != null ? ref2 : '\n';
+        this.offset = (ref3 = options.offset) != null ? ref3 : 0;
+        this.dontprettytextnodes = (ref4 = options.dontprettytextnodes) != null ? ref4 : 0;
+      } else {
+        this.indent = '';
+        this.newline = '';
+        this.offset = 0;
+        this.dontprettytextnodes = 0;
+      }
+      this.spacebeforeslash = (ref5 = options.spacebeforeslash) != null ? ref5 : '';
+      if (this.spacebeforeslash === true) {
+        this.spacebeforeslash = ' ';
+      }
+      this.newlinedefault = this.newline;
+      this.prettydefault = this.pretty;
+      ref6 = options.writer || {};
+      for (key in ref6) {
+        if (!hasProp.call(ref6, key)) continue;
+        value = ref6[key];
+        this[key] = value;
+      }
+    }
+
+    XMLWriterBase.prototype.set = function(options) {
+      var key, ref, value;
+      options || (options = {});
+      if ("pretty" in options) {
+        this.pretty = options.pretty;
+      }
+      if ("allowEmpty" in options) {
+        this.allowEmpty = options.allowEmpty;
+      }
+      if (this.pretty) {
+        this.indent = "indent" in options ? options.indent : '  ';
+        this.newline = "newline" in options ? options.newline : '\n';
+        this.offset = "offset" in options ? options.offset : 0;
+        this.dontprettytextnodes = "dontprettytextnodes" in options ? options.dontprettytextnodes : 0;
+      } else {
+        this.indent = '';
+        this.newline = '';
+        this.offset = 0;
+        this.dontprettytextnodes = 0;
+      }
+      this.spacebeforeslash = "spacebeforeslash" in options ? options.spacebeforeslash : '';
+      if (this.spacebeforeslash === true) {
+        this.spacebeforeslash = ' ';
+      }
+      this.newlinedefault = this.newline;
+      this.prettydefault = this.pretty;
+      ref = options.writer || {};
+      for (key in ref) {
+        if (!hasProp.call(ref, key)) continue;
+        value = ref[key];
+        this[key] = value;
+      }
+      return this;
+    };
+
+    XMLWriterBase.prototype.space = function(level) {
+      var indent;
+      if (this.pretty) {
+        indent = (level || 0) + this.offset + 1;
+        if (indent > 0) {
+          return new Array(indent).join(this.indent);
+        } else {
+          return '';
+        }
+      } else {
+        return '';
+      }
+    };
+
+    return XMLWriterBase;
+
+  })();
+
+}).call(this);
+
+
+/***/ }),
+
+/***/ 8004:
+/***/ (function(module, __unused_webpack_exports, __nccwpck_require__) {
+
+// Generated by CoffeeScript 1.12.7
+(function() {
+  var XMLDocument, XMLDocumentCB, XMLStreamWriter, XMLStringWriter, assign, isFunction, ref;
+
+  ref = __nccwpck_require__(4576), assign = ref.assign, isFunction = ref.isFunction;
+
+  XMLDocument = __nccwpck_require__(6500);
+
+  XMLDocumentCB = __nccwpck_require__(7789);
+
+  XMLStringWriter = __nccwpck_require__(9867);
+
+  XMLStreamWriter = __nccwpck_require__(7798);
+
+  module.exports.create = function(name, xmldec, doctype, options) {
+    var doc, root;
+    if (name == null) {
+      throw new Error("Root element needs a name");
+    }
+    options = assign({}, xmldec, doctype, options);
+    doc = new XMLDocument(options);
+    root = doc.element(name);
+    if (!options.headless) {
+      doc.declaration(options);
+      if ((options.pubID != null) || (options.sysID != null)) {
+        doc.doctype(options);
+      }
+    }
+    return root;
+  };
+
+  module.exports.begin = function(options, onData, onEnd) {
+    var ref1;
+    if (isFunction(options)) {
+      ref1 = [options, onData], onData = ref1[0], onEnd = ref1[1];
+      options = {};
+    }
+    if (onData) {
+      return new XMLDocumentCB(options, onData, onEnd);
+    } else {
+      return new XMLDocument(options);
+    }
+  };
+
+  module.exports.stringWriter = function(options) {
+    return new XMLStringWriter(options);
+  };
+
+  module.exports.streamWriter = function(stream, options) {
+    return new XMLStreamWriter(stream, options);
+  };
+
+}).call(this);
 
 
 /***/ }),
@@ -39777,7 +39461,7 @@ function getLineInfoFromHeaderLine(line) {
     return { deletionStartingLineNumber: 0, additionStartingLineNumber: 0 };
 }
 
-;// CONCATENATED MODULE: ./node_modules/universal-user-agent/index.js
+;// CONCATENATED MODULE: ./node_modules/octokit/node_modules/universal-user-agent/index.js
 function getUserAgent() {
   if (typeof navigator === "object" && "userAgent" in navigator) {
     return navigator.userAgent;
@@ -39937,7 +39621,7 @@ function Collection() {
 
 /* harmony default export */ const before_after_hook = ({ Singular, Collection });
 
-;// CONCATENATED MODULE: ./node_modules/@octokit/endpoint/dist-bundle/index.js
+;// CONCATENATED MODULE: ./node_modules/octokit/node_modules/@octokit/endpoint/dist-bundle/index.js
 // pkg/dist-src/defaults.js
 
 
@@ -40285,7 +39969,7 @@ var endpoint = withDefaults(null, DEFAULTS);
 
 // EXTERNAL MODULE: ./node_modules/fast-content-type-parse/index.js
 var fast_content_type_parse = __nccwpck_require__(1120);
-;// CONCATENATED MODULE: ./node_modules/@octokit/request-error/dist-src/index.js
+;// CONCATENATED MODULE: ./node_modules/octokit/node_modules/@octokit/request-error/dist-src/index.js
 class RequestError extends Error {
   name;
   /**
@@ -40301,12 +39985,13 @@ class RequestError extends Error {
    */
   response;
   constructor(message, statusCode, options) {
-    super(message);
+    super(message, { cause: options.cause });
     this.name = "HttpError";
     this.status = Number.parseInt(statusCode);
     if (Number.isNaN(this.status)) {
       this.status = 0;
     }
+    /* v8 ignore else -- @preserve -- Bug with vitest coverage where it sees an else branch that doesn't exist */
     if ("response" in options) {
       this.response = options.response;
     }
@@ -40325,7 +40010,7 @@ class RequestError extends Error {
 }
 
 
-;// CONCATENATED MODULE: ./node_modules/@octokit/request/dist-bundle/index.js
+;// CONCATENATED MODULE: ./node_modules/octokit/node_modules/@octokit/request/dist-bundle/index.js
 // pkg/dist-src/index.js
 
 
@@ -40333,7 +40018,7 @@ class RequestError extends Error {
 
 
 // pkg/dist-src/version.js
-var dist_bundle_VERSION = "0.0.0-development";
+var dist_bundle_VERSION = "10.0.7";
 
 // pkg/dist-src/defaults.js
 var defaults_default = {
@@ -40357,6 +40042,7 @@ function dist_bundle_isPlainObject(value) {
 
 // pkg/dist-src/fetch-wrapper.js
 
+var noop = () => "";
 async function fetchWrapper(requestOptions) {
   const fetch = requestOptions.request?.fetch || globalThis.fetch;
   if (!fetch) {
@@ -40458,7 +40144,7 @@ async function fetchWrapper(requestOptions) {
 async function getResponseData(response) {
   const contentType = response.headers.get("content-type");
   if (!contentType) {
-    return response.text().catch(() => "");
+    return response.text().catch(noop);
   }
   const mimetype = (0,fast_content_type_parse/* safeParse */.xL)(contentType);
   if (isJSONResponse(mimetype)) {
@@ -40470,9 +40156,12 @@ async function getResponseData(response) {
       return text;
     }
   } else if (mimetype.type.startsWith("text/") || mimetype.parameters.charset?.toLowerCase() === "utf-8") {
-    return response.text().catch(() => "");
+    return response.text().catch(noop);
   } else {
-    return response.arrayBuffer().catch(() => new ArrayBuffer(0));
+    return response.arrayBuffer().catch(
+      /* v8 ignore next -- @preserve */
+      () => new ArrayBuffer(0)
+    );
   }
 }
 function isJSONResponse(mimetype) {
@@ -40518,8 +40207,10 @@ function dist_bundle_withDefaults(oldEndpoint, newDefaults) {
 }
 
 // pkg/dist-src/index.js
-var dist_bundle_request = dist_bundle_withDefaults(endpoint, defaults_default);
+var request = dist_bundle_withDefaults(endpoint, defaults_default);
 
+/* v8 ignore next -- @preserve */
+/* v8 ignore else -- @preserve */
 
 ;// CONCATENATED MODULE: ./node_modules/octokit/node_modules/@octokit/graphql/dist-bundle/index.js
 // pkg/dist-src/index.js
@@ -40633,7 +40324,7 @@ function graphql_dist_bundle_withDefaults(request2, newDefaults) {
 }
 
 // pkg/dist-src/index.js
-var graphql2 = graphql_dist_bundle_withDefaults(dist_bundle_request, {
+var graphql2 = graphql_dist_bundle_withDefaults(request, {
   headers: {
     "user-agent": `octokit-graphql.js/${graphql_dist_bundle_VERSION} ${getUserAgent()}`
   },
@@ -40704,7 +40395,7 @@ var createTokenAuth = function createTokenAuth2(token) {
 
 
 ;// CONCATENATED MODULE: ./node_modules/octokit/node_modules/@octokit/core/dist-src/version.js
-const version_VERSION = "6.1.5";
+const version_VERSION = "7.0.6";
 
 
 ;// CONCATENATED MODULE: ./node_modules/octokit/node_modules/@octokit/core/dist-src/index.js
@@ -40714,10 +40405,25 @@ const version_VERSION = "6.1.5";
 
 
 
-const noop = () => {
+const dist_src_noop = () => {
 };
 const consoleWarn = console.warn.bind(console);
 const consoleError = console.error.bind(console);
+function createLogger(logger = {}) {
+  if (typeof logger.debug !== "function") {
+    logger.debug = dist_src_noop;
+  }
+  if (typeof logger.info !== "function") {
+    logger.info = dist_src_noop;
+  }
+  if (typeof logger.warn !== "function") {
+    logger.warn = consoleWarn;
+  }
+  if (typeof logger.error !== "function") {
+    logger.error = consoleError;
+  }
+  return logger;
+}
 const userAgentTrail = `octokit-core.js/${version_VERSION} ${getUserAgent()}`;
 class Octokit {
   static VERSION = version_VERSION;
@@ -40762,7 +40468,7 @@ class Octokit {
   constructor(options = {}) {
     const hook = new before_after_hook.Collection();
     const requestDefaults = {
-      baseUrl: dist_bundle_request.endpoint.DEFAULTS.baseUrl,
+      baseUrl: request.endpoint.DEFAULTS.baseUrl,
       headers: {},
       request: Object.assign({}, options.request, {
         // @ts-ignore internal usage only, no need to type
@@ -40783,17 +40489,9 @@ class Octokit {
     if (options.timeZone) {
       requestDefaults.headers["time-zone"] = options.timeZone;
     }
-    this.request = dist_bundle_request.defaults(requestDefaults);
+    this.request = request.defaults(requestDefaults);
     this.graphql = withCustomRequest(this.request).defaults(requestDefaults);
-    this.log = Object.assign(
-      {
-        debug: noop,
-        info: noop,
-        warn: consoleWarn,
-        error: consoleError
-      },
-      options.log
-    );
+    this.log = createLogger(options.log);
     this.hook = hook;
     if (!options.authStrategy) {
       if (!options.auth) {
@@ -40853,14 +40551,16 @@ function normalizePaginatedListResponse(response) {
       data: []
     };
   }
-  const responseNeedsNormalization = "total_count" in response.data && !("url" in response.data);
+  const responseNeedsNormalization = ("total_count" in response.data || "total_commits" in response.data) && !("url" in response.data);
   if (!responseNeedsNormalization) return response;
   const incompleteResults = response.data.incomplete_results;
   const repositorySelection = response.data.repository_selection;
   const totalCount = response.data.total_count;
+  const totalCommits = response.data.total_commits;
   delete response.data.incomplete_results;
   delete response.data.repository_selection;
   delete response.data.total_count;
+  delete response.data.total_commits;
   const namespaceKey = Object.keys(response.data)[0];
   const data = response.data[namespaceKey];
   response.data = data;
@@ -40871,6 +40571,7 @@ function normalizePaginatedListResponse(response) {
     response.data.repository_selection = repositorySelection;
   }
   response.data.total_count = totalCount;
+  response.data.total_commits = totalCommits;
   return response;
 }
 
@@ -40891,6 +40592,16 @@ function iterator(octokit, route, parameters) {
           url = ((normalizedResponse.headers.link || "").match(
             /<([^<>]+)>;\s*rel="next"/
           ) || [])[1];
+          if (!url && "total_commits" in normalizedResponse.data) {
+            const parsedUrl = new URL(normalizedResponse.url);
+            const params = parsedUrl.searchParams;
+            const page = parseInt(params.get("page") || "1", 10);
+            const per_page = parseInt(params.get("per_page") || "250", 10);
+            if (page * per_page < normalizedResponse.data.total_commits) {
+              params.set("page", String(page + 1));
+              url = parsedUrl.toString();
+            }
+          }
           return { value: normalizedResponse };
         } catch (error) {
           if (error.status !== 409) throw error;
@@ -40957,7 +40668,9 @@ var paginatingEndpoints = (/* unused pure expression or super */ null && ([
   "GET /enterprises/{enterprise}/code-security/configurations",
   "GET /enterprises/{enterprise}/code-security/configurations/{configuration_id}/repositories",
   "GET /enterprises/{enterprise}/dependabot/alerts",
-  "GET /enterprises/{enterprise}/secret-scanning/alerts",
+  "GET /enterprises/{enterprise}/teams",
+  "GET /enterprises/{enterprise}/teams/{enterprise-team}/memberships",
+  "GET /enterprises/{enterprise}/teams/{enterprise-team}/organizations",
   "GET /events",
   "GET /gists",
   "GET /gists/public",
@@ -40975,9 +40688,11 @@ var paginatingEndpoints = (/* unused pure expression or super */ null && ([
   "GET /networks/{owner}/{repo}/events",
   "GET /notifications",
   "GET /organizations",
+  "GET /organizations/{org}/dependabot/repository-access",
   "GET /orgs/{org}/actions/cache/usage-by-repository",
   "GET /orgs/{org}/actions/hosted-runners",
   "GET /orgs/{org}/actions/permissions/repositories",
+  "GET /orgs/{org}/actions/permissions/self-hosted-runners/repositories",
   "GET /orgs/{org}/actions/runner-groups",
   "GET /orgs/{org}/actions/runner-groups/{runner_group_id}/hosted-runners",
   "GET /orgs/{org}/actions/runner-groups/{runner_group_id}/repositories",
@@ -40987,6 +40702,7 @@ var paginatingEndpoints = (/* unused pure expression or super */ null && ([
   "GET /orgs/{org}/actions/secrets/{secret_name}/repositories",
   "GET /orgs/{org}/actions/variables",
   "GET /orgs/{org}/actions/variables/{name}/repositories",
+  "GET /orgs/{org}/attestations/repositories",
   "GET /orgs/{org}/attestations/{subject_digest}",
   "GET /orgs/{org}/blocks",
   "GET /orgs/{org}/campaigns",
@@ -41027,6 +40743,9 @@ var paginatingEndpoints = (/* unused pure expression or super */ null && ([
   "GET /orgs/{org}/personal-access-tokens/{pat_id}/repositories",
   "GET /orgs/{org}/private-registries",
   "GET /orgs/{org}/projects",
+  "GET /orgs/{org}/projectsV2",
+  "GET /orgs/{org}/projectsV2/{project_number}/fields",
+  "GET /orgs/{org}/projectsV2/{project_number}/items",
   "GET /orgs/{org}/properties/values",
   "GET /orgs/{org}/public_members",
   "GET /orgs/{org}/repos",
@@ -41035,6 +40754,7 @@ var paginatingEndpoints = (/* unused pure expression or super */ null && ([
   "GET /orgs/{org}/rulesets/{ruleset_id}/history",
   "GET /orgs/{org}/secret-scanning/alerts",
   "GET /orgs/{org}/security-advisories",
+  "GET /orgs/{org}/settings/immutable-releases/repositories",
   "GET /orgs/{org}/settings/network-configurations",
   "GET /orgs/{org}/team/{team_slug}/copilot/metrics",
   "GET /orgs/{org}/teams",
@@ -41047,9 +40767,7 @@ var paginatingEndpoints = (/* unused pure expression or super */ null && ([
   "GET /orgs/{org}/teams/{team_slug}/projects",
   "GET /orgs/{org}/teams/{team_slug}/repos",
   "GET /orgs/{org}/teams/{team_slug}/teams",
-  "GET /projects/columns/{column_id}/cards",
   "GET /projects/{project_id}/collaborators",
-  "GET /projects/{project_id}/columns",
   "GET /repos/{owner}/{repo}/actions/artifacts",
   "GET /repos/{owner}/{repo}/actions/caches",
   "GET /repos/{owner}/{repo}/actions/organization-secrets",
@@ -41085,6 +40803,8 @@ var paginatingEndpoints = (/* unused pure expression or super */ null && ([
   "GET /repos/{owner}/{repo}/commits/{ref}/check-suites",
   "GET /repos/{owner}/{repo}/commits/{ref}/status",
   "GET /repos/{owner}/{repo}/commits/{ref}/statuses",
+  "GET /repos/{owner}/{repo}/compare/{basehead}",
+  "GET /repos/{owner}/{repo}/compare/{base}...{head}",
   "GET /repos/{owner}/{repo}/contributors",
   "GET /repos/{owner}/{repo}/dependabot/alerts",
   "GET /repos/{owner}/{repo}/dependabot/secrets",
@@ -41105,6 +40825,8 @@ var paginatingEndpoints = (/* unused pure expression or super */ null && ([
   "GET /repos/{owner}/{repo}/issues/comments/{comment_id}/reactions",
   "GET /repos/{owner}/{repo}/issues/events",
   "GET /repos/{owner}/{repo}/issues/{issue_number}/comments",
+  "GET /repos/{owner}/{repo}/issues/{issue_number}/dependencies/blocked_by",
+  "GET /repos/{owner}/{repo}/issues/{issue_number}/dependencies/blocking",
   "GET /repos/{owner}/{repo}/issues/{issue_number}/events",
   "GET /repos/{owner}/{repo}/issues/{issue_number}/labels",
   "GET /repos/{owner}/{repo}/issues/{issue_number}/reactions",
@@ -41197,6 +40919,9 @@ var paginatingEndpoints = (/* unused pure expression or super */ null && ([
   "GET /users/{username}/orgs",
   "GET /users/{username}/packages",
   "GET /users/{username}/projects",
+  "GET /users/{username}/projectsV2",
+  "GET /users/{username}/projectsV2/{project_number}/fields",
+  "GET /users/{username}/projectsV2/{project_number}/items",
   "GET /users/{username}/received_events",
   "GET /users/{username}/received_events/public",
   "GET /users/{username}/repos",
@@ -41407,7 +41132,7 @@ function paginateGraphQL(octokit) {
 
 
 ;// CONCATENATED MODULE: ./node_modules/octokit/node_modules/@octokit/plugin-rest-endpoint-methods/dist-src/version.js
-const dist_src_version_VERSION = "14.0.0";
+const dist_src_version_VERSION = "17.0.0";
 
 //# sourceMappingURL=version.js.map
 
@@ -41469,6 +41194,12 @@ const Endpoints = {
     ],
     deleteArtifact: [
       "DELETE /repos/{owner}/{repo}/actions/artifacts/{artifact_id}"
+    ],
+    deleteCustomImageFromOrg: [
+      "DELETE /orgs/{org}/actions/hosted-runners/images/custom/{image_definition_id}"
+    ],
+    deleteCustomImageVersionFromOrg: [
+      "DELETE /orgs/{org}/actions/hosted-runners/images/custom/{image_definition_id}/versions/{version}"
     ],
     deleteEnvironmentSecret: [
       "DELETE /repos/{owner}/{repo}/environments/{environment_name}/secrets/{secret_name}"
@@ -41543,6 +41274,12 @@ const Endpoints = {
       "GET /repos/{owner}/{repo}/actions/permissions/selected-actions"
     ],
     getArtifact: ["GET /repos/{owner}/{repo}/actions/artifacts/{artifact_id}"],
+    getCustomImageForOrg: [
+      "GET /orgs/{org}/actions/hosted-runners/images/custom/{image_definition_id}"
+    ],
+    getCustomImageVersionForOrg: [
+      "GET /orgs/{org}/actions/hosted-runners/images/custom/{image_definition_id}/versions/{version}"
+    ],
     getCustomOidcSubClaimForRepo: [
       "GET /repos/{owner}/{repo}/actions/oidc/customization/sub"
     ],
@@ -41622,6 +41359,12 @@ const Endpoints = {
       "GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}/timing"
     ],
     listArtifactsForRepo: ["GET /repos/{owner}/{repo}/actions/artifacts"],
+    listCustomImageVersionsForOrg: [
+      "GET /orgs/{org}/actions/hosted-runners/images/custom/{image_definition_id}/versions"
+    ],
+    listCustomImagesForOrg: [
+      "GET /orgs/{org}/actions/hosted-runners/images/custom"
+    ],
     listEnvironmentSecrets: [
       "GET /repos/{owner}/{repo}/environments/{environment_name}/secrets"
     ],
@@ -41880,8 +41623,17 @@ const Endpoints = {
     getGithubActionsBillingUser: [
       "GET /users/{username}/settings/billing/actions"
     ],
+    getGithubBillingPremiumRequestUsageReportOrg: [
+      "GET /organizations/{org}/settings/billing/premium_request/usage"
+    ],
+    getGithubBillingPremiumRequestUsageReportUser: [
+      "GET /users/{username}/settings/billing/premium_request/usage"
+    ],
     getGithubBillingUsageReportOrg: [
       "GET /organizations/{org}/settings/billing/usage"
+    ],
+    getGithubBillingUsageReportUser: [
+      "GET /users/{username}/settings/billing/usage"
     ],
     getGithubPackagesBillingOrg: ["GET /orgs/{org}/settings/billing/packages"],
     getGithubPackagesBillingUser: [
@@ -42181,6 +41933,7 @@ const Endpoints = {
     ],
     listCopilotSeats: ["GET /orgs/{org}/copilot/billing/seats"]
   },
+  credentials: { revoke: ["POST /credentials/revoke"] },
   dependabot: {
     addSelectedRepoToOrgSecret: [
       "PUT /orgs/{org}/dependabot/secrets/{secret_name}/repositories/{repository_id}"
@@ -42217,11 +41970,20 @@ const Endpoints = {
     removeSelectedRepoFromOrgSecret: [
       "DELETE /orgs/{org}/dependabot/secrets/{secret_name}/repositories/{repository_id}"
     ],
+    repositoryAccessForOrg: [
+      "GET /organizations/{org}/dependabot/repository-access"
+    ],
+    setRepositoryAccessDefaultLevel: [
+      "PUT /organizations/{org}/dependabot/repository-access/default-level"
+    ],
     setSelectedReposForOrgSecret: [
       "PUT /orgs/{org}/dependabot/secrets/{secret_name}/repositories"
     ],
     updateAlert: [
       "PATCH /repos/{owner}/{repo}/dependabot/alerts/{alert_number}"
+    ],
+    updateRepositoryAccessForOrg: [
+      "PATCH /organizations/{org}/dependabot/repository-access"
     ]
   },
   dependencyGraph: {
@@ -42234,6 +41996,51 @@ const Endpoints = {
     exportSbom: ["GET /repos/{owner}/{repo}/dependency-graph/sbom"]
   },
   emojis: { get: ["GET /emojis"] },
+  enterpriseTeamMemberships: {
+    add: [
+      "PUT /enterprises/{enterprise}/teams/{enterprise-team}/memberships/{username}"
+    ],
+    bulkAdd: [
+      "POST /enterprises/{enterprise}/teams/{enterprise-team}/memberships/add"
+    ],
+    bulkRemove: [
+      "POST /enterprises/{enterprise}/teams/{enterprise-team}/memberships/remove"
+    ],
+    get: [
+      "GET /enterprises/{enterprise}/teams/{enterprise-team}/memberships/{username}"
+    ],
+    list: ["GET /enterprises/{enterprise}/teams/{enterprise-team}/memberships"],
+    remove: [
+      "DELETE /enterprises/{enterprise}/teams/{enterprise-team}/memberships/{username}"
+    ]
+  },
+  enterpriseTeamOrganizations: {
+    add: [
+      "PUT /enterprises/{enterprise}/teams/{enterprise-team}/organizations/{org}"
+    ],
+    bulkAdd: [
+      "POST /enterprises/{enterprise}/teams/{enterprise-team}/organizations/add"
+    ],
+    bulkRemove: [
+      "POST /enterprises/{enterprise}/teams/{enterprise-team}/organizations/remove"
+    ],
+    delete: [
+      "DELETE /enterprises/{enterprise}/teams/{enterprise-team}/organizations/{org}"
+    ],
+    getAssignment: [
+      "GET /enterprises/{enterprise}/teams/{enterprise-team}/organizations/{org}"
+    ],
+    getAssignments: [
+      "GET /enterprises/{enterprise}/teams/{enterprise-team}/organizations"
+    ]
+  },
+  enterpriseTeams: {
+    create: ["POST /enterprises/{enterprise}/teams"],
+    delete: ["DELETE /enterprises/{enterprise}/teams/{team_slug}"],
+    get: ["GET /enterprises/{enterprise}/teams/{team_slug}"],
+    list: ["GET /enterprises/{enterprise}/teams"],
+    update: ["PATCH /enterprises/{enterprise}/teams/{team_slug}"]
+  },
   gists: {
     checkIsStarred: ["GET /gists/{gist_id}/star"],
     create: ["POST /gists"],
@@ -42327,6 +42134,9 @@ const Endpoints = {
     addAssignees: [
       "POST /repos/{owner}/{repo}/issues/{issue_number}/assignees"
     ],
+    addBlockedByDependency: [
+      "POST /repos/{owner}/{repo}/issues/{issue_number}/dependencies/blocked_by"
+    ],
     addLabels: ["POST /repos/{owner}/{repo}/issues/{issue_number}/labels"],
     addSubIssue: [
       "POST /repos/{owner}/{repo}/issues/{issue_number}/sub_issues"
@@ -42353,10 +42163,17 @@ const Endpoints = {
     getEvent: ["GET /repos/{owner}/{repo}/issues/events/{event_id}"],
     getLabel: ["GET /repos/{owner}/{repo}/labels/{name}"],
     getMilestone: ["GET /repos/{owner}/{repo}/milestones/{milestone_number}"],
+    getParent: ["GET /repos/{owner}/{repo}/issues/{issue_number}/parent"],
     list: ["GET /issues"],
     listAssignees: ["GET /repos/{owner}/{repo}/assignees"],
     listComments: ["GET /repos/{owner}/{repo}/issues/{issue_number}/comments"],
     listCommentsForRepo: ["GET /repos/{owner}/{repo}/issues/comments"],
+    listDependenciesBlockedBy: [
+      "GET /repos/{owner}/{repo}/issues/{issue_number}/dependencies/blocked_by"
+    ],
+    listDependenciesBlocking: [
+      "GET /repos/{owner}/{repo}/issues/{issue_number}/dependencies/blocking"
+    ],
     listEvents: ["GET /repos/{owner}/{repo}/issues/{issue_number}/events"],
     listEventsForRepo: ["GET /repos/{owner}/{repo}/issues/events"],
     listEventsForTimeline: [
@@ -42382,6 +42199,9 @@ const Endpoints = {
     ],
     removeAssignees: [
       "DELETE /repos/{owner}/{repo}/issues/{issue_number}/assignees"
+    ],
+    removeDependencyBlockedBy: [
+      "DELETE /repos/{owner}/{repo}/issues/{issue_number}/dependencies/blocked_by/{issue_id}"
     ],
     removeLabel: [
       "DELETE /repos/{owner}/{repo}/issues/{issue_number}/labels/{name}"
@@ -42485,30 +42305,61 @@ const Endpoints = {
     convertMemberToOutsideCollaborator: [
       "PUT /orgs/{org}/outside_collaborators/{username}"
     ],
+    createArtifactStorageRecord: [
+      "POST /orgs/{org}/artifacts/metadata/storage-record"
+    ],
     createInvitation: ["POST /orgs/{org}/invitations"],
     createIssueType: ["POST /orgs/{org}/issue-types"],
-    createOrUpdateCustomProperties: ["PATCH /orgs/{org}/properties/schema"],
-    createOrUpdateCustomPropertiesValuesForRepos: [
-      "PATCH /orgs/{org}/properties/values"
+    createWebhook: ["POST /orgs/{org}/hooks"],
+    customPropertiesForOrgsCreateOrUpdateOrganizationValues: [
+      "PATCH /organizations/{org}/org-properties/values"
     ],
-    createOrUpdateCustomProperty: [
+    customPropertiesForOrgsGetOrganizationValues: [
+      "GET /organizations/{org}/org-properties/values"
+    ],
+    customPropertiesForReposCreateOrUpdateOrganizationDefinition: [
       "PUT /orgs/{org}/properties/schema/{custom_property_name}"
     ],
-    createWebhook: ["POST /orgs/{org}/hooks"],
+    customPropertiesForReposCreateOrUpdateOrganizationDefinitions: [
+      "PATCH /orgs/{org}/properties/schema"
+    ],
+    customPropertiesForReposCreateOrUpdateOrganizationValues: [
+      "PATCH /orgs/{org}/properties/values"
+    ],
+    customPropertiesForReposDeleteOrganizationDefinition: [
+      "DELETE /orgs/{org}/properties/schema/{custom_property_name}"
+    ],
+    customPropertiesForReposGetOrganizationDefinition: [
+      "GET /orgs/{org}/properties/schema/{custom_property_name}"
+    ],
+    customPropertiesForReposGetOrganizationDefinitions: [
+      "GET /orgs/{org}/properties/schema"
+    ],
+    customPropertiesForReposGetOrganizationValues: [
+      "GET /orgs/{org}/properties/values"
+    ],
     delete: ["DELETE /orgs/{org}"],
+    deleteAttestationsBulk: ["POST /orgs/{org}/attestations/delete-request"],
+    deleteAttestationsById: [
+      "DELETE /orgs/{org}/attestations/{attestation_id}"
+    ],
+    deleteAttestationsBySubjectDigest: [
+      "DELETE /orgs/{org}/attestations/digest/{subject_digest}"
+    ],
     deleteIssueType: ["DELETE /orgs/{org}/issue-types/{issue_type_id}"],
     deleteWebhook: ["DELETE /orgs/{org}/hooks/{hook_id}"],
-    enableOrDisableSecurityProductOnAllOrgRepos: [
-      "POST /orgs/{org}/{security_product}/{enablement}",
-      {},
-      {
-        deprecated: "octokit.rest.orgs.enableOrDisableSecurityProductOnAllOrgRepos() is deprecated, see https://docs.github.com/rest/orgs/orgs#enable-or-disable-a-security-feature-for-an-organization"
-      }
+    disableSelectedRepositoryImmutableReleasesOrganization: [
+      "DELETE /orgs/{org}/settings/immutable-releases/repositories/{repository_id}"
+    ],
+    enableSelectedRepositoryImmutableReleasesOrganization: [
+      "PUT /orgs/{org}/settings/immutable-releases/repositories/{repository_id}"
     ],
     get: ["GET /orgs/{org}"],
-    getAllCustomProperties: ["GET /orgs/{org}/properties/schema"],
-    getCustomProperty: [
-      "GET /orgs/{org}/properties/schema/{custom_property_name}"
+    getImmutableReleasesSettings: [
+      "GET /orgs/{org}/settings/immutable-releases"
+    ],
+    getImmutableReleasesSettingsRepositories: [
+      "GET /orgs/{org}/settings/immutable-releases/repositories"
     ],
     getMembershipForAuthenticatedUser: ["GET /user/memberships/orgs/{org}"],
     getMembershipForUser: ["GET /orgs/{org}/memberships/{username}"],
@@ -42524,9 +42375,15 @@ const Endpoints = {
     ],
     list: ["GET /organizations"],
     listAppInstallations: ["GET /orgs/{org}/installations"],
+    listArtifactStorageRecords: [
+      "GET /orgs/{org}/artifacts/{subject_digest}/metadata/storage-records"
+    ],
+    listAttestationRepositories: ["GET /orgs/{org}/attestations/repositories"],
     listAttestations: ["GET /orgs/{org}/attestations/{subject_digest}"],
+    listAttestationsBulk: [
+      "POST /orgs/{org}/attestations/bulk-list{?per_page,before,after}"
+    ],
     listBlockedUsers: ["GET /orgs/{org}/blocks"],
-    listCustomPropertiesValuesForRepos: ["GET /orgs/{org}/properties/values"],
     listFailedInvitations: ["GET /orgs/{org}/failed_invitations"],
     listForAuthenticatedUser: ["GET /user/orgs"],
     listForUser: ["GET /users/{username}/orgs"],
@@ -42564,9 +42421,6 @@ const Endpoints = {
     redeliverWebhookDelivery: [
       "POST /orgs/{org}/hooks/{hook_id}/deliveries/{delivery_id}/attempts"
     ],
-    removeCustomProperty: [
-      "DELETE /orgs/{org}/properties/schema/{custom_property_name}"
-    ],
     removeMember: ["DELETE /orgs/{org}/members/{username}"],
     removeMembershipForUser: ["DELETE /orgs/{org}/memberships/{username}"],
     removeOutsideCollaborator: [
@@ -42599,6 +42453,12 @@ const Endpoints = {
     ],
     revokeOrgRoleUser: [
       "DELETE /orgs/{org}/organization-roles/users/{username}/{role_id}"
+    ],
+    setImmutableReleasesSettings: [
+      "PUT /orgs/{org}/settings/immutable-releases"
+    ],
+    setImmutableReleasesSettingsRepositories: [
+      "PUT /orgs/{org}/settings/immutable-releases/repositories"
     ],
     setMembershipForUser: ["PUT /orgs/{org}/memberships/{username}"],
     setPublicMembershipForAuthenticatedUser: [
@@ -42717,6 +42577,46 @@ const Endpoints = {
     listOrgPrivateRegistries: ["GET /orgs/{org}/private-registries"],
     updateOrgPrivateRegistry: [
       "PATCH /orgs/{org}/private-registries/{secret_name}"
+    ]
+  },
+  projects: {
+    addItemForOrg: ["POST /orgs/{org}/projectsV2/{project_number}/items"],
+    addItemForUser: [
+      "POST /users/{username}/projectsV2/{project_number}/items"
+    ],
+    deleteItemForOrg: [
+      "DELETE /orgs/{org}/projectsV2/{project_number}/items/{item_id}"
+    ],
+    deleteItemForUser: [
+      "DELETE /users/{username}/projectsV2/{project_number}/items/{item_id}"
+    ],
+    getFieldForOrg: [
+      "GET /orgs/{org}/projectsV2/{project_number}/fields/{field_id}"
+    ],
+    getFieldForUser: [
+      "GET /users/{username}/projectsV2/{project_number}/fields/{field_id}"
+    ],
+    getForOrg: ["GET /orgs/{org}/projectsV2/{project_number}"],
+    getForUser: ["GET /users/{username}/projectsV2/{project_number}"],
+    getOrgItem: ["GET /orgs/{org}/projectsV2/{project_number}/items/{item_id}"],
+    getUserItem: [
+      "GET /users/{username}/projectsV2/{project_number}/items/{item_id}"
+    ],
+    listFieldsForOrg: ["GET /orgs/{org}/projectsV2/{project_number}/fields"],
+    listFieldsForUser: [
+      "GET /users/{username}/projectsV2/{project_number}/fields"
+    ],
+    listForOrg: ["GET /orgs/{org}/projectsV2"],
+    listForUser: ["GET /users/{username}/projectsV2"],
+    listItemsForOrg: ["GET /orgs/{org}/projectsV2/{project_number}/items"],
+    listItemsForUser: [
+      "GET /users/{username}/projectsV2/{project_number}/items"
+    ],
+    updateItemForOrg: [
+      "PATCH /orgs/{org}/projectsV2/{project_number}/items/{item_id}"
+    ],
+    updateItemForUser: [
+      "PATCH /users/{username}/projectsV2/{project_number}/items/{item_id}"
     ]
   },
   pulls: {
@@ -42879,6 +42779,7 @@ const Endpoints = {
       "GET /repos/{owner}/{repo}/automated-security-fixes"
     ],
     checkCollaborator: ["GET /repos/{owner}/{repo}/collaborators/{username}"],
+    checkImmutableReleases: ["GET /repos/{owner}/{repo}/immutable-releases"],
     checkPrivateVulnerabilityReporting: [
       "GET /repos/{owner}/{repo}/private-vulnerability-reporting"
     ],
@@ -42914,9 +42815,6 @@ const Endpoints = {
     createForAuthenticatedUser: ["POST /user/repos"],
     createFork: ["POST /repos/{owner}/{repo}/forks"],
     createInOrg: ["POST /orgs/{org}/repos"],
-    createOrUpdateCustomPropertiesValues: [
-      "PATCH /repos/{owner}/{repo}/properties/values"
-    ],
     createOrUpdateEnvironment: [
       "PUT /repos/{owner}/{repo}/environments/{environment_name}"
     ],
@@ -42930,6 +42828,12 @@ const Endpoints = {
       "POST /repos/{template_owner}/{template_repo}/generate"
     ],
     createWebhook: ["POST /repos/{owner}/{repo}/hooks"],
+    customPropertiesForReposCreateOrUpdateRepositoryValues: [
+      "PATCH /repos/{owner}/{repo}/properties/values"
+    ],
+    customPropertiesForReposGetRepositoryValues: [
+      "GET /repos/{owner}/{repo}/properties/values"
+    ],
     declineInvitation: [
       "DELETE /user/repository_invitations/{invitation_id}",
       {},
@@ -42984,6 +42888,9 @@ const Endpoints = {
     disableDeploymentProtectionRule: [
       "DELETE /repos/{owner}/{repo}/environments/{environment_name}/deployment_protection_rules/{protection_rule_id}"
     ],
+    disableImmutableReleases: [
+      "DELETE /repos/{owner}/{repo}/immutable-releases"
+    ],
     disablePrivateVulnerabilityReporting: [
       "DELETE /repos/{owner}/{repo}/private-vulnerability-reporting"
     ],
@@ -43000,6 +42907,7 @@ const Endpoints = {
     enableAutomatedSecurityFixes: [
       "PUT /repos/{owner}/{repo}/automated-security-fixes"
     ],
+    enableImmutableReleases: ["PUT /repos/{owner}/{repo}/immutable-releases"],
     enablePrivateVulnerabilityReporting: [
       "PUT /repos/{owner}/{repo}/private-vulnerability-reporting"
     ],
@@ -43051,7 +42959,6 @@ const Endpoints = {
     getCustomDeploymentProtectionRule: [
       "GET /repos/{owner}/{repo}/environments/{environment_name}/deployment_protection_rules/{protection_rule_id}"
     ],
-    getCustomPropertiesValues: ["GET /repos/{owner}/{repo}/properties/values"],
     getDeployKey: ["GET /repos/{owner}/{repo}/keys/{key_id}"],
     getDeployment: ["GET /repos/{owner}/{repo}/deployments/{deployment_id}"],
     getDeploymentBranchPolicy: [
@@ -43269,13 +43176,7 @@ const Endpoints = {
   search: {
     code: ["GET /search/code"],
     commits: ["GET /search/commits"],
-    issuesAndPullRequests: [
-      "GET /search/issues",
-      {},
-      {
-        deprecated: "octokit.rest.search.issuesAndPullRequests() is deprecated, see https://docs.github.com/rest/search/search#search-issues-and-pull-requests"
-      }
-    ],
+    issuesAndPullRequests: ["GET /search/issues"],
     labels: ["GET /search/labels"],
     repos: ["GET /search/repositories"],
     topics: ["GET /search/topics"],
@@ -43289,16 +43190,19 @@ const Endpoints = {
       "GET /repos/{owner}/{repo}/secret-scanning/alerts/{alert_number}"
     ],
     getScanHistory: ["GET /repos/{owner}/{repo}/secret-scanning/scan-history"],
-    listAlertsForEnterprise: [
-      "GET /enterprises/{enterprise}/secret-scanning/alerts"
-    ],
     listAlertsForOrg: ["GET /orgs/{org}/secret-scanning/alerts"],
     listAlertsForRepo: ["GET /repos/{owner}/{repo}/secret-scanning/alerts"],
     listLocationsForAlert: [
       "GET /repos/{owner}/{repo}/secret-scanning/alerts/{alert_number}/locations"
     ],
+    listOrgPatternConfigs: [
+      "GET /orgs/{org}/secret-scanning/pattern-configurations"
+    ],
     updateAlert: [
       "PATCH /repos/{owner}/{repo}/secret-scanning/alerts/{alert_number}"
+    ],
+    updateOrgPatternConfigs: [
+      "PATCH /orgs/{org}/secret-scanning/pattern-configurations"
     ]
   },
   securityAdvisories: {
@@ -43408,6 +43312,15 @@ const Endpoints = {
     ],
     createPublicSshKeyForAuthenticatedUser: ["POST /user/keys"],
     createSshSigningKeyForAuthenticatedUser: ["POST /user/ssh_signing_keys"],
+    deleteAttestationsBulk: [
+      "POST /users/{username}/attestations/delete-request"
+    ],
+    deleteAttestationsById: [
+      "DELETE /users/{username}/attestations/{attestation_id}"
+    ],
+    deleteAttestationsBySubjectDigest: [
+      "DELETE /users/{username}/attestations/digest/{subject_digest}"
+    ],
     deleteEmailForAuthenticated: [
       "DELETE /user/emails",
       {},
@@ -43452,6 +43365,9 @@ const Endpoints = {
     ],
     list: ["GET /users"],
     listAttestations: ["GET /users/{username}/attestations/{subject_digest}"],
+    listAttestationsBulk: [
+      "POST /users/{username}/attestations/bulk-list{?per_page,before,after}"
+    ],
     listBlockedByAuthenticated: [
       "GET /user/blocks",
       {},
@@ -43923,7 +43839,7 @@ function throttling(octokit, octokitOptions) {
     const retryCount = ~~request.retryCount;
     request.retryCount = retryCount;
     options.request.retryCount = retryCount;
-    const { wantRetry, retryAfter = 0 } = await async function() {
+    const { wantRetry, retryAfter = 0 } = await (async function() {
       if (/\bsecondary rate\b/i.test(error.message)) {
         const retryAfter2 = Number(error.response.headers["retry-after"]) || state2.fallbackSecondaryRateRetryAfter;
         const wantRetry2 = await emitter.trigger(
@@ -43957,7 +43873,7 @@ function throttling(octokit, octokitOptions) {
         return { wantRetry: wantRetry2, retryAfter: retryAfter2 };
       }
       return {};
-    }();
+    })();
     if (wantRetry) {
       request.retryCount++;
       return retryAfter * state2.retryAfterBaseValue;
@@ -43969,6 +43885,21 @@ function throttling(octokit, octokitOptions) {
 throttling.VERSION = plugin_throttling_dist_bundle_VERSION;
 throttling.triggersNotification = triggersNotification;
 
+
+;// CONCATENATED MODULE: ./node_modules/@octokit/app/node_modules/universal-user-agent/index.js
+function universal_user_agent_getUserAgent() {
+  if (typeof navigator === "object" && "userAgent" in navigator) {
+    return navigator.userAgent;
+  }
+
+  if (typeof process === "object" && process.version !== undefined) {
+    return `Node.js/${process.version.substr(1)} (${process.platform}; ${
+      process.arch
+    })`;
+  }
+
+  return "<environment undetectable>";
+}
 
 ;// CONCATENATED MODULE: ./node_modules/@octokit/app/node_modules/before-after-hook/lib/register.js
 // @ts-check
@@ -44115,6 +44046,595 @@ function before_after_hook_Collection() {
 
 /* harmony default export */ const node_modules_before_after_hook = ({ Singular: before_after_hook_Singular, Collection: before_after_hook_Collection });
 
+;// CONCATENATED MODULE: ./node_modules/@octokit/app/node_modules/@octokit/endpoint/dist-bundle/index.js
+// pkg/dist-src/defaults.js
+
+
+// pkg/dist-src/version.js
+var endpoint_dist_bundle_VERSION = "0.0.0-development";
+
+// pkg/dist-src/defaults.js
+var dist_bundle_userAgent = `octokit-endpoint.js/${endpoint_dist_bundle_VERSION} ${universal_user_agent_getUserAgent()}`;
+var dist_bundle_DEFAULTS = {
+  method: "GET",
+  baseUrl: "https://api.github.com",
+  headers: {
+    accept: "application/vnd.github.v3+json",
+    "user-agent": dist_bundle_userAgent
+  },
+  mediaType: {
+    format: ""
+  }
+};
+
+// pkg/dist-src/util/lowercase-keys.js
+function dist_bundle_lowercaseKeys(object) {
+  if (!object) {
+    return {};
+  }
+  return Object.keys(object).reduce((newObj, key) => {
+    newObj[key.toLowerCase()] = object[key];
+    return newObj;
+  }, {});
+}
+
+// pkg/dist-src/util/is-plain-object.js
+function endpoint_dist_bundle_isPlainObject(value) {
+  if (typeof value !== "object" || value === null) return false;
+  if (Object.prototype.toString.call(value) !== "[object Object]") return false;
+  const proto = Object.getPrototypeOf(value);
+  if (proto === null) return true;
+  const Ctor = Object.prototype.hasOwnProperty.call(proto, "constructor") && proto.constructor;
+  return typeof Ctor === "function" && Ctor instanceof Ctor && Function.prototype.call(Ctor) === Function.prototype.call(value);
+}
+
+// pkg/dist-src/util/merge-deep.js
+function dist_bundle_mergeDeep(defaults, options) {
+  const result = Object.assign({}, defaults);
+  Object.keys(options).forEach((key) => {
+    if (endpoint_dist_bundle_isPlainObject(options[key])) {
+      if (!(key in defaults)) Object.assign(result, { [key]: options[key] });
+      else result[key] = dist_bundle_mergeDeep(defaults[key], options[key]);
+    } else {
+      Object.assign(result, { [key]: options[key] });
+    }
+  });
+  return result;
+}
+
+// pkg/dist-src/util/remove-undefined-properties.js
+function dist_bundle_removeUndefinedProperties(obj) {
+  for (const key in obj) {
+    if (obj[key] === void 0) {
+      delete obj[key];
+    }
+  }
+  return obj;
+}
+
+// pkg/dist-src/merge.js
+function dist_bundle_merge(defaults, route, options) {
+  if (typeof route === "string") {
+    let [method, url] = route.split(" ");
+    options = Object.assign(url ? { method, url } : { url: method }, options);
+  } else {
+    options = Object.assign({}, route);
+  }
+  options.headers = dist_bundle_lowercaseKeys(options.headers);
+  dist_bundle_removeUndefinedProperties(options);
+  dist_bundle_removeUndefinedProperties(options.headers);
+  const mergedOptions = dist_bundle_mergeDeep(defaults || {}, options);
+  if (options.url === "/graphql") {
+    if (defaults && defaults.mediaType.previews?.length) {
+      mergedOptions.mediaType.previews = defaults.mediaType.previews.filter(
+        (preview) => !mergedOptions.mediaType.previews.includes(preview)
+      ).concat(mergedOptions.mediaType.previews);
+    }
+    mergedOptions.mediaType.previews = (mergedOptions.mediaType.previews || []).map((preview) => preview.replace(/-preview/, ""));
+  }
+  return mergedOptions;
+}
+
+// pkg/dist-src/util/add-query-parameters.js
+function dist_bundle_addQueryParameters(url, parameters) {
+  const separator = /\?/.test(url) ? "&" : "?";
+  const names = Object.keys(parameters);
+  if (names.length === 0) {
+    return url;
+  }
+  return url + separator + names.map((name) => {
+    if (name === "q") {
+      return "q=" + parameters.q.split("+").map(encodeURIComponent).join("+");
+    }
+    return `${name}=${encodeURIComponent(parameters[name])}`;
+  }).join("&");
+}
+
+// pkg/dist-src/util/extract-url-variable-names.js
+var dist_bundle_urlVariableRegex = /\{[^{}}]+\}/g;
+function dist_bundle_removeNonChars(variableName) {
+  return variableName.replace(/(?:^\W+)|(?:(?<!\W)\W+$)/g, "").split(/,/);
+}
+function dist_bundle_extractUrlVariableNames(url) {
+  const matches = url.match(dist_bundle_urlVariableRegex);
+  if (!matches) {
+    return [];
+  }
+  return matches.map(dist_bundle_removeNonChars).reduce((a, b) => a.concat(b), []);
+}
+
+// pkg/dist-src/util/omit.js
+function dist_bundle_omit(object, keysToOmit) {
+  const result = { __proto__: null };
+  for (const key of Object.keys(object)) {
+    if (keysToOmit.indexOf(key) === -1) {
+      result[key] = object[key];
+    }
+  }
+  return result;
+}
+
+// pkg/dist-src/util/url-template.js
+function dist_bundle_encodeReserved(str) {
+  return str.split(/(%[0-9A-Fa-f]{2})/g).map(function(part) {
+    if (!/%[0-9A-Fa-f]/.test(part)) {
+      part = encodeURI(part).replace(/%5B/g, "[").replace(/%5D/g, "]");
+    }
+    return part;
+  }).join("");
+}
+function dist_bundle_encodeUnreserved(str) {
+  return encodeURIComponent(str).replace(/[!'()*]/g, function(c) {
+    return "%" + c.charCodeAt(0).toString(16).toUpperCase();
+  });
+}
+function dist_bundle_encodeValue(operator, value, key) {
+  value = operator === "+" || operator === "#" ? dist_bundle_encodeReserved(value) : dist_bundle_encodeUnreserved(value);
+  if (key) {
+    return dist_bundle_encodeUnreserved(key) + "=" + value;
+  } else {
+    return value;
+  }
+}
+function dist_bundle_isDefined(value) {
+  return value !== void 0 && value !== null;
+}
+function dist_bundle_isKeyOperator(operator) {
+  return operator === ";" || operator === "&" || operator === "?";
+}
+function dist_bundle_getValues(context, operator, key, modifier) {
+  var value = context[key], result = [];
+  if (dist_bundle_isDefined(value) && value !== "") {
+    if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+      value = value.toString();
+      if (modifier && modifier !== "*") {
+        value = value.substring(0, parseInt(modifier, 10));
+      }
+      result.push(
+        dist_bundle_encodeValue(operator, value, dist_bundle_isKeyOperator(operator) ? key : "")
+      );
+    } else {
+      if (modifier === "*") {
+        if (Array.isArray(value)) {
+          value.filter(dist_bundle_isDefined).forEach(function(value2) {
+            result.push(
+              dist_bundle_encodeValue(operator, value2, dist_bundle_isKeyOperator(operator) ? key : "")
+            );
+          });
+        } else {
+          Object.keys(value).forEach(function(k) {
+            if (dist_bundle_isDefined(value[k])) {
+              result.push(dist_bundle_encodeValue(operator, value[k], k));
+            }
+          });
+        }
+      } else {
+        const tmp = [];
+        if (Array.isArray(value)) {
+          value.filter(dist_bundle_isDefined).forEach(function(value2) {
+            tmp.push(dist_bundle_encodeValue(operator, value2));
+          });
+        } else {
+          Object.keys(value).forEach(function(k) {
+            if (dist_bundle_isDefined(value[k])) {
+              tmp.push(dist_bundle_encodeUnreserved(k));
+              tmp.push(dist_bundle_encodeValue(operator, value[k].toString()));
+            }
+          });
+        }
+        if (dist_bundle_isKeyOperator(operator)) {
+          result.push(dist_bundle_encodeUnreserved(key) + "=" + tmp.join(","));
+        } else if (tmp.length !== 0) {
+          result.push(tmp.join(","));
+        }
+      }
+    }
+  } else {
+    if (operator === ";") {
+      if (dist_bundle_isDefined(value)) {
+        result.push(dist_bundle_encodeUnreserved(key));
+      }
+    } else if (value === "" && (operator === "&" || operator === "?")) {
+      result.push(dist_bundle_encodeUnreserved(key) + "=");
+    } else if (value === "") {
+      result.push("");
+    }
+  }
+  return result;
+}
+function dist_bundle_parseUrl(template) {
+  return {
+    expand: dist_bundle_expand.bind(null, template)
+  };
+}
+function dist_bundle_expand(template, context) {
+  var operators = ["+", "#", ".", "/", ";", "?", "&"];
+  template = template.replace(
+    /\{([^\{\}]+)\}|([^\{\}]+)/g,
+    function(_, expression, literal) {
+      if (expression) {
+        let operator = "";
+        const values = [];
+        if (operators.indexOf(expression.charAt(0)) !== -1) {
+          operator = expression.charAt(0);
+          expression = expression.substr(1);
+        }
+        expression.split(/,/g).forEach(function(variable) {
+          var tmp = /([^:\*]*)(?::(\d+)|(\*))?/.exec(variable);
+          values.push(dist_bundle_getValues(context, operator, tmp[1], tmp[2] || tmp[3]));
+        });
+        if (operator && operator !== "+") {
+          var separator = ",";
+          if (operator === "?") {
+            separator = "&";
+          } else if (operator !== "#") {
+            separator = operator;
+          }
+          return (values.length !== 0 ? operator : "") + values.join(separator);
+        } else {
+          return values.join(",");
+        }
+      } else {
+        return dist_bundle_encodeReserved(literal);
+      }
+    }
+  );
+  if (template === "/") {
+    return template;
+  } else {
+    return template.replace(/\/$/, "");
+  }
+}
+
+// pkg/dist-src/parse.js
+function dist_bundle_parse(options) {
+  let method = options.method.toUpperCase();
+  let url = (options.url || "/").replace(/:([a-z]\w+)/g, "{$1}");
+  let headers = Object.assign({}, options.headers);
+  let body;
+  let parameters = dist_bundle_omit(options, [
+    "method",
+    "baseUrl",
+    "url",
+    "headers",
+    "request",
+    "mediaType"
+  ]);
+  const urlVariableNames = dist_bundle_extractUrlVariableNames(url);
+  url = dist_bundle_parseUrl(url).expand(parameters);
+  if (!/^http/.test(url)) {
+    url = options.baseUrl + url;
+  }
+  const omittedParameters = Object.keys(options).filter((option) => urlVariableNames.includes(option)).concat("baseUrl");
+  const remainingParameters = dist_bundle_omit(parameters, omittedParameters);
+  const isBinaryRequest = /application\/octet-stream/i.test(headers.accept);
+  if (!isBinaryRequest) {
+    if (options.mediaType.format) {
+      headers.accept = headers.accept.split(/,/).map(
+        (format) => format.replace(
+          /application\/vnd(\.\w+)(\.v3)?(\.\w+)?(\+json)?$/,
+          `application/vnd$1$2.${options.mediaType.format}`
+        )
+      ).join(",");
+    }
+    if (url.endsWith("/graphql")) {
+      if (options.mediaType.previews?.length) {
+        const previewsFromAcceptHeader = headers.accept.match(/(?<![\w-])[\w-]+(?=-preview)/g) || [];
+        headers.accept = previewsFromAcceptHeader.concat(options.mediaType.previews).map((preview) => {
+          const format = options.mediaType.format ? `.${options.mediaType.format}` : "+json";
+          return `application/vnd.github.${preview}-preview${format}`;
+        }).join(",");
+      }
+    }
+  }
+  if (["GET", "HEAD"].includes(method)) {
+    url = dist_bundle_addQueryParameters(url, remainingParameters);
+  } else {
+    if ("data" in remainingParameters) {
+      body = remainingParameters.data;
+    } else {
+      if (Object.keys(remainingParameters).length) {
+        body = remainingParameters;
+      }
+    }
+  }
+  if (!headers["content-type"] && typeof body !== "undefined") {
+    headers["content-type"] = "application/json; charset=utf-8";
+  }
+  if (["PATCH", "PUT"].includes(method) && typeof body === "undefined") {
+    body = "";
+  }
+  return Object.assign(
+    { method, url, headers },
+    typeof body !== "undefined" ? { body } : null,
+    options.request ? { request: options.request } : null
+  );
+}
+
+// pkg/dist-src/endpoint-with-defaults.js
+function dist_bundle_endpointWithDefaults(defaults, route, options) {
+  return dist_bundle_parse(dist_bundle_merge(defaults, route, options));
+}
+
+// pkg/dist-src/with-defaults.js
+function endpoint_dist_bundle_withDefaults(oldDefaults, newDefaults) {
+  const DEFAULTS2 = dist_bundle_merge(oldDefaults, newDefaults);
+  const endpoint2 = dist_bundle_endpointWithDefaults.bind(null, DEFAULTS2);
+  return Object.assign(endpoint2, {
+    DEFAULTS: DEFAULTS2,
+    defaults: endpoint_dist_bundle_withDefaults.bind(null, DEFAULTS2),
+    merge: dist_bundle_merge.bind(null, DEFAULTS2),
+    parse: dist_bundle_parse
+  });
+}
+
+// pkg/dist-src/index.js
+var dist_bundle_endpoint = endpoint_dist_bundle_withDefaults(null, dist_bundle_DEFAULTS);
+
+
+;// CONCATENATED MODULE: ./node_modules/@octokit/app/node_modules/@octokit/request-error/dist-src/index.js
+class dist_src_RequestError extends Error {
+  name;
+  /**
+   * http status code
+   */
+  status;
+  /**
+   * Request options that lead to the error.
+   */
+  request;
+  /**
+   * Response object if a response was received
+   */
+  response;
+  constructor(message, statusCode, options) {
+    super(message, { cause: options.cause });
+    this.name = "HttpError";
+    this.status = Number.parseInt(statusCode);
+    if (Number.isNaN(this.status)) {
+      this.status = 0;
+    }
+    /* v8 ignore else -- @preserve -- Bug with vitest coverage where it sees an else branch that doesn't exist */
+    if ("response" in options) {
+      this.response = options.response;
+    }
+    const requestCopy = Object.assign({}, options.request);
+    if (options.request.headers.authorization) {
+      requestCopy.headers = Object.assign({}, options.request.headers, {
+        authorization: options.request.headers.authorization.replace(
+          /(?<! ) .*$/,
+          " [REDACTED]"
+        )
+      });
+    }
+    requestCopy.url = requestCopy.url.replace(/\bclient_secret=\w+/g, "client_secret=[REDACTED]").replace(/\baccess_token=\w+/g, "access_token=[REDACTED]");
+    this.request = requestCopy;
+  }
+}
+
+
+;// CONCATENATED MODULE: ./node_modules/@octokit/app/node_modules/@octokit/request/dist-bundle/index.js
+// pkg/dist-src/index.js
+
+
+// pkg/dist-src/defaults.js
+
+
+// pkg/dist-src/version.js
+var request_dist_bundle_VERSION = "10.0.7";
+
+// pkg/dist-src/defaults.js
+var dist_bundle_defaults_default = {
+  headers: {
+    "user-agent": `octokit-request.js/${request_dist_bundle_VERSION} ${universal_user_agent_getUserAgent()}`
+  }
+};
+
+// pkg/dist-src/fetch-wrapper.js
+
+
+// pkg/dist-src/is-plain-object.js
+function request_dist_bundle_isPlainObject(value) {
+  if (typeof value !== "object" || value === null) return false;
+  if (Object.prototype.toString.call(value) !== "[object Object]") return false;
+  const proto = Object.getPrototypeOf(value);
+  if (proto === null) return true;
+  const Ctor = Object.prototype.hasOwnProperty.call(proto, "constructor") && proto.constructor;
+  return typeof Ctor === "function" && Ctor instanceof Ctor && Function.prototype.call(Ctor) === Function.prototype.call(value);
+}
+
+// pkg/dist-src/fetch-wrapper.js
+
+var request_dist_bundle_noop = () => "";
+async function dist_bundle_fetchWrapper(requestOptions) {
+  const fetch = requestOptions.request?.fetch || globalThis.fetch;
+  if (!fetch) {
+    throw new Error(
+      "fetch is not set. Please pass a fetch implementation as new Octokit({ request: { fetch }}). Learn more at https://github.com/octokit/octokit.js/#fetch-missing"
+    );
+  }
+  const log = requestOptions.request?.log || console;
+  const parseSuccessResponseBody = requestOptions.request?.parseSuccessResponseBody !== false;
+  const body = request_dist_bundle_isPlainObject(requestOptions.body) || Array.isArray(requestOptions.body) ? JSON.stringify(requestOptions.body) : requestOptions.body;
+  const requestHeaders = Object.fromEntries(
+    Object.entries(requestOptions.headers).map(([name, value]) => [
+      name,
+      String(value)
+    ])
+  );
+  let fetchResponse;
+  try {
+    fetchResponse = await fetch(requestOptions.url, {
+      method: requestOptions.method,
+      body,
+      redirect: requestOptions.request?.redirect,
+      headers: requestHeaders,
+      signal: requestOptions.request?.signal,
+      // duplex must be set if request.body is ReadableStream or Async Iterables.
+      // See https://fetch.spec.whatwg.org/#dom-requestinit-duplex.
+      ...requestOptions.body && { duplex: "half" }
+    });
+  } catch (error) {
+    let message = "Unknown Error";
+    if (error instanceof Error) {
+      if (error.name === "AbortError") {
+        error.status = 500;
+        throw error;
+      }
+      message = error.message;
+      if (error.name === "TypeError" && "cause" in error) {
+        if (error.cause instanceof Error) {
+          message = error.cause.message;
+        } else if (typeof error.cause === "string") {
+          message = error.cause;
+        }
+      }
+    }
+    const requestError = new dist_src_RequestError(message, 500, {
+      request: requestOptions
+    });
+    requestError.cause = error;
+    throw requestError;
+  }
+  const status = fetchResponse.status;
+  const url = fetchResponse.url;
+  const responseHeaders = {};
+  for (const [key, value] of fetchResponse.headers) {
+    responseHeaders[key] = value;
+  }
+  const octokitResponse = {
+    url,
+    status,
+    headers: responseHeaders,
+    data: ""
+  };
+  if ("deprecation" in responseHeaders) {
+    const matches = responseHeaders.link && responseHeaders.link.match(/<([^<>]+)>; rel="deprecation"/);
+    const deprecationLink = matches && matches.pop();
+    log.warn(
+      `[@octokit/request] "${requestOptions.method} ${requestOptions.url}" is deprecated. It is scheduled to be removed on ${responseHeaders.sunset}${deprecationLink ? `. See ${deprecationLink}` : ""}`
+    );
+  }
+  if (status === 204 || status === 205) {
+    return octokitResponse;
+  }
+  if (requestOptions.method === "HEAD") {
+    if (status < 400) {
+      return octokitResponse;
+    }
+    throw new dist_src_RequestError(fetchResponse.statusText, status, {
+      response: octokitResponse,
+      request: requestOptions
+    });
+  }
+  if (status === 304) {
+    octokitResponse.data = await dist_bundle_getResponseData(fetchResponse);
+    throw new dist_src_RequestError("Not modified", status, {
+      response: octokitResponse,
+      request: requestOptions
+    });
+  }
+  if (status >= 400) {
+    octokitResponse.data = await dist_bundle_getResponseData(fetchResponse);
+    throw new dist_src_RequestError(dist_bundle_toErrorMessage(octokitResponse.data), status, {
+      response: octokitResponse,
+      request: requestOptions
+    });
+  }
+  octokitResponse.data = parseSuccessResponseBody ? await dist_bundle_getResponseData(fetchResponse) : fetchResponse.body;
+  return octokitResponse;
+}
+async function dist_bundle_getResponseData(response) {
+  const contentType = response.headers.get("content-type");
+  if (!contentType) {
+    return response.text().catch(request_dist_bundle_noop);
+  }
+  const mimetype = (0,fast_content_type_parse/* safeParse */.xL)(contentType);
+  if (dist_bundle_isJSONResponse(mimetype)) {
+    let text = "";
+    try {
+      text = await response.text();
+      return JSON.parse(text);
+    } catch (err) {
+      return text;
+    }
+  } else if (mimetype.type.startsWith("text/") || mimetype.parameters.charset?.toLowerCase() === "utf-8") {
+    return response.text().catch(request_dist_bundle_noop);
+  } else {
+    return response.arrayBuffer().catch(
+      /* v8 ignore next -- @preserve */
+      () => new ArrayBuffer(0)
+    );
+  }
+}
+function dist_bundle_isJSONResponse(mimetype) {
+  return mimetype.type === "application/json" || mimetype.type === "application/scim+json";
+}
+function dist_bundle_toErrorMessage(data) {
+  if (typeof data === "string") {
+    return data;
+  }
+  if (data instanceof ArrayBuffer) {
+    return "Unknown error";
+  }
+  if ("message" in data) {
+    const suffix = "documentation_url" in data ? ` - ${data.documentation_url}` : "";
+    return Array.isArray(data.errors) ? `${data.message}: ${data.errors.map((v) => JSON.stringify(v)).join(", ")}${suffix}` : `${data.message}${suffix}`;
+  }
+  return `Unknown error: ${JSON.stringify(data)}`;
+}
+
+// pkg/dist-src/with-defaults.js
+function request_dist_bundle_withDefaults(oldEndpoint, newDefaults) {
+  const endpoint2 = oldEndpoint.defaults(newDefaults);
+  const newApi = function(route, parameters) {
+    const endpointOptions = endpoint2.merge(route, parameters);
+    if (!endpointOptions.request || !endpointOptions.request.hook) {
+      return dist_bundle_fetchWrapper(endpoint2.parse(endpointOptions));
+    }
+    const request2 = (route2, parameters2) => {
+      return dist_bundle_fetchWrapper(
+        endpoint2.parse(endpoint2.merge(route2, parameters2))
+      );
+    };
+    Object.assign(request2, {
+      endpoint: endpoint2,
+      defaults: request_dist_bundle_withDefaults.bind(null, endpoint2)
+    });
+    return endpointOptions.request.hook(request2, endpointOptions);
+  };
+  return Object.assign(newApi, {
+    endpoint: endpoint2,
+    defaults: request_dist_bundle_withDefaults.bind(null, endpoint2)
+  });
+}
+
+// pkg/dist-src/index.js
+var dist_bundle_request = request_dist_bundle_withDefaults(dist_bundle_endpoint, dist_bundle_defaults_default);
+
+/* v8 ignore next -- @preserve */
+/* v8 ignore else -- @preserve */
+
 ;// CONCATENATED MODULE: ./node_modules/@octokit/app/node_modules/@octokit/graphql/dist-bundle/index.js
 // pkg/dist-src/index.js
 
@@ -44229,7 +44749,7 @@ function _octokit_graphql_dist_bundle_withDefaults(request2, newDefaults) {
 // pkg/dist-src/index.js
 var dist_bundle_graphql2 = _octokit_graphql_dist_bundle_withDefaults(dist_bundle_request, {
   headers: {
-    "user-agent": `octokit-graphql.js/${_octokit_graphql_dist_bundle_VERSION} ${getUserAgent()}`
+    "user-agent": `octokit-graphql.js/${_octokit_graphql_dist_bundle_VERSION} ${universal_user_agent_getUserAgent()}`
   },
   method: "POST",
   url: "/graphql"
@@ -44298,7 +44818,7 @@ var dist_bundle_createTokenAuth = function createTokenAuth2(token) {
 
 
 ;// CONCATENATED MODULE: ./node_modules/@octokit/app/node_modules/@octokit/core/dist-src/version.js
-const core_dist_src_version_VERSION = "6.1.5";
+const core_dist_src_version_VERSION = "7.0.6";
 
 
 ;// CONCATENATED MODULE: ./node_modules/@octokit/app/node_modules/@octokit/core/dist-src/index.js
@@ -44308,11 +44828,26 @@ const core_dist_src_version_VERSION = "6.1.5";
 
 
 
-const dist_src_noop = () => {
+const core_dist_src_noop = () => {
 };
 const dist_src_consoleWarn = console.warn.bind(console);
 const dist_src_consoleError = console.error.bind(console);
-const dist_src_userAgentTrail = `octokit-core.js/${core_dist_src_version_VERSION} ${getUserAgent()}`;
+function dist_src_createLogger(logger = {}) {
+  if (typeof logger.debug !== "function") {
+    logger.debug = core_dist_src_noop;
+  }
+  if (typeof logger.info !== "function") {
+    logger.info = core_dist_src_noop;
+  }
+  if (typeof logger.warn !== "function") {
+    logger.warn = dist_src_consoleWarn;
+  }
+  if (typeof logger.error !== "function") {
+    logger.error = dist_src_consoleError;
+  }
+  return logger;
+}
+const dist_src_userAgentTrail = `octokit-core.js/${core_dist_src_version_VERSION} ${universal_user_agent_getUserAgent()}`;
 class dist_src_Octokit {
   static VERSION = core_dist_src_version_VERSION;
   static defaults(defaults) {
@@ -44379,15 +44914,7 @@ class dist_src_Octokit {
     }
     this.request = dist_bundle_request.defaults(requestDefaults);
     this.graphql = dist_bundle_withCustomRequest(this.request).defaults(requestDefaults);
-    this.log = Object.assign(
-      {
-        debug: dist_src_noop,
-        info: dist_src_noop,
-        warn: dist_src_consoleWarn,
-        error: dist_src_consoleError
-      },
-      options.log
-    );
+    this.log = dist_src_createLogger(options.log);
     this.hook = hook;
     if (!options.authStrategy) {
       if (!options.auth) {
@@ -44435,6 +44962,2422 @@ class dist_src_Octokit {
 }
 
 
+;// CONCATENATED MODULE: ./node_modules/@octokit/auth-app/node_modules/universal-user-agent/index.js
+function node_modules_universal_user_agent_getUserAgent() {
+  if (typeof navigator === "object" && "userAgent" in navigator) {
+    return navigator.userAgent;
+  }
+
+  if (typeof process === "object" && process.version !== undefined) {
+    return `Node.js/${process.version.substr(1)} (${process.platform}; ${
+      process.arch
+    })`;
+  }
+
+  return "<environment undetectable>";
+}
+
+;// CONCATENATED MODULE: ./node_modules/@octokit/auth-app/node_modules/@octokit/endpoint/dist-bundle/index.js
+// pkg/dist-src/defaults.js
+
+
+// pkg/dist-src/version.js
+var _octokit_endpoint_dist_bundle_VERSION = "0.0.0-development";
+
+// pkg/dist-src/defaults.js
+var endpoint_dist_bundle_userAgent = `octokit-endpoint.js/${_octokit_endpoint_dist_bundle_VERSION} ${node_modules_universal_user_agent_getUserAgent()}`;
+var endpoint_dist_bundle_DEFAULTS = {
+  method: "GET",
+  baseUrl: "https://api.github.com",
+  headers: {
+    accept: "application/vnd.github.v3+json",
+    "user-agent": endpoint_dist_bundle_userAgent
+  },
+  mediaType: {
+    format: ""
+  }
+};
+
+// pkg/dist-src/util/lowercase-keys.js
+function endpoint_dist_bundle_lowercaseKeys(object) {
+  if (!object) {
+    return {};
+  }
+  return Object.keys(object).reduce((newObj, key) => {
+    newObj[key.toLowerCase()] = object[key];
+    return newObj;
+  }, {});
+}
+
+// pkg/dist-src/util/is-plain-object.js
+function _octokit_endpoint_dist_bundle_isPlainObject(value) {
+  if (typeof value !== "object" || value === null) return false;
+  if (Object.prototype.toString.call(value) !== "[object Object]") return false;
+  const proto = Object.getPrototypeOf(value);
+  if (proto === null) return true;
+  const Ctor = Object.prototype.hasOwnProperty.call(proto, "constructor") && proto.constructor;
+  return typeof Ctor === "function" && Ctor instanceof Ctor && Function.prototype.call(Ctor) === Function.prototype.call(value);
+}
+
+// pkg/dist-src/util/merge-deep.js
+function endpoint_dist_bundle_mergeDeep(defaults, options) {
+  const result = Object.assign({}, defaults);
+  Object.keys(options).forEach((key) => {
+    if (_octokit_endpoint_dist_bundle_isPlainObject(options[key])) {
+      if (!(key in defaults)) Object.assign(result, { [key]: options[key] });
+      else result[key] = endpoint_dist_bundle_mergeDeep(defaults[key], options[key]);
+    } else {
+      Object.assign(result, { [key]: options[key] });
+    }
+  });
+  return result;
+}
+
+// pkg/dist-src/util/remove-undefined-properties.js
+function endpoint_dist_bundle_removeUndefinedProperties(obj) {
+  for (const key in obj) {
+    if (obj[key] === void 0) {
+      delete obj[key];
+    }
+  }
+  return obj;
+}
+
+// pkg/dist-src/merge.js
+function endpoint_dist_bundle_merge(defaults, route, options) {
+  if (typeof route === "string") {
+    let [method, url] = route.split(" ");
+    options = Object.assign(url ? { method, url } : { url: method }, options);
+  } else {
+    options = Object.assign({}, route);
+  }
+  options.headers = endpoint_dist_bundle_lowercaseKeys(options.headers);
+  endpoint_dist_bundle_removeUndefinedProperties(options);
+  endpoint_dist_bundle_removeUndefinedProperties(options.headers);
+  const mergedOptions = endpoint_dist_bundle_mergeDeep(defaults || {}, options);
+  if (options.url === "/graphql") {
+    if (defaults && defaults.mediaType.previews?.length) {
+      mergedOptions.mediaType.previews = defaults.mediaType.previews.filter(
+        (preview) => !mergedOptions.mediaType.previews.includes(preview)
+      ).concat(mergedOptions.mediaType.previews);
+    }
+    mergedOptions.mediaType.previews = (mergedOptions.mediaType.previews || []).map((preview) => preview.replace(/-preview/, ""));
+  }
+  return mergedOptions;
+}
+
+// pkg/dist-src/util/add-query-parameters.js
+function endpoint_dist_bundle_addQueryParameters(url, parameters) {
+  const separator = /\?/.test(url) ? "&" : "?";
+  const names = Object.keys(parameters);
+  if (names.length === 0) {
+    return url;
+  }
+  return url + separator + names.map((name) => {
+    if (name === "q") {
+      return "q=" + parameters.q.split("+").map(encodeURIComponent).join("+");
+    }
+    return `${name}=${encodeURIComponent(parameters[name])}`;
+  }).join("&");
+}
+
+// pkg/dist-src/util/extract-url-variable-names.js
+var endpoint_dist_bundle_urlVariableRegex = /\{[^{}}]+\}/g;
+function endpoint_dist_bundle_removeNonChars(variableName) {
+  return variableName.replace(/(?:^\W+)|(?:(?<!\W)\W+$)/g, "").split(/,/);
+}
+function endpoint_dist_bundle_extractUrlVariableNames(url) {
+  const matches = url.match(endpoint_dist_bundle_urlVariableRegex);
+  if (!matches) {
+    return [];
+  }
+  return matches.map(endpoint_dist_bundle_removeNonChars).reduce((a, b) => a.concat(b), []);
+}
+
+// pkg/dist-src/util/omit.js
+function endpoint_dist_bundle_omit(object, keysToOmit) {
+  const result = { __proto__: null };
+  for (const key of Object.keys(object)) {
+    if (keysToOmit.indexOf(key) === -1) {
+      result[key] = object[key];
+    }
+  }
+  return result;
+}
+
+// pkg/dist-src/util/url-template.js
+function endpoint_dist_bundle_encodeReserved(str) {
+  return str.split(/(%[0-9A-Fa-f]{2})/g).map(function(part) {
+    if (!/%[0-9A-Fa-f]/.test(part)) {
+      part = encodeURI(part).replace(/%5B/g, "[").replace(/%5D/g, "]");
+    }
+    return part;
+  }).join("");
+}
+function endpoint_dist_bundle_encodeUnreserved(str) {
+  return encodeURIComponent(str).replace(/[!'()*]/g, function(c) {
+    return "%" + c.charCodeAt(0).toString(16).toUpperCase();
+  });
+}
+function endpoint_dist_bundle_encodeValue(operator, value, key) {
+  value = operator === "+" || operator === "#" ? endpoint_dist_bundle_encodeReserved(value) : endpoint_dist_bundle_encodeUnreserved(value);
+  if (key) {
+    return endpoint_dist_bundle_encodeUnreserved(key) + "=" + value;
+  } else {
+    return value;
+  }
+}
+function endpoint_dist_bundle_isDefined(value) {
+  return value !== void 0 && value !== null;
+}
+function endpoint_dist_bundle_isKeyOperator(operator) {
+  return operator === ";" || operator === "&" || operator === "?";
+}
+function endpoint_dist_bundle_getValues(context, operator, key, modifier) {
+  var value = context[key], result = [];
+  if (endpoint_dist_bundle_isDefined(value) && value !== "") {
+    if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+      value = value.toString();
+      if (modifier && modifier !== "*") {
+        value = value.substring(0, parseInt(modifier, 10));
+      }
+      result.push(
+        endpoint_dist_bundle_encodeValue(operator, value, endpoint_dist_bundle_isKeyOperator(operator) ? key : "")
+      );
+    } else {
+      if (modifier === "*") {
+        if (Array.isArray(value)) {
+          value.filter(endpoint_dist_bundle_isDefined).forEach(function(value2) {
+            result.push(
+              endpoint_dist_bundle_encodeValue(operator, value2, endpoint_dist_bundle_isKeyOperator(operator) ? key : "")
+            );
+          });
+        } else {
+          Object.keys(value).forEach(function(k) {
+            if (endpoint_dist_bundle_isDefined(value[k])) {
+              result.push(endpoint_dist_bundle_encodeValue(operator, value[k], k));
+            }
+          });
+        }
+      } else {
+        const tmp = [];
+        if (Array.isArray(value)) {
+          value.filter(endpoint_dist_bundle_isDefined).forEach(function(value2) {
+            tmp.push(endpoint_dist_bundle_encodeValue(operator, value2));
+          });
+        } else {
+          Object.keys(value).forEach(function(k) {
+            if (endpoint_dist_bundle_isDefined(value[k])) {
+              tmp.push(endpoint_dist_bundle_encodeUnreserved(k));
+              tmp.push(endpoint_dist_bundle_encodeValue(operator, value[k].toString()));
+            }
+          });
+        }
+        if (endpoint_dist_bundle_isKeyOperator(operator)) {
+          result.push(endpoint_dist_bundle_encodeUnreserved(key) + "=" + tmp.join(","));
+        } else if (tmp.length !== 0) {
+          result.push(tmp.join(","));
+        }
+      }
+    }
+  } else {
+    if (operator === ";") {
+      if (endpoint_dist_bundle_isDefined(value)) {
+        result.push(endpoint_dist_bundle_encodeUnreserved(key));
+      }
+    } else if (value === "" && (operator === "&" || operator === "?")) {
+      result.push(endpoint_dist_bundle_encodeUnreserved(key) + "=");
+    } else if (value === "") {
+      result.push("");
+    }
+  }
+  return result;
+}
+function endpoint_dist_bundle_parseUrl(template) {
+  return {
+    expand: endpoint_dist_bundle_expand.bind(null, template)
+  };
+}
+function endpoint_dist_bundle_expand(template, context) {
+  var operators = ["+", "#", ".", "/", ";", "?", "&"];
+  template = template.replace(
+    /\{([^\{\}]+)\}|([^\{\}]+)/g,
+    function(_, expression, literal) {
+      if (expression) {
+        let operator = "";
+        const values = [];
+        if (operators.indexOf(expression.charAt(0)) !== -1) {
+          operator = expression.charAt(0);
+          expression = expression.substr(1);
+        }
+        expression.split(/,/g).forEach(function(variable) {
+          var tmp = /([^:\*]*)(?::(\d+)|(\*))?/.exec(variable);
+          values.push(endpoint_dist_bundle_getValues(context, operator, tmp[1], tmp[2] || tmp[3]));
+        });
+        if (operator && operator !== "+") {
+          var separator = ",";
+          if (operator === "?") {
+            separator = "&";
+          } else if (operator !== "#") {
+            separator = operator;
+          }
+          return (values.length !== 0 ? operator : "") + values.join(separator);
+        } else {
+          return values.join(",");
+        }
+      } else {
+        return endpoint_dist_bundle_encodeReserved(literal);
+      }
+    }
+  );
+  if (template === "/") {
+    return template;
+  } else {
+    return template.replace(/\/$/, "");
+  }
+}
+
+// pkg/dist-src/parse.js
+function endpoint_dist_bundle_parse(options) {
+  let method = options.method.toUpperCase();
+  let url = (options.url || "/").replace(/:([a-z]\w+)/g, "{$1}");
+  let headers = Object.assign({}, options.headers);
+  let body;
+  let parameters = endpoint_dist_bundle_omit(options, [
+    "method",
+    "baseUrl",
+    "url",
+    "headers",
+    "request",
+    "mediaType"
+  ]);
+  const urlVariableNames = endpoint_dist_bundle_extractUrlVariableNames(url);
+  url = endpoint_dist_bundle_parseUrl(url).expand(parameters);
+  if (!/^http/.test(url)) {
+    url = options.baseUrl + url;
+  }
+  const omittedParameters = Object.keys(options).filter((option) => urlVariableNames.includes(option)).concat("baseUrl");
+  const remainingParameters = endpoint_dist_bundle_omit(parameters, omittedParameters);
+  const isBinaryRequest = /application\/octet-stream/i.test(headers.accept);
+  if (!isBinaryRequest) {
+    if (options.mediaType.format) {
+      headers.accept = headers.accept.split(/,/).map(
+        (format) => format.replace(
+          /application\/vnd(\.\w+)(\.v3)?(\.\w+)?(\+json)?$/,
+          `application/vnd$1$2.${options.mediaType.format}`
+        )
+      ).join(",");
+    }
+    if (url.endsWith("/graphql")) {
+      if (options.mediaType.previews?.length) {
+        const previewsFromAcceptHeader = headers.accept.match(/(?<![\w-])[\w-]+(?=-preview)/g) || [];
+        headers.accept = previewsFromAcceptHeader.concat(options.mediaType.previews).map((preview) => {
+          const format = options.mediaType.format ? `.${options.mediaType.format}` : "+json";
+          return `application/vnd.github.${preview}-preview${format}`;
+        }).join(",");
+      }
+    }
+  }
+  if (["GET", "HEAD"].includes(method)) {
+    url = endpoint_dist_bundle_addQueryParameters(url, remainingParameters);
+  } else {
+    if ("data" in remainingParameters) {
+      body = remainingParameters.data;
+    } else {
+      if (Object.keys(remainingParameters).length) {
+        body = remainingParameters;
+      }
+    }
+  }
+  if (!headers["content-type"] && typeof body !== "undefined") {
+    headers["content-type"] = "application/json; charset=utf-8";
+  }
+  if (["PATCH", "PUT"].includes(method) && typeof body === "undefined") {
+    body = "";
+  }
+  return Object.assign(
+    { method, url, headers },
+    typeof body !== "undefined" ? { body } : null,
+    options.request ? { request: options.request } : null
+  );
+}
+
+// pkg/dist-src/endpoint-with-defaults.js
+function endpoint_dist_bundle_endpointWithDefaults(defaults, route, options) {
+  return endpoint_dist_bundle_parse(endpoint_dist_bundle_merge(defaults, route, options));
+}
+
+// pkg/dist-src/with-defaults.js
+function _octokit_endpoint_dist_bundle_withDefaults(oldDefaults, newDefaults) {
+  const DEFAULTS2 = endpoint_dist_bundle_merge(oldDefaults, newDefaults);
+  const endpoint2 = endpoint_dist_bundle_endpointWithDefaults.bind(null, DEFAULTS2);
+  return Object.assign(endpoint2, {
+    DEFAULTS: DEFAULTS2,
+    defaults: _octokit_endpoint_dist_bundle_withDefaults.bind(null, DEFAULTS2),
+    merge: endpoint_dist_bundle_merge.bind(null, DEFAULTS2),
+    parse: endpoint_dist_bundle_parse
+  });
+}
+
+// pkg/dist-src/index.js
+var endpoint_dist_bundle_endpoint = _octokit_endpoint_dist_bundle_withDefaults(null, endpoint_dist_bundle_DEFAULTS);
+
+
+;// CONCATENATED MODULE: ./node_modules/@octokit/auth-app/node_modules/@octokit/request-error/dist-src/index.js
+class request_error_dist_src_RequestError extends Error {
+  name;
+  /**
+   * http status code
+   */
+  status;
+  /**
+   * Request options that lead to the error.
+   */
+  request;
+  /**
+   * Response object if a response was received
+   */
+  response;
+  constructor(message, statusCode, options) {
+    super(message, { cause: options.cause });
+    this.name = "HttpError";
+    this.status = Number.parseInt(statusCode);
+    if (Number.isNaN(this.status)) {
+      this.status = 0;
+    }
+    /* v8 ignore else -- @preserve -- Bug with vitest coverage where it sees an else branch that doesn't exist */
+    if ("response" in options) {
+      this.response = options.response;
+    }
+    const requestCopy = Object.assign({}, options.request);
+    if (options.request.headers.authorization) {
+      requestCopy.headers = Object.assign({}, options.request.headers, {
+        authorization: options.request.headers.authorization.replace(
+          /(?<! ) .*$/,
+          " [REDACTED]"
+        )
+      });
+    }
+    requestCopy.url = requestCopy.url.replace(/\bclient_secret=\w+/g, "client_secret=[REDACTED]").replace(/\baccess_token=\w+/g, "access_token=[REDACTED]");
+    this.request = requestCopy;
+  }
+}
+
+
+;// CONCATENATED MODULE: ./node_modules/@octokit/auth-app/node_modules/@octokit/request/dist-bundle/index.js
+// pkg/dist-src/index.js
+
+
+// pkg/dist-src/defaults.js
+
+
+// pkg/dist-src/version.js
+var _octokit_request_dist_bundle_VERSION = "10.0.7";
+
+// pkg/dist-src/defaults.js
+var request_dist_bundle_defaults_default = {
+  headers: {
+    "user-agent": `octokit-request.js/${_octokit_request_dist_bundle_VERSION} ${node_modules_universal_user_agent_getUserAgent()}`
+  }
+};
+
+// pkg/dist-src/fetch-wrapper.js
+
+
+// pkg/dist-src/is-plain-object.js
+function _octokit_request_dist_bundle_isPlainObject(value) {
+  if (typeof value !== "object" || value === null) return false;
+  if (Object.prototype.toString.call(value) !== "[object Object]") return false;
+  const proto = Object.getPrototypeOf(value);
+  if (proto === null) return true;
+  const Ctor = Object.prototype.hasOwnProperty.call(proto, "constructor") && proto.constructor;
+  return typeof Ctor === "function" && Ctor instanceof Ctor && Function.prototype.call(Ctor) === Function.prototype.call(value);
+}
+
+// pkg/dist-src/fetch-wrapper.js
+
+var _octokit_request_dist_bundle_noop = () => "";
+async function request_dist_bundle_fetchWrapper(requestOptions) {
+  const fetch = requestOptions.request?.fetch || globalThis.fetch;
+  if (!fetch) {
+    throw new Error(
+      "fetch is not set. Please pass a fetch implementation as new Octokit({ request: { fetch }}). Learn more at https://github.com/octokit/octokit.js/#fetch-missing"
+    );
+  }
+  const log = requestOptions.request?.log || console;
+  const parseSuccessResponseBody = requestOptions.request?.parseSuccessResponseBody !== false;
+  const body = _octokit_request_dist_bundle_isPlainObject(requestOptions.body) || Array.isArray(requestOptions.body) ? JSON.stringify(requestOptions.body) : requestOptions.body;
+  const requestHeaders = Object.fromEntries(
+    Object.entries(requestOptions.headers).map(([name, value]) => [
+      name,
+      String(value)
+    ])
+  );
+  let fetchResponse;
+  try {
+    fetchResponse = await fetch(requestOptions.url, {
+      method: requestOptions.method,
+      body,
+      redirect: requestOptions.request?.redirect,
+      headers: requestHeaders,
+      signal: requestOptions.request?.signal,
+      // duplex must be set if request.body is ReadableStream or Async Iterables.
+      // See https://fetch.spec.whatwg.org/#dom-requestinit-duplex.
+      ...requestOptions.body && { duplex: "half" }
+    });
+  } catch (error) {
+    let message = "Unknown Error";
+    if (error instanceof Error) {
+      if (error.name === "AbortError") {
+        error.status = 500;
+        throw error;
+      }
+      message = error.message;
+      if (error.name === "TypeError" && "cause" in error) {
+        if (error.cause instanceof Error) {
+          message = error.cause.message;
+        } else if (typeof error.cause === "string") {
+          message = error.cause;
+        }
+      }
+    }
+    const requestError = new request_error_dist_src_RequestError(message, 500, {
+      request: requestOptions
+    });
+    requestError.cause = error;
+    throw requestError;
+  }
+  const status = fetchResponse.status;
+  const url = fetchResponse.url;
+  const responseHeaders = {};
+  for (const [key, value] of fetchResponse.headers) {
+    responseHeaders[key] = value;
+  }
+  const octokitResponse = {
+    url,
+    status,
+    headers: responseHeaders,
+    data: ""
+  };
+  if ("deprecation" in responseHeaders) {
+    const matches = responseHeaders.link && responseHeaders.link.match(/<([^<>]+)>; rel="deprecation"/);
+    const deprecationLink = matches && matches.pop();
+    log.warn(
+      `[@octokit/request] "${requestOptions.method} ${requestOptions.url}" is deprecated. It is scheduled to be removed on ${responseHeaders.sunset}${deprecationLink ? `. See ${deprecationLink}` : ""}`
+    );
+  }
+  if (status === 204 || status === 205) {
+    return octokitResponse;
+  }
+  if (requestOptions.method === "HEAD") {
+    if (status < 400) {
+      return octokitResponse;
+    }
+    throw new request_error_dist_src_RequestError(fetchResponse.statusText, status, {
+      response: octokitResponse,
+      request: requestOptions
+    });
+  }
+  if (status === 304) {
+    octokitResponse.data = await request_dist_bundle_getResponseData(fetchResponse);
+    throw new request_error_dist_src_RequestError("Not modified", status, {
+      response: octokitResponse,
+      request: requestOptions
+    });
+  }
+  if (status >= 400) {
+    octokitResponse.data = await request_dist_bundle_getResponseData(fetchResponse);
+    throw new request_error_dist_src_RequestError(request_dist_bundle_toErrorMessage(octokitResponse.data), status, {
+      response: octokitResponse,
+      request: requestOptions
+    });
+  }
+  octokitResponse.data = parseSuccessResponseBody ? await request_dist_bundle_getResponseData(fetchResponse) : fetchResponse.body;
+  return octokitResponse;
+}
+async function request_dist_bundle_getResponseData(response) {
+  const contentType = response.headers.get("content-type");
+  if (!contentType) {
+    return response.text().catch(_octokit_request_dist_bundle_noop);
+  }
+  const mimetype = (0,fast_content_type_parse/* safeParse */.xL)(contentType);
+  if (request_dist_bundle_isJSONResponse(mimetype)) {
+    let text = "";
+    try {
+      text = await response.text();
+      return JSON.parse(text);
+    } catch (err) {
+      return text;
+    }
+  } else if (mimetype.type.startsWith("text/") || mimetype.parameters.charset?.toLowerCase() === "utf-8") {
+    return response.text().catch(_octokit_request_dist_bundle_noop);
+  } else {
+    return response.arrayBuffer().catch(
+      /* v8 ignore next -- @preserve */
+      () => new ArrayBuffer(0)
+    );
+  }
+}
+function request_dist_bundle_isJSONResponse(mimetype) {
+  return mimetype.type === "application/json" || mimetype.type === "application/scim+json";
+}
+function request_dist_bundle_toErrorMessage(data) {
+  if (typeof data === "string") {
+    return data;
+  }
+  if (data instanceof ArrayBuffer) {
+    return "Unknown error";
+  }
+  if ("message" in data) {
+    const suffix = "documentation_url" in data ? ` - ${data.documentation_url}` : "";
+    return Array.isArray(data.errors) ? `${data.message}: ${data.errors.map((v) => JSON.stringify(v)).join(", ")}${suffix}` : `${data.message}${suffix}`;
+  }
+  return `Unknown error: ${JSON.stringify(data)}`;
+}
+
+// pkg/dist-src/with-defaults.js
+function _octokit_request_dist_bundle_withDefaults(oldEndpoint, newDefaults) {
+  const endpoint2 = oldEndpoint.defaults(newDefaults);
+  const newApi = function(route, parameters) {
+    const endpointOptions = endpoint2.merge(route, parameters);
+    if (!endpointOptions.request || !endpointOptions.request.hook) {
+      return request_dist_bundle_fetchWrapper(endpoint2.parse(endpointOptions));
+    }
+    const request2 = (route2, parameters2) => {
+      return request_dist_bundle_fetchWrapper(
+        endpoint2.parse(endpoint2.merge(route2, parameters2))
+      );
+    };
+    Object.assign(request2, {
+      endpoint: endpoint2,
+      defaults: _octokit_request_dist_bundle_withDefaults.bind(null, endpoint2)
+    });
+    return endpointOptions.request.hook(request2, endpointOptions);
+  };
+  return Object.assign(newApi, {
+    endpoint: endpoint2,
+    defaults: _octokit_request_dist_bundle_withDefaults.bind(null, endpoint2)
+  });
+}
+
+// pkg/dist-src/index.js
+var request_dist_bundle_request = _octokit_request_dist_bundle_withDefaults(endpoint_dist_bundle_endpoint, request_dist_bundle_defaults_default);
+
+/* v8 ignore next -- @preserve */
+/* v8 ignore else -- @preserve */
+
+;// CONCATENATED MODULE: ./node_modules/@octokit/auth-oauth-app/node_modules/universal-user-agent/index.js
+function auth_oauth_app_node_modules_universal_user_agent_getUserAgent() {
+  if (typeof navigator === "object" && "userAgent" in navigator) {
+    return navigator.userAgent;
+  }
+
+  if (typeof process === "object" && process.version !== undefined) {
+    return `Node.js/${process.version.substr(1)} (${process.platform}; ${
+      process.arch
+    })`;
+  }
+
+  return "<environment undetectable>";
+}
+
+;// CONCATENATED MODULE: ./node_modules/@octokit/auth-oauth-app/node_modules/@octokit/endpoint/dist-bundle/index.js
+// pkg/dist-src/defaults.js
+
+
+// pkg/dist-src/version.js
+var node_modules_octokit_endpoint_dist_bundle_VERSION = "0.0.0-development";
+
+// pkg/dist-src/defaults.js
+var _octokit_endpoint_dist_bundle_userAgent = `octokit-endpoint.js/${node_modules_octokit_endpoint_dist_bundle_VERSION} ${auth_oauth_app_node_modules_universal_user_agent_getUserAgent()}`;
+var _octokit_endpoint_dist_bundle_DEFAULTS = {
+  method: "GET",
+  baseUrl: "https://api.github.com",
+  headers: {
+    accept: "application/vnd.github.v3+json",
+    "user-agent": _octokit_endpoint_dist_bundle_userAgent
+  },
+  mediaType: {
+    format: ""
+  }
+};
+
+// pkg/dist-src/util/lowercase-keys.js
+function _octokit_endpoint_dist_bundle_lowercaseKeys(object) {
+  if (!object) {
+    return {};
+  }
+  return Object.keys(object).reduce((newObj, key) => {
+    newObj[key.toLowerCase()] = object[key];
+    return newObj;
+  }, {});
+}
+
+// pkg/dist-src/util/is-plain-object.js
+function node_modules_octokit_endpoint_dist_bundle_isPlainObject(value) {
+  if (typeof value !== "object" || value === null) return false;
+  if (Object.prototype.toString.call(value) !== "[object Object]") return false;
+  const proto = Object.getPrototypeOf(value);
+  if (proto === null) return true;
+  const Ctor = Object.prototype.hasOwnProperty.call(proto, "constructor") && proto.constructor;
+  return typeof Ctor === "function" && Ctor instanceof Ctor && Function.prototype.call(Ctor) === Function.prototype.call(value);
+}
+
+// pkg/dist-src/util/merge-deep.js
+function _octokit_endpoint_dist_bundle_mergeDeep(defaults, options) {
+  const result = Object.assign({}, defaults);
+  Object.keys(options).forEach((key) => {
+    if (node_modules_octokit_endpoint_dist_bundle_isPlainObject(options[key])) {
+      if (!(key in defaults)) Object.assign(result, { [key]: options[key] });
+      else result[key] = _octokit_endpoint_dist_bundle_mergeDeep(defaults[key], options[key]);
+    } else {
+      Object.assign(result, { [key]: options[key] });
+    }
+  });
+  return result;
+}
+
+// pkg/dist-src/util/remove-undefined-properties.js
+function _octokit_endpoint_dist_bundle_removeUndefinedProperties(obj) {
+  for (const key in obj) {
+    if (obj[key] === void 0) {
+      delete obj[key];
+    }
+  }
+  return obj;
+}
+
+// pkg/dist-src/merge.js
+function _octokit_endpoint_dist_bundle_merge(defaults, route, options) {
+  if (typeof route === "string") {
+    let [method, url] = route.split(" ");
+    options = Object.assign(url ? { method, url } : { url: method }, options);
+  } else {
+    options = Object.assign({}, route);
+  }
+  options.headers = _octokit_endpoint_dist_bundle_lowercaseKeys(options.headers);
+  _octokit_endpoint_dist_bundle_removeUndefinedProperties(options);
+  _octokit_endpoint_dist_bundle_removeUndefinedProperties(options.headers);
+  const mergedOptions = _octokit_endpoint_dist_bundle_mergeDeep(defaults || {}, options);
+  if (options.url === "/graphql") {
+    if (defaults && defaults.mediaType.previews?.length) {
+      mergedOptions.mediaType.previews = defaults.mediaType.previews.filter(
+        (preview) => !mergedOptions.mediaType.previews.includes(preview)
+      ).concat(mergedOptions.mediaType.previews);
+    }
+    mergedOptions.mediaType.previews = (mergedOptions.mediaType.previews || []).map((preview) => preview.replace(/-preview/, ""));
+  }
+  return mergedOptions;
+}
+
+// pkg/dist-src/util/add-query-parameters.js
+function _octokit_endpoint_dist_bundle_addQueryParameters(url, parameters) {
+  const separator = /\?/.test(url) ? "&" : "?";
+  const names = Object.keys(parameters);
+  if (names.length === 0) {
+    return url;
+  }
+  return url + separator + names.map((name) => {
+    if (name === "q") {
+      return "q=" + parameters.q.split("+").map(encodeURIComponent).join("+");
+    }
+    return `${name}=${encodeURIComponent(parameters[name])}`;
+  }).join("&");
+}
+
+// pkg/dist-src/util/extract-url-variable-names.js
+var _octokit_endpoint_dist_bundle_urlVariableRegex = /\{[^{}}]+\}/g;
+function _octokit_endpoint_dist_bundle_removeNonChars(variableName) {
+  return variableName.replace(/(?:^\W+)|(?:(?<!\W)\W+$)/g, "").split(/,/);
+}
+function _octokit_endpoint_dist_bundle_extractUrlVariableNames(url) {
+  const matches = url.match(_octokit_endpoint_dist_bundle_urlVariableRegex);
+  if (!matches) {
+    return [];
+  }
+  return matches.map(_octokit_endpoint_dist_bundle_removeNonChars).reduce((a, b) => a.concat(b), []);
+}
+
+// pkg/dist-src/util/omit.js
+function _octokit_endpoint_dist_bundle_omit(object, keysToOmit) {
+  const result = { __proto__: null };
+  for (const key of Object.keys(object)) {
+    if (keysToOmit.indexOf(key) === -1) {
+      result[key] = object[key];
+    }
+  }
+  return result;
+}
+
+// pkg/dist-src/util/url-template.js
+function _octokit_endpoint_dist_bundle_encodeReserved(str) {
+  return str.split(/(%[0-9A-Fa-f]{2})/g).map(function(part) {
+    if (!/%[0-9A-Fa-f]/.test(part)) {
+      part = encodeURI(part).replace(/%5B/g, "[").replace(/%5D/g, "]");
+    }
+    return part;
+  }).join("");
+}
+function _octokit_endpoint_dist_bundle_encodeUnreserved(str) {
+  return encodeURIComponent(str).replace(/[!'()*]/g, function(c) {
+    return "%" + c.charCodeAt(0).toString(16).toUpperCase();
+  });
+}
+function _octokit_endpoint_dist_bundle_encodeValue(operator, value, key) {
+  value = operator === "+" || operator === "#" ? _octokit_endpoint_dist_bundle_encodeReserved(value) : _octokit_endpoint_dist_bundle_encodeUnreserved(value);
+  if (key) {
+    return _octokit_endpoint_dist_bundle_encodeUnreserved(key) + "=" + value;
+  } else {
+    return value;
+  }
+}
+function _octokit_endpoint_dist_bundle_isDefined(value) {
+  return value !== void 0 && value !== null;
+}
+function _octokit_endpoint_dist_bundle_isKeyOperator(operator) {
+  return operator === ";" || operator === "&" || operator === "?";
+}
+function _octokit_endpoint_dist_bundle_getValues(context, operator, key, modifier) {
+  var value = context[key], result = [];
+  if (_octokit_endpoint_dist_bundle_isDefined(value) && value !== "") {
+    if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+      value = value.toString();
+      if (modifier && modifier !== "*") {
+        value = value.substring(0, parseInt(modifier, 10));
+      }
+      result.push(
+        _octokit_endpoint_dist_bundle_encodeValue(operator, value, _octokit_endpoint_dist_bundle_isKeyOperator(operator) ? key : "")
+      );
+    } else {
+      if (modifier === "*") {
+        if (Array.isArray(value)) {
+          value.filter(_octokit_endpoint_dist_bundle_isDefined).forEach(function(value2) {
+            result.push(
+              _octokit_endpoint_dist_bundle_encodeValue(operator, value2, _octokit_endpoint_dist_bundle_isKeyOperator(operator) ? key : "")
+            );
+          });
+        } else {
+          Object.keys(value).forEach(function(k) {
+            if (_octokit_endpoint_dist_bundle_isDefined(value[k])) {
+              result.push(_octokit_endpoint_dist_bundle_encodeValue(operator, value[k], k));
+            }
+          });
+        }
+      } else {
+        const tmp = [];
+        if (Array.isArray(value)) {
+          value.filter(_octokit_endpoint_dist_bundle_isDefined).forEach(function(value2) {
+            tmp.push(_octokit_endpoint_dist_bundle_encodeValue(operator, value2));
+          });
+        } else {
+          Object.keys(value).forEach(function(k) {
+            if (_octokit_endpoint_dist_bundle_isDefined(value[k])) {
+              tmp.push(_octokit_endpoint_dist_bundle_encodeUnreserved(k));
+              tmp.push(_octokit_endpoint_dist_bundle_encodeValue(operator, value[k].toString()));
+            }
+          });
+        }
+        if (_octokit_endpoint_dist_bundle_isKeyOperator(operator)) {
+          result.push(_octokit_endpoint_dist_bundle_encodeUnreserved(key) + "=" + tmp.join(","));
+        } else if (tmp.length !== 0) {
+          result.push(tmp.join(","));
+        }
+      }
+    }
+  } else {
+    if (operator === ";") {
+      if (_octokit_endpoint_dist_bundle_isDefined(value)) {
+        result.push(_octokit_endpoint_dist_bundle_encodeUnreserved(key));
+      }
+    } else if (value === "" && (operator === "&" || operator === "?")) {
+      result.push(_octokit_endpoint_dist_bundle_encodeUnreserved(key) + "=");
+    } else if (value === "") {
+      result.push("");
+    }
+  }
+  return result;
+}
+function _octokit_endpoint_dist_bundle_parseUrl(template) {
+  return {
+    expand: _octokit_endpoint_dist_bundle_expand.bind(null, template)
+  };
+}
+function _octokit_endpoint_dist_bundle_expand(template, context) {
+  var operators = ["+", "#", ".", "/", ";", "?", "&"];
+  template = template.replace(
+    /\{([^\{\}]+)\}|([^\{\}]+)/g,
+    function(_, expression, literal) {
+      if (expression) {
+        let operator = "";
+        const values = [];
+        if (operators.indexOf(expression.charAt(0)) !== -1) {
+          operator = expression.charAt(0);
+          expression = expression.substr(1);
+        }
+        expression.split(/,/g).forEach(function(variable) {
+          var tmp = /([^:\*]*)(?::(\d+)|(\*))?/.exec(variable);
+          values.push(_octokit_endpoint_dist_bundle_getValues(context, operator, tmp[1], tmp[2] || tmp[3]));
+        });
+        if (operator && operator !== "+") {
+          var separator = ",";
+          if (operator === "?") {
+            separator = "&";
+          } else if (operator !== "#") {
+            separator = operator;
+          }
+          return (values.length !== 0 ? operator : "") + values.join(separator);
+        } else {
+          return values.join(",");
+        }
+      } else {
+        return _octokit_endpoint_dist_bundle_encodeReserved(literal);
+      }
+    }
+  );
+  if (template === "/") {
+    return template;
+  } else {
+    return template.replace(/\/$/, "");
+  }
+}
+
+// pkg/dist-src/parse.js
+function _octokit_endpoint_dist_bundle_parse(options) {
+  let method = options.method.toUpperCase();
+  let url = (options.url || "/").replace(/:([a-z]\w+)/g, "{$1}");
+  let headers = Object.assign({}, options.headers);
+  let body;
+  let parameters = _octokit_endpoint_dist_bundle_omit(options, [
+    "method",
+    "baseUrl",
+    "url",
+    "headers",
+    "request",
+    "mediaType"
+  ]);
+  const urlVariableNames = _octokit_endpoint_dist_bundle_extractUrlVariableNames(url);
+  url = _octokit_endpoint_dist_bundle_parseUrl(url).expand(parameters);
+  if (!/^http/.test(url)) {
+    url = options.baseUrl + url;
+  }
+  const omittedParameters = Object.keys(options).filter((option) => urlVariableNames.includes(option)).concat("baseUrl");
+  const remainingParameters = _octokit_endpoint_dist_bundle_omit(parameters, omittedParameters);
+  const isBinaryRequest = /application\/octet-stream/i.test(headers.accept);
+  if (!isBinaryRequest) {
+    if (options.mediaType.format) {
+      headers.accept = headers.accept.split(/,/).map(
+        (format) => format.replace(
+          /application\/vnd(\.\w+)(\.v3)?(\.\w+)?(\+json)?$/,
+          `application/vnd$1$2.${options.mediaType.format}`
+        )
+      ).join(",");
+    }
+    if (url.endsWith("/graphql")) {
+      if (options.mediaType.previews?.length) {
+        const previewsFromAcceptHeader = headers.accept.match(/(?<![\w-])[\w-]+(?=-preview)/g) || [];
+        headers.accept = previewsFromAcceptHeader.concat(options.mediaType.previews).map((preview) => {
+          const format = options.mediaType.format ? `.${options.mediaType.format}` : "+json";
+          return `application/vnd.github.${preview}-preview${format}`;
+        }).join(",");
+      }
+    }
+  }
+  if (["GET", "HEAD"].includes(method)) {
+    url = _octokit_endpoint_dist_bundle_addQueryParameters(url, remainingParameters);
+  } else {
+    if ("data" in remainingParameters) {
+      body = remainingParameters.data;
+    } else {
+      if (Object.keys(remainingParameters).length) {
+        body = remainingParameters;
+      }
+    }
+  }
+  if (!headers["content-type"] && typeof body !== "undefined") {
+    headers["content-type"] = "application/json; charset=utf-8";
+  }
+  if (["PATCH", "PUT"].includes(method) && typeof body === "undefined") {
+    body = "";
+  }
+  return Object.assign(
+    { method, url, headers },
+    typeof body !== "undefined" ? { body } : null,
+    options.request ? { request: options.request } : null
+  );
+}
+
+// pkg/dist-src/endpoint-with-defaults.js
+function _octokit_endpoint_dist_bundle_endpointWithDefaults(defaults, route, options) {
+  return _octokit_endpoint_dist_bundle_parse(_octokit_endpoint_dist_bundle_merge(defaults, route, options));
+}
+
+// pkg/dist-src/with-defaults.js
+function node_modules_octokit_endpoint_dist_bundle_withDefaults(oldDefaults, newDefaults) {
+  const DEFAULTS2 = _octokit_endpoint_dist_bundle_merge(oldDefaults, newDefaults);
+  const endpoint2 = _octokit_endpoint_dist_bundle_endpointWithDefaults.bind(null, DEFAULTS2);
+  return Object.assign(endpoint2, {
+    DEFAULTS: DEFAULTS2,
+    defaults: node_modules_octokit_endpoint_dist_bundle_withDefaults.bind(null, DEFAULTS2),
+    merge: _octokit_endpoint_dist_bundle_merge.bind(null, DEFAULTS2),
+    parse: _octokit_endpoint_dist_bundle_parse
+  });
+}
+
+// pkg/dist-src/index.js
+var _octokit_endpoint_dist_bundle_endpoint = node_modules_octokit_endpoint_dist_bundle_withDefaults(null, _octokit_endpoint_dist_bundle_DEFAULTS);
+
+
+;// CONCATENATED MODULE: ./node_modules/@octokit/auth-oauth-app/node_modules/@octokit/request-error/dist-src/index.js
+class _octokit_request_error_dist_src_RequestError extends Error {
+  name;
+  /**
+   * http status code
+   */
+  status;
+  /**
+   * Request options that lead to the error.
+   */
+  request;
+  /**
+   * Response object if a response was received
+   */
+  response;
+  constructor(message, statusCode, options) {
+    super(message, { cause: options.cause });
+    this.name = "HttpError";
+    this.status = Number.parseInt(statusCode);
+    if (Number.isNaN(this.status)) {
+      this.status = 0;
+    }
+    /* v8 ignore else -- @preserve -- Bug with vitest coverage where it sees an else branch that doesn't exist */
+    if ("response" in options) {
+      this.response = options.response;
+    }
+    const requestCopy = Object.assign({}, options.request);
+    if (options.request.headers.authorization) {
+      requestCopy.headers = Object.assign({}, options.request.headers, {
+        authorization: options.request.headers.authorization.replace(
+          /(?<! ) .*$/,
+          " [REDACTED]"
+        )
+      });
+    }
+    requestCopy.url = requestCopy.url.replace(/\bclient_secret=\w+/g, "client_secret=[REDACTED]").replace(/\baccess_token=\w+/g, "access_token=[REDACTED]");
+    this.request = requestCopy;
+  }
+}
+
+
+;// CONCATENATED MODULE: ./node_modules/@octokit/auth-oauth-app/node_modules/@octokit/request/dist-bundle/index.js
+// pkg/dist-src/index.js
+
+
+// pkg/dist-src/defaults.js
+
+
+// pkg/dist-src/version.js
+var node_modules_octokit_request_dist_bundle_VERSION = "10.0.7";
+
+// pkg/dist-src/defaults.js
+var _octokit_request_dist_bundle_defaults_default = {
+  headers: {
+    "user-agent": `octokit-request.js/${node_modules_octokit_request_dist_bundle_VERSION} ${auth_oauth_app_node_modules_universal_user_agent_getUserAgent()}`
+  }
+};
+
+// pkg/dist-src/fetch-wrapper.js
+
+
+// pkg/dist-src/is-plain-object.js
+function node_modules_octokit_request_dist_bundle_isPlainObject(value) {
+  if (typeof value !== "object" || value === null) return false;
+  if (Object.prototype.toString.call(value) !== "[object Object]") return false;
+  const proto = Object.getPrototypeOf(value);
+  if (proto === null) return true;
+  const Ctor = Object.prototype.hasOwnProperty.call(proto, "constructor") && proto.constructor;
+  return typeof Ctor === "function" && Ctor instanceof Ctor && Function.prototype.call(Ctor) === Function.prototype.call(value);
+}
+
+// pkg/dist-src/fetch-wrapper.js
+
+var node_modules_octokit_request_dist_bundle_noop = () => "";
+async function _octokit_request_dist_bundle_fetchWrapper(requestOptions) {
+  const fetch = requestOptions.request?.fetch || globalThis.fetch;
+  if (!fetch) {
+    throw new Error(
+      "fetch is not set. Please pass a fetch implementation as new Octokit({ request: { fetch }}). Learn more at https://github.com/octokit/octokit.js/#fetch-missing"
+    );
+  }
+  const log = requestOptions.request?.log || console;
+  const parseSuccessResponseBody = requestOptions.request?.parseSuccessResponseBody !== false;
+  const body = node_modules_octokit_request_dist_bundle_isPlainObject(requestOptions.body) || Array.isArray(requestOptions.body) ? JSON.stringify(requestOptions.body) : requestOptions.body;
+  const requestHeaders = Object.fromEntries(
+    Object.entries(requestOptions.headers).map(([name, value]) => [
+      name,
+      String(value)
+    ])
+  );
+  let fetchResponse;
+  try {
+    fetchResponse = await fetch(requestOptions.url, {
+      method: requestOptions.method,
+      body,
+      redirect: requestOptions.request?.redirect,
+      headers: requestHeaders,
+      signal: requestOptions.request?.signal,
+      // duplex must be set if request.body is ReadableStream or Async Iterables.
+      // See https://fetch.spec.whatwg.org/#dom-requestinit-duplex.
+      ...requestOptions.body && { duplex: "half" }
+    });
+  } catch (error) {
+    let message = "Unknown Error";
+    if (error instanceof Error) {
+      if (error.name === "AbortError") {
+        error.status = 500;
+        throw error;
+      }
+      message = error.message;
+      if (error.name === "TypeError" && "cause" in error) {
+        if (error.cause instanceof Error) {
+          message = error.cause.message;
+        } else if (typeof error.cause === "string") {
+          message = error.cause;
+        }
+      }
+    }
+    const requestError = new _octokit_request_error_dist_src_RequestError(message, 500, {
+      request: requestOptions
+    });
+    requestError.cause = error;
+    throw requestError;
+  }
+  const status = fetchResponse.status;
+  const url = fetchResponse.url;
+  const responseHeaders = {};
+  for (const [key, value] of fetchResponse.headers) {
+    responseHeaders[key] = value;
+  }
+  const octokitResponse = {
+    url,
+    status,
+    headers: responseHeaders,
+    data: ""
+  };
+  if ("deprecation" in responseHeaders) {
+    const matches = responseHeaders.link && responseHeaders.link.match(/<([^<>]+)>; rel="deprecation"/);
+    const deprecationLink = matches && matches.pop();
+    log.warn(
+      `[@octokit/request] "${requestOptions.method} ${requestOptions.url}" is deprecated. It is scheduled to be removed on ${responseHeaders.sunset}${deprecationLink ? `. See ${deprecationLink}` : ""}`
+    );
+  }
+  if (status === 204 || status === 205) {
+    return octokitResponse;
+  }
+  if (requestOptions.method === "HEAD") {
+    if (status < 400) {
+      return octokitResponse;
+    }
+    throw new _octokit_request_error_dist_src_RequestError(fetchResponse.statusText, status, {
+      response: octokitResponse,
+      request: requestOptions
+    });
+  }
+  if (status === 304) {
+    octokitResponse.data = await _octokit_request_dist_bundle_getResponseData(fetchResponse);
+    throw new _octokit_request_error_dist_src_RequestError("Not modified", status, {
+      response: octokitResponse,
+      request: requestOptions
+    });
+  }
+  if (status >= 400) {
+    octokitResponse.data = await _octokit_request_dist_bundle_getResponseData(fetchResponse);
+    throw new _octokit_request_error_dist_src_RequestError(_octokit_request_dist_bundle_toErrorMessage(octokitResponse.data), status, {
+      response: octokitResponse,
+      request: requestOptions
+    });
+  }
+  octokitResponse.data = parseSuccessResponseBody ? await _octokit_request_dist_bundle_getResponseData(fetchResponse) : fetchResponse.body;
+  return octokitResponse;
+}
+async function _octokit_request_dist_bundle_getResponseData(response) {
+  const contentType = response.headers.get("content-type");
+  if (!contentType) {
+    return response.text().catch(node_modules_octokit_request_dist_bundle_noop);
+  }
+  const mimetype = (0,fast_content_type_parse/* safeParse */.xL)(contentType);
+  if (_octokit_request_dist_bundle_isJSONResponse(mimetype)) {
+    let text = "";
+    try {
+      text = await response.text();
+      return JSON.parse(text);
+    } catch (err) {
+      return text;
+    }
+  } else if (mimetype.type.startsWith("text/") || mimetype.parameters.charset?.toLowerCase() === "utf-8") {
+    return response.text().catch(node_modules_octokit_request_dist_bundle_noop);
+  } else {
+    return response.arrayBuffer().catch(
+      /* v8 ignore next -- @preserve */
+      () => new ArrayBuffer(0)
+    );
+  }
+}
+function _octokit_request_dist_bundle_isJSONResponse(mimetype) {
+  return mimetype.type === "application/json" || mimetype.type === "application/scim+json";
+}
+function _octokit_request_dist_bundle_toErrorMessage(data) {
+  if (typeof data === "string") {
+    return data;
+  }
+  if (data instanceof ArrayBuffer) {
+    return "Unknown error";
+  }
+  if ("message" in data) {
+    const suffix = "documentation_url" in data ? ` - ${data.documentation_url}` : "";
+    return Array.isArray(data.errors) ? `${data.message}: ${data.errors.map((v) => JSON.stringify(v)).join(", ")}${suffix}` : `${data.message}${suffix}`;
+  }
+  return `Unknown error: ${JSON.stringify(data)}`;
+}
+
+// pkg/dist-src/with-defaults.js
+function node_modules_octokit_request_dist_bundle_withDefaults(oldEndpoint, newDefaults) {
+  const endpoint2 = oldEndpoint.defaults(newDefaults);
+  const newApi = function(route, parameters) {
+    const endpointOptions = endpoint2.merge(route, parameters);
+    if (!endpointOptions.request || !endpointOptions.request.hook) {
+      return _octokit_request_dist_bundle_fetchWrapper(endpoint2.parse(endpointOptions));
+    }
+    const request2 = (route2, parameters2) => {
+      return _octokit_request_dist_bundle_fetchWrapper(
+        endpoint2.parse(endpoint2.merge(route2, parameters2))
+      );
+    };
+    Object.assign(request2, {
+      endpoint: endpoint2,
+      defaults: node_modules_octokit_request_dist_bundle_withDefaults.bind(null, endpoint2)
+    });
+    return endpointOptions.request.hook(request2, endpointOptions);
+  };
+  return Object.assign(newApi, {
+    endpoint: endpoint2,
+    defaults: node_modules_octokit_request_dist_bundle_withDefaults.bind(null, endpoint2)
+  });
+}
+
+// pkg/dist-src/index.js
+var _octokit_request_dist_bundle_request = node_modules_octokit_request_dist_bundle_withDefaults(_octokit_endpoint_dist_bundle_endpoint, _octokit_request_dist_bundle_defaults_default);
+
+/* v8 ignore next -- @preserve */
+/* v8 ignore else -- @preserve */
+
+;// CONCATENATED MODULE: ./node_modules/@octokit/auth-oauth-user/node_modules/universal-user-agent/index.js
+function auth_oauth_user_node_modules_universal_user_agent_getUserAgent() {
+  if (typeof navigator === "object" && "userAgent" in navigator) {
+    return navigator.userAgent;
+  }
+
+  if (typeof process === "object" && process.version !== undefined) {
+    return `Node.js/${process.version.substr(1)} (${process.platform}; ${
+      process.arch
+    })`;
+  }
+
+  return "<environment undetectable>";
+}
+
+;// CONCATENATED MODULE: ./node_modules/@octokit/auth-oauth-user/node_modules/@octokit/endpoint/dist-bundle/index.js
+// pkg/dist-src/defaults.js
+
+
+// pkg/dist-src/version.js
+var auth_oauth_user_node_modules_octokit_endpoint_dist_bundle_VERSION = "0.0.0-development";
+
+// pkg/dist-src/defaults.js
+var node_modules_octokit_endpoint_dist_bundle_userAgent = `octokit-endpoint.js/${auth_oauth_user_node_modules_octokit_endpoint_dist_bundle_VERSION} ${auth_oauth_user_node_modules_universal_user_agent_getUserAgent()}`;
+var node_modules_octokit_endpoint_dist_bundle_DEFAULTS = {
+  method: "GET",
+  baseUrl: "https://api.github.com",
+  headers: {
+    accept: "application/vnd.github.v3+json",
+    "user-agent": node_modules_octokit_endpoint_dist_bundle_userAgent
+  },
+  mediaType: {
+    format: ""
+  }
+};
+
+// pkg/dist-src/util/lowercase-keys.js
+function node_modules_octokit_endpoint_dist_bundle_lowercaseKeys(object) {
+  if (!object) {
+    return {};
+  }
+  return Object.keys(object).reduce((newObj, key) => {
+    newObj[key.toLowerCase()] = object[key];
+    return newObj;
+  }, {});
+}
+
+// pkg/dist-src/util/is-plain-object.js
+function auth_oauth_user_node_modules_octokit_endpoint_dist_bundle_isPlainObject(value) {
+  if (typeof value !== "object" || value === null) return false;
+  if (Object.prototype.toString.call(value) !== "[object Object]") return false;
+  const proto = Object.getPrototypeOf(value);
+  if (proto === null) return true;
+  const Ctor = Object.prototype.hasOwnProperty.call(proto, "constructor") && proto.constructor;
+  return typeof Ctor === "function" && Ctor instanceof Ctor && Function.prototype.call(Ctor) === Function.prototype.call(value);
+}
+
+// pkg/dist-src/util/merge-deep.js
+function node_modules_octokit_endpoint_dist_bundle_mergeDeep(defaults, options) {
+  const result = Object.assign({}, defaults);
+  Object.keys(options).forEach((key) => {
+    if (auth_oauth_user_node_modules_octokit_endpoint_dist_bundle_isPlainObject(options[key])) {
+      if (!(key in defaults)) Object.assign(result, { [key]: options[key] });
+      else result[key] = node_modules_octokit_endpoint_dist_bundle_mergeDeep(defaults[key], options[key]);
+    } else {
+      Object.assign(result, { [key]: options[key] });
+    }
+  });
+  return result;
+}
+
+// pkg/dist-src/util/remove-undefined-properties.js
+function node_modules_octokit_endpoint_dist_bundle_removeUndefinedProperties(obj) {
+  for (const key in obj) {
+    if (obj[key] === void 0) {
+      delete obj[key];
+    }
+  }
+  return obj;
+}
+
+// pkg/dist-src/merge.js
+function node_modules_octokit_endpoint_dist_bundle_merge(defaults, route, options) {
+  if (typeof route === "string") {
+    let [method, url] = route.split(" ");
+    options = Object.assign(url ? { method, url } : { url: method }, options);
+  } else {
+    options = Object.assign({}, route);
+  }
+  options.headers = node_modules_octokit_endpoint_dist_bundle_lowercaseKeys(options.headers);
+  node_modules_octokit_endpoint_dist_bundle_removeUndefinedProperties(options);
+  node_modules_octokit_endpoint_dist_bundle_removeUndefinedProperties(options.headers);
+  const mergedOptions = node_modules_octokit_endpoint_dist_bundle_mergeDeep(defaults || {}, options);
+  if (options.url === "/graphql") {
+    if (defaults && defaults.mediaType.previews?.length) {
+      mergedOptions.mediaType.previews = defaults.mediaType.previews.filter(
+        (preview) => !mergedOptions.mediaType.previews.includes(preview)
+      ).concat(mergedOptions.mediaType.previews);
+    }
+    mergedOptions.mediaType.previews = (mergedOptions.mediaType.previews || []).map((preview) => preview.replace(/-preview/, ""));
+  }
+  return mergedOptions;
+}
+
+// pkg/dist-src/util/add-query-parameters.js
+function node_modules_octokit_endpoint_dist_bundle_addQueryParameters(url, parameters) {
+  const separator = /\?/.test(url) ? "&" : "?";
+  const names = Object.keys(parameters);
+  if (names.length === 0) {
+    return url;
+  }
+  return url + separator + names.map((name) => {
+    if (name === "q") {
+      return "q=" + parameters.q.split("+").map(encodeURIComponent).join("+");
+    }
+    return `${name}=${encodeURIComponent(parameters[name])}`;
+  }).join("&");
+}
+
+// pkg/dist-src/util/extract-url-variable-names.js
+var node_modules_octokit_endpoint_dist_bundle_urlVariableRegex = /\{[^{}}]+\}/g;
+function node_modules_octokit_endpoint_dist_bundle_removeNonChars(variableName) {
+  return variableName.replace(/(?:^\W+)|(?:(?<!\W)\W+$)/g, "").split(/,/);
+}
+function node_modules_octokit_endpoint_dist_bundle_extractUrlVariableNames(url) {
+  const matches = url.match(node_modules_octokit_endpoint_dist_bundle_urlVariableRegex);
+  if (!matches) {
+    return [];
+  }
+  return matches.map(node_modules_octokit_endpoint_dist_bundle_removeNonChars).reduce((a, b) => a.concat(b), []);
+}
+
+// pkg/dist-src/util/omit.js
+function node_modules_octokit_endpoint_dist_bundle_omit(object, keysToOmit) {
+  const result = { __proto__: null };
+  for (const key of Object.keys(object)) {
+    if (keysToOmit.indexOf(key) === -1) {
+      result[key] = object[key];
+    }
+  }
+  return result;
+}
+
+// pkg/dist-src/util/url-template.js
+function node_modules_octokit_endpoint_dist_bundle_encodeReserved(str) {
+  return str.split(/(%[0-9A-Fa-f]{2})/g).map(function(part) {
+    if (!/%[0-9A-Fa-f]/.test(part)) {
+      part = encodeURI(part).replace(/%5B/g, "[").replace(/%5D/g, "]");
+    }
+    return part;
+  }).join("");
+}
+function node_modules_octokit_endpoint_dist_bundle_encodeUnreserved(str) {
+  return encodeURIComponent(str).replace(/[!'()*]/g, function(c) {
+    return "%" + c.charCodeAt(0).toString(16).toUpperCase();
+  });
+}
+function node_modules_octokit_endpoint_dist_bundle_encodeValue(operator, value, key) {
+  value = operator === "+" || operator === "#" ? node_modules_octokit_endpoint_dist_bundle_encodeReserved(value) : node_modules_octokit_endpoint_dist_bundle_encodeUnreserved(value);
+  if (key) {
+    return node_modules_octokit_endpoint_dist_bundle_encodeUnreserved(key) + "=" + value;
+  } else {
+    return value;
+  }
+}
+function node_modules_octokit_endpoint_dist_bundle_isDefined(value) {
+  return value !== void 0 && value !== null;
+}
+function node_modules_octokit_endpoint_dist_bundle_isKeyOperator(operator) {
+  return operator === ";" || operator === "&" || operator === "?";
+}
+function node_modules_octokit_endpoint_dist_bundle_getValues(context, operator, key, modifier) {
+  var value = context[key], result = [];
+  if (node_modules_octokit_endpoint_dist_bundle_isDefined(value) && value !== "") {
+    if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+      value = value.toString();
+      if (modifier && modifier !== "*") {
+        value = value.substring(0, parseInt(modifier, 10));
+      }
+      result.push(
+        node_modules_octokit_endpoint_dist_bundle_encodeValue(operator, value, node_modules_octokit_endpoint_dist_bundle_isKeyOperator(operator) ? key : "")
+      );
+    } else {
+      if (modifier === "*") {
+        if (Array.isArray(value)) {
+          value.filter(node_modules_octokit_endpoint_dist_bundle_isDefined).forEach(function(value2) {
+            result.push(
+              node_modules_octokit_endpoint_dist_bundle_encodeValue(operator, value2, node_modules_octokit_endpoint_dist_bundle_isKeyOperator(operator) ? key : "")
+            );
+          });
+        } else {
+          Object.keys(value).forEach(function(k) {
+            if (node_modules_octokit_endpoint_dist_bundle_isDefined(value[k])) {
+              result.push(node_modules_octokit_endpoint_dist_bundle_encodeValue(operator, value[k], k));
+            }
+          });
+        }
+      } else {
+        const tmp = [];
+        if (Array.isArray(value)) {
+          value.filter(node_modules_octokit_endpoint_dist_bundle_isDefined).forEach(function(value2) {
+            tmp.push(node_modules_octokit_endpoint_dist_bundle_encodeValue(operator, value2));
+          });
+        } else {
+          Object.keys(value).forEach(function(k) {
+            if (node_modules_octokit_endpoint_dist_bundle_isDefined(value[k])) {
+              tmp.push(node_modules_octokit_endpoint_dist_bundle_encodeUnreserved(k));
+              tmp.push(node_modules_octokit_endpoint_dist_bundle_encodeValue(operator, value[k].toString()));
+            }
+          });
+        }
+        if (node_modules_octokit_endpoint_dist_bundle_isKeyOperator(operator)) {
+          result.push(node_modules_octokit_endpoint_dist_bundle_encodeUnreserved(key) + "=" + tmp.join(","));
+        } else if (tmp.length !== 0) {
+          result.push(tmp.join(","));
+        }
+      }
+    }
+  } else {
+    if (operator === ";") {
+      if (node_modules_octokit_endpoint_dist_bundle_isDefined(value)) {
+        result.push(node_modules_octokit_endpoint_dist_bundle_encodeUnreserved(key));
+      }
+    } else if (value === "" && (operator === "&" || operator === "?")) {
+      result.push(node_modules_octokit_endpoint_dist_bundle_encodeUnreserved(key) + "=");
+    } else if (value === "") {
+      result.push("");
+    }
+  }
+  return result;
+}
+function node_modules_octokit_endpoint_dist_bundle_parseUrl(template) {
+  return {
+    expand: node_modules_octokit_endpoint_dist_bundle_expand.bind(null, template)
+  };
+}
+function node_modules_octokit_endpoint_dist_bundle_expand(template, context) {
+  var operators = ["+", "#", ".", "/", ";", "?", "&"];
+  template = template.replace(
+    /\{([^\{\}]+)\}|([^\{\}]+)/g,
+    function(_, expression, literal) {
+      if (expression) {
+        let operator = "";
+        const values = [];
+        if (operators.indexOf(expression.charAt(0)) !== -1) {
+          operator = expression.charAt(0);
+          expression = expression.substr(1);
+        }
+        expression.split(/,/g).forEach(function(variable) {
+          var tmp = /([^:\*]*)(?::(\d+)|(\*))?/.exec(variable);
+          values.push(node_modules_octokit_endpoint_dist_bundle_getValues(context, operator, tmp[1], tmp[2] || tmp[3]));
+        });
+        if (operator && operator !== "+") {
+          var separator = ",";
+          if (operator === "?") {
+            separator = "&";
+          } else if (operator !== "#") {
+            separator = operator;
+          }
+          return (values.length !== 0 ? operator : "") + values.join(separator);
+        } else {
+          return values.join(",");
+        }
+      } else {
+        return node_modules_octokit_endpoint_dist_bundle_encodeReserved(literal);
+      }
+    }
+  );
+  if (template === "/") {
+    return template;
+  } else {
+    return template.replace(/\/$/, "");
+  }
+}
+
+// pkg/dist-src/parse.js
+function node_modules_octokit_endpoint_dist_bundle_parse(options) {
+  let method = options.method.toUpperCase();
+  let url = (options.url || "/").replace(/:([a-z]\w+)/g, "{$1}");
+  let headers = Object.assign({}, options.headers);
+  let body;
+  let parameters = node_modules_octokit_endpoint_dist_bundle_omit(options, [
+    "method",
+    "baseUrl",
+    "url",
+    "headers",
+    "request",
+    "mediaType"
+  ]);
+  const urlVariableNames = node_modules_octokit_endpoint_dist_bundle_extractUrlVariableNames(url);
+  url = node_modules_octokit_endpoint_dist_bundle_parseUrl(url).expand(parameters);
+  if (!/^http/.test(url)) {
+    url = options.baseUrl + url;
+  }
+  const omittedParameters = Object.keys(options).filter((option) => urlVariableNames.includes(option)).concat("baseUrl");
+  const remainingParameters = node_modules_octokit_endpoint_dist_bundle_omit(parameters, omittedParameters);
+  const isBinaryRequest = /application\/octet-stream/i.test(headers.accept);
+  if (!isBinaryRequest) {
+    if (options.mediaType.format) {
+      headers.accept = headers.accept.split(/,/).map(
+        (format) => format.replace(
+          /application\/vnd(\.\w+)(\.v3)?(\.\w+)?(\+json)?$/,
+          `application/vnd$1$2.${options.mediaType.format}`
+        )
+      ).join(",");
+    }
+    if (url.endsWith("/graphql")) {
+      if (options.mediaType.previews?.length) {
+        const previewsFromAcceptHeader = headers.accept.match(/(?<![\w-])[\w-]+(?=-preview)/g) || [];
+        headers.accept = previewsFromAcceptHeader.concat(options.mediaType.previews).map((preview) => {
+          const format = options.mediaType.format ? `.${options.mediaType.format}` : "+json";
+          return `application/vnd.github.${preview}-preview${format}`;
+        }).join(",");
+      }
+    }
+  }
+  if (["GET", "HEAD"].includes(method)) {
+    url = node_modules_octokit_endpoint_dist_bundle_addQueryParameters(url, remainingParameters);
+  } else {
+    if ("data" in remainingParameters) {
+      body = remainingParameters.data;
+    } else {
+      if (Object.keys(remainingParameters).length) {
+        body = remainingParameters;
+      }
+    }
+  }
+  if (!headers["content-type"] && typeof body !== "undefined") {
+    headers["content-type"] = "application/json; charset=utf-8";
+  }
+  if (["PATCH", "PUT"].includes(method) && typeof body === "undefined") {
+    body = "";
+  }
+  return Object.assign(
+    { method, url, headers },
+    typeof body !== "undefined" ? { body } : null,
+    options.request ? { request: options.request } : null
+  );
+}
+
+// pkg/dist-src/endpoint-with-defaults.js
+function node_modules_octokit_endpoint_dist_bundle_endpointWithDefaults(defaults, route, options) {
+  return node_modules_octokit_endpoint_dist_bundle_parse(node_modules_octokit_endpoint_dist_bundle_merge(defaults, route, options));
+}
+
+// pkg/dist-src/with-defaults.js
+function auth_oauth_user_node_modules_octokit_endpoint_dist_bundle_withDefaults(oldDefaults, newDefaults) {
+  const DEFAULTS2 = node_modules_octokit_endpoint_dist_bundle_merge(oldDefaults, newDefaults);
+  const endpoint2 = node_modules_octokit_endpoint_dist_bundle_endpointWithDefaults.bind(null, DEFAULTS2);
+  return Object.assign(endpoint2, {
+    DEFAULTS: DEFAULTS2,
+    defaults: auth_oauth_user_node_modules_octokit_endpoint_dist_bundle_withDefaults.bind(null, DEFAULTS2),
+    merge: node_modules_octokit_endpoint_dist_bundle_merge.bind(null, DEFAULTS2),
+    parse: node_modules_octokit_endpoint_dist_bundle_parse
+  });
+}
+
+// pkg/dist-src/index.js
+var node_modules_octokit_endpoint_dist_bundle_endpoint = auth_oauth_user_node_modules_octokit_endpoint_dist_bundle_withDefaults(null, node_modules_octokit_endpoint_dist_bundle_DEFAULTS);
+
+
+;// CONCATENATED MODULE: ./node_modules/@octokit/auth-oauth-user/node_modules/@octokit/request-error/dist-src/index.js
+class node_modules_octokit_request_error_dist_src_RequestError extends Error {
+  name;
+  /**
+   * http status code
+   */
+  status;
+  /**
+   * Request options that lead to the error.
+   */
+  request;
+  /**
+   * Response object if a response was received
+   */
+  response;
+  constructor(message, statusCode, options) {
+    super(message, { cause: options.cause });
+    this.name = "HttpError";
+    this.status = Number.parseInt(statusCode);
+    if (Number.isNaN(this.status)) {
+      this.status = 0;
+    }
+    /* v8 ignore else -- @preserve -- Bug with vitest coverage where it sees an else branch that doesn't exist */
+    if ("response" in options) {
+      this.response = options.response;
+    }
+    const requestCopy = Object.assign({}, options.request);
+    if (options.request.headers.authorization) {
+      requestCopy.headers = Object.assign({}, options.request.headers, {
+        authorization: options.request.headers.authorization.replace(
+          /(?<! ) .*$/,
+          " [REDACTED]"
+        )
+      });
+    }
+    requestCopy.url = requestCopy.url.replace(/\bclient_secret=\w+/g, "client_secret=[REDACTED]").replace(/\baccess_token=\w+/g, "access_token=[REDACTED]");
+    this.request = requestCopy;
+  }
+}
+
+
+;// CONCATENATED MODULE: ./node_modules/@octokit/auth-oauth-user/node_modules/@octokit/request/dist-bundle/index.js
+// pkg/dist-src/index.js
+
+
+// pkg/dist-src/defaults.js
+
+
+// pkg/dist-src/version.js
+var auth_oauth_user_node_modules_octokit_request_dist_bundle_VERSION = "10.0.7";
+
+// pkg/dist-src/defaults.js
+var node_modules_octokit_request_dist_bundle_defaults_default = {
+  headers: {
+    "user-agent": `octokit-request.js/${auth_oauth_user_node_modules_octokit_request_dist_bundle_VERSION} ${auth_oauth_user_node_modules_universal_user_agent_getUserAgent()}`
+  }
+};
+
+// pkg/dist-src/fetch-wrapper.js
+
+
+// pkg/dist-src/is-plain-object.js
+function auth_oauth_user_node_modules_octokit_request_dist_bundle_isPlainObject(value) {
+  if (typeof value !== "object" || value === null) return false;
+  if (Object.prototype.toString.call(value) !== "[object Object]") return false;
+  const proto = Object.getPrototypeOf(value);
+  if (proto === null) return true;
+  const Ctor = Object.prototype.hasOwnProperty.call(proto, "constructor") && proto.constructor;
+  return typeof Ctor === "function" && Ctor instanceof Ctor && Function.prototype.call(Ctor) === Function.prototype.call(value);
+}
+
+// pkg/dist-src/fetch-wrapper.js
+
+var auth_oauth_user_node_modules_octokit_request_dist_bundle_noop = () => "";
+async function node_modules_octokit_request_dist_bundle_fetchWrapper(requestOptions) {
+  const fetch = requestOptions.request?.fetch || globalThis.fetch;
+  if (!fetch) {
+    throw new Error(
+      "fetch is not set. Please pass a fetch implementation as new Octokit({ request: { fetch }}). Learn more at https://github.com/octokit/octokit.js/#fetch-missing"
+    );
+  }
+  const log = requestOptions.request?.log || console;
+  const parseSuccessResponseBody = requestOptions.request?.parseSuccessResponseBody !== false;
+  const body = auth_oauth_user_node_modules_octokit_request_dist_bundle_isPlainObject(requestOptions.body) || Array.isArray(requestOptions.body) ? JSON.stringify(requestOptions.body) : requestOptions.body;
+  const requestHeaders = Object.fromEntries(
+    Object.entries(requestOptions.headers).map(([name, value]) => [
+      name,
+      String(value)
+    ])
+  );
+  let fetchResponse;
+  try {
+    fetchResponse = await fetch(requestOptions.url, {
+      method: requestOptions.method,
+      body,
+      redirect: requestOptions.request?.redirect,
+      headers: requestHeaders,
+      signal: requestOptions.request?.signal,
+      // duplex must be set if request.body is ReadableStream or Async Iterables.
+      // See https://fetch.spec.whatwg.org/#dom-requestinit-duplex.
+      ...requestOptions.body && { duplex: "half" }
+    });
+  } catch (error) {
+    let message = "Unknown Error";
+    if (error instanceof Error) {
+      if (error.name === "AbortError") {
+        error.status = 500;
+        throw error;
+      }
+      message = error.message;
+      if (error.name === "TypeError" && "cause" in error) {
+        if (error.cause instanceof Error) {
+          message = error.cause.message;
+        } else if (typeof error.cause === "string") {
+          message = error.cause;
+        }
+      }
+    }
+    const requestError = new node_modules_octokit_request_error_dist_src_RequestError(message, 500, {
+      request: requestOptions
+    });
+    requestError.cause = error;
+    throw requestError;
+  }
+  const status = fetchResponse.status;
+  const url = fetchResponse.url;
+  const responseHeaders = {};
+  for (const [key, value] of fetchResponse.headers) {
+    responseHeaders[key] = value;
+  }
+  const octokitResponse = {
+    url,
+    status,
+    headers: responseHeaders,
+    data: ""
+  };
+  if ("deprecation" in responseHeaders) {
+    const matches = responseHeaders.link && responseHeaders.link.match(/<([^<>]+)>; rel="deprecation"/);
+    const deprecationLink = matches && matches.pop();
+    log.warn(
+      `[@octokit/request] "${requestOptions.method} ${requestOptions.url}" is deprecated. It is scheduled to be removed on ${responseHeaders.sunset}${deprecationLink ? `. See ${deprecationLink}` : ""}`
+    );
+  }
+  if (status === 204 || status === 205) {
+    return octokitResponse;
+  }
+  if (requestOptions.method === "HEAD") {
+    if (status < 400) {
+      return octokitResponse;
+    }
+    throw new node_modules_octokit_request_error_dist_src_RequestError(fetchResponse.statusText, status, {
+      response: octokitResponse,
+      request: requestOptions
+    });
+  }
+  if (status === 304) {
+    octokitResponse.data = await node_modules_octokit_request_dist_bundle_getResponseData(fetchResponse);
+    throw new node_modules_octokit_request_error_dist_src_RequestError("Not modified", status, {
+      response: octokitResponse,
+      request: requestOptions
+    });
+  }
+  if (status >= 400) {
+    octokitResponse.data = await node_modules_octokit_request_dist_bundle_getResponseData(fetchResponse);
+    throw new node_modules_octokit_request_error_dist_src_RequestError(node_modules_octokit_request_dist_bundle_toErrorMessage(octokitResponse.data), status, {
+      response: octokitResponse,
+      request: requestOptions
+    });
+  }
+  octokitResponse.data = parseSuccessResponseBody ? await node_modules_octokit_request_dist_bundle_getResponseData(fetchResponse) : fetchResponse.body;
+  return octokitResponse;
+}
+async function node_modules_octokit_request_dist_bundle_getResponseData(response) {
+  const contentType = response.headers.get("content-type");
+  if (!contentType) {
+    return response.text().catch(auth_oauth_user_node_modules_octokit_request_dist_bundle_noop);
+  }
+  const mimetype = (0,fast_content_type_parse/* safeParse */.xL)(contentType);
+  if (node_modules_octokit_request_dist_bundle_isJSONResponse(mimetype)) {
+    let text = "";
+    try {
+      text = await response.text();
+      return JSON.parse(text);
+    } catch (err) {
+      return text;
+    }
+  } else if (mimetype.type.startsWith("text/") || mimetype.parameters.charset?.toLowerCase() === "utf-8") {
+    return response.text().catch(auth_oauth_user_node_modules_octokit_request_dist_bundle_noop);
+  } else {
+    return response.arrayBuffer().catch(
+      /* v8 ignore next -- @preserve */
+      () => new ArrayBuffer(0)
+    );
+  }
+}
+function node_modules_octokit_request_dist_bundle_isJSONResponse(mimetype) {
+  return mimetype.type === "application/json" || mimetype.type === "application/scim+json";
+}
+function node_modules_octokit_request_dist_bundle_toErrorMessage(data) {
+  if (typeof data === "string") {
+    return data;
+  }
+  if (data instanceof ArrayBuffer) {
+    return "Unknown error";
+  }
+  if ("message" in data) {
+    const suffix = "documentation_url" in data ? ` - ${data.documentation_url}` : "";
+    return Array.isArray(data.errors) ? `${data.message}: ${data.errors.map((v) => JSON.stringify(v)).join(", ")}${suffix}` : `${data.message}${suffix}`;
+  }
+  return `Unknown error: ${JSON.stringify(data)}`;
+}
+
+// pkg/dist-src/with-defaults.js
+function auth_oauth_user_node_modules_octokit_request_dist_bundle_withDefaults(oldEndpoint, newDefaults) {
+  const endpoint2 = oldEndpoint.defaults(newDefaults);
+  const newApi = function(route, parameters) {
+    const endpointOptions = endpoint2.merge(route, parameters);
+    if (!endpointOptions.request || !endpointOptions.request.hook) {
+      return node_modules_octokit_request_dist_bundle_fetchWrapper(endpoint2.parse(endpointOptions));
+    }
+    const request2 = (route2, parameters2) => {
+      return node_modules_octokit_request_dist_bundle_fetchWrapper(
+        endpoint2.parse(endpoint2.merge(route2, parameters2))
+      );
+    };
+    Object.assign(request2, {
+      endpoint: endpoint2,
+      defaults: auth_oauth_user_node_modules_octokit_request_dist_bundle_withDefaults.bind(null, endpoint2)
+    });
+    return endpointOptions.request.hook(request2, endpointOptions);
+  };
+  return Object.assign(newApi, {
+    endpoint: endpoint2,
+    defaults: auth_oauth_user_node_modules_octokit_request_dist_bundle_withDefaults.bind(null, endpoint2)
+  });
+}
+
+// pkg/dist-src/index.js
+var node_modules_octokit_request_dist_bundle_request = auth_oauth_user_node_modules_octokit_request_dist_bundle_withDefaults(node_modules_octokit_endpoint_dist_bundle_endpoint, node_modules_octokit_request_dist_bundle_defaults_default);
+
+/* v8 ignore next -- @preserve */
+/* v8 ignore else -- @preserve */
+
+;// CONCATENATED MODULE: ./node_modules/@octokit/auth-oauth-device/node_modules/universal-user-agent/index.js
+function auth_oauth_device_node_modules_universal_user_agent_getUserAgent() {
+  if (typeof navigator === "object" && "userAgent" in navigator) {
+    return navigator.userAgent;
+  }
+
+  if (typeof process === "object" && process.version !== undefined) {
+    return `Node.js/${process.version.substr(1)} (${process.platform}; ${
+      process.arch
+    })`;
+  }
+
+  return "<environment undetectable>";
+}
+
+;// CONCATENATED MODULE: ./node_modules/@octokit/auth-oauth-device/node_modules/@octokit/endpoint/dist-bundle/index.js
+// pkg/dist-src/defaults.js
+
+
+// pkg/dist-src/version.js
+var auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_VERSION = "0.0.0-development";
+
+// pkg/dist-src/defaults.js
+var auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_userAgent = `octokit-endpoint.js/${auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_VERSION} ${auth_oauth_device_node_modules_universal_user_agent_getUserAgent()}`;
+var auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_DEFAULTS = {
+  method: "GET",
+  baseUrl: "https://api.github.com",
+  headers: {
+    accept: "application/vnd.github.v3+json",
+    "user-agent": auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_userAgent
+  },
+  mediaType: {
+    format: ""
+  }
+};
+
+// pkg/dist-src/util/lowercase-keys.js
+function auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_lowercaseKeys(object) {
+  if (!object) {
+    return {};
+  }
+  return Object.keys(object).reduce((newObj, key) => {
+    newObj[key.toLowerCase()] = object[key];
+    return newObj;
+  }, {});
+}
+
+// pkg/dist-src/util/is-plain-object.js
+function auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_isPlainObject(value) {
+  if (typeof value !== "object" || value === null) return false;
+  if (Object.prototype.toString.call(value) !== "[object Object]") return false;
+  const proto = Object.getPrototypeOf(value);
+  if (proto === null) return true;
+  const Ctor = Object.prototype.hasOwnProperty.call(proto, "constructor") && proto.constructor;
+  return typeof Ctor === "function" && Ctor instanceof Ctor && Function.prototype.call(Ctor) === Function.prototype.call(value);
+}
+
+// pkg/dist-src/util/merge-deep.js
+function auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_mergeDeep(defaults, options) {
+  const result = Object.assign({}, defaults);
+  Object.keys(options).forEach((key) => {
+    if (auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_isPlainObject(options[key])) {
+      if (!(key in defaults)) Object.assign(result, { [key]: options[key] });
+      else result[key] = auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_mergeDeep(defaults[key], options[key]);
+    } else {
+      Object.assign(result, { [key]: options[key] });
+    }
+  });
+  return result;
+}
+
+// pkg/dist-src/util/remove-undefined-properties.js
+function auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_removeUndefinedProperties(obj) {
+  for (const key in obj) {
+    if (obj[key] === void 0) {
+      delete obj[key];
+    }
+  }
+  return obj;
+}
+
+// pkg/dist-src/merge.js
+function auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_merge(defaults, route, options) {
+  if (typeof route === "string") {
+    let [method, url] = route.split(" ");
+    options = Object.assign(url ? { method, url } : { url: method }, options);
+  } else {
+    options = Object.assign({}, route);
+  }
+  options.headers = auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_lowercaseKeys(options.headers);
+  auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_removeUndefinedProperties(options);
+  auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_removeUndefinedProperties(options.headers);
+  const mergedOptions = auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_mergeDeep(defaults || {}, options);
+  if (options.url === "/graphql") {
+    if (defaults && defaults.mediaType.previews?.length) {
+      mergedOptions.mediaType.previews = defaults.mediaType.previews.filter(
+        (preview) => !mergedOptions.mediaType.previews.includes(preview)
+      ).concat(mergedOptions.mediaType.previews);
+    }
+    mergedOptions.mediaType.previews = (mergedOptions.mediaType.previews || []).map((preview) => preview.replace(/-preview/, ""));
+  }
+  return mergedOptions;
+}
+
+// pkg/dist-src/util/add-query-parameters.js
+function auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_addQueryParameters(url, parameters) {
+  const separator = /\?/.test(url) ? "&" : "?";
+  const names = Object.keys(parameters);
+  if (names.length === 0) {
+    return url;
+  }
+  return url + separator + names.map((name) => {
+    if (name === "q") {
+      return "q=" + parameters.q.split("+").map(encodeURIComponent).join("+");
+    }
+    return `${name}=${encodeURIComponent(parameters[name])}`;
+  }).join("&");
+}
+
+// pkg/dist-src/util/extract-url-variable-names.js
+var auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_urlVariableRegex = /\{[^{}}]+\}/g;
+function auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_removeNonChars(variableName) {
+  return variableName.replace(/(?:^\W+)|(?:(?<!\W)\W+$)/g, "").split(/,/);
+}
+function auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_extractUrlVariableNames(url) {
+  const matches = url.match(auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_urlVariableRegex);
+  if (!matches) {
+    return [];
+  }
+  return matches.map(auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_removeNonChars).reduce((a, b) => a.concat(b), []);
+}
+
+// pkg/dist-src/util/omit.js
+function auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_omit(object, keysToOmit) {
+  const result = { __proto__: null };
+  for (const key of Object.keys(object)) {
+    if (keysToOmit.indexOf(key) === -1) {
+      result[key] = object[key];
+    }
+  }
+  return result;
+}
+
+// pkg/dist-src/util/url-template.js
+function auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_encodeReserved(str) {
+  return str.split(/(%[0-9A-Fa-f]{2})/g).map(function(part) {
+    if (!/%[0-9A-Fa-f]/.test(part)) {
+      part = encodeURI(part).replace(/%5B/g, "[").replace(/%5D/g, "]");
+    }
+    return part;
+  }).join("");
+}
+function auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_encodeUnreserved(str) {
+  return encodeURIComponent(str).replace(/[!'()*]/g, function(c) {
+    return "%" + c.charCodeAt(0).toString(16).toUpperCase();
+  });
+}
+function auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_encodeValue(operator, value, key) {
+  value = operator === "+" || operator === "#" ? auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_encodeReserved(value) : auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_encodeUnreserved(value);
+  if (key) {
+    return auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_encodeUnreserved(key) + "=" + value;
+  } else {
+    return value;
+  }
+}
+function auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_isDefined(value) {
+  return value !== void 0 && value !== null;
+}
+function auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_isKeyOperator(operator) {
+  return operator === ";" || operator === "&" || operator === "?";
+}
+function auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_getValues(context, operator, key, modifier) {
+  var value = context[key], result = [];
+  if (auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_isDefined(value) && value !== "") {
+    if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+      value = value.toString();
+      if (modifier && modifier !== "*") {
+        value = value.substring(0, parseInt(modifier, 10));
+      }
+      result.push(
+        auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_encodeValue(operator, value, auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_isKeyOperator(operator) ? key : "")
+      );
+    } else {
+      if (modifier === "*") {
+        if (Array.isArray(value)) {
+          value.filter(auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_isDefined).forEach(function(value2) {
+            result.push(
+              auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_encodeValue(operator, value2, auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_isKeyOperator(operator) ? key : "")
+            );
+          });
+        } else {
+          Object.keys(value).forEach(function(k) {
+            if (auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_isDefined(value[k])) {
+              result.push(auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_encodeValue(operator, value[k], k));
+            }
+          });
+        }
+      } else {
+        const tmp = [];
+        if (Array.isArray(value)) {
+          value.filter(auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_isDefined).forEach(function(value2) {
+            tmp.push(auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_encodeValue(operator, value2));
+          });
+        } else {
+          Object.keys(value).forEach(function(k) {
+            if (auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_isDefined(value[k])) {
+              tmp.push(auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_encodeUnreserved(k));
+              tmp.push(auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_encodeValue(operator, value[k].toString()));
+            }
+          });
+        }
+        if (auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_isKeyOperator(operator)) {
+          result.push(auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_encodeUnreserved(key) + "=" + tmp.join(","));
+        } else if (tmp.length !== 0) {
+          result.push(tmp.join(","));
+        }
+      }
+    }
+  } else {
+    if (operator === ";") {
+      if (auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_isDefined(value)) {
+        result.push(auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_encodeUnreserved(key));
+      }
+    } else if (value === "" && (operator === "&" || operator === "?")) {
+      result.push(auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_encodeUnreserved(key) + "=");
+    } else if (value === "") {
+      result.push("");
+    }
+  }
+  return result;
+}
+function auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_parseUrl(template) {
+  return {
+    expand: auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_expand.bind(null, template)
+  };
+}
+function auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_expand(template, context) {
+  var operators = ["+", "#", ".", "/", ";", "?", "&"];
+  template = template.replace(
+    /\{([^\{\}]+)\}|([^\{\}]+)/g,
+    function(_, expression, literal) {
+      if (expression) {
+        let operator = "";
+        const values = [];
+        if (operators.indexOf(expression.charAt(0)) !== -1) {
+          operator = expression.charAt(0);
+          expression = expression.substr(1);
+        }
+        expression.split(/,/g).forEach(function(variable) {
+          var tmp = /([^:\*]*)(?::(\d+)|(\*))?/.exec(variable);
+          values.push(auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_getValues(context, operator, tmp[1], tmp[2] || tmp[3]));
+        });
+        if (operator && operator !== "+") {
+          var separator = ",";
+          if (operator === "?") {
+            separator = "&";
+          } else if (operator !== "#") {
+            separator = operator;
+          }
+          return (values.length !== 0 ? operator : "") + values.join(separator);
+        } else {
+          return values.join(",");
+        }
+      } else {
+        return auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_encodeReserved(literal);
+      }
+    }
+  );
+  if (template === "/") {
+    return template;
+  } else {
+    return template.replace(/\/$/, "");
+  }
+}
+
+// pkg/dist-src/parse.js
+function auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_parse(options) {
+  let method = options.method.toUpperCase();
+  let url = (options.url || "/").replace(/:([a-z]\w+)/g, "{$1}");
+  let headers = Object.assign({}, options.headers);
+  let body;
+  let parameters = auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_omit(options, [
+    "method",
+    "baseUrl",
+    "url",
+    "headers",
+    "request",
+    "mediaType"
+  ]);
+  const urlVariableNames = auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_extractUrlVariableNames(url);
+  url = auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_parseUrl(url).expand(parameters);
+  if (!/^http/.test(url)) {
+    url = options.baseUrl + url;
+  }
+  const omittedParameters = Object.keys(options).filter((option) => urlVariableNames.includes(option)).concat("baseUrl");
+  const remainingParameters = auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_omit(parameters, omittedParameters);
+  const isBinaryRequest = /application\/octet-stream/i.test(headers.accept);
+  if (!isBinaryRequest) {
+    if (options.mediaType.format) {
+      headers.accept = headers.accept.split(/,/).map(
+        (format) => format.replace(
+          /application\/vnd(\.\w+)(\.v3)?(\.\w+)?(\+json)?$/,
+          `application/vnd$1$2.${options.mediaType.format}`
+        )
+      ).join(",");
+    }
+    if (url.endsWith("/graphql")) {
+      if (options.mediaType.previews?.length) {
+        const previewsFromAcceptHeader = headers.accept.match(/(?<![\w-])[\w-]+(?=-preview)/g) || [];
+        headers.accept = previewsFromAcceptHeader.concat(options.mediaType.previews).map((preview) => {
+          const format = options.mediaType.format ? `.${options.mediaType.format}` : "+json";
+          return `application/vnd.github.${preview}-preview${format}`;
+        }).join(",");
+      }
+    }
+  }
+  if (["GET", "HEAD"].includes(method)) {
+    url = auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_addQueryParameters(url, remainingParameters);
+  } else {
+    if ("data" in remainingParameters) {
+      body = remainingParameters.data;
+    } else {
+      if (Object.keys(remainingParameters).length) {
+        body = remainingParameters;
+      }
+    }
+  }
+  if (!headers["content-type"] && typeof body !== "undefined") {
+    headers["content-type"] = "application/json; charset=utf-8";
+  }
+  if (["PATCH", "PUT"].includes(method) && typeof body === "undefined") {
+    body = "";
+  }
+  return Object.assign(
+    { method, url, headers },
+    typeof body !== "undefined" ? { body } : null,
+    options.request ? { request: options.request } : null
+  );
+}
+
+// pkg/dist-src/endpoint-with-defaults.js
+function auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_endpointWithDefaults(defaults, route, options) {
+  return auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_parse(auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_merge(defaults, route, options));
+}
+
+// pkg/dist-src/with-defaults.js
+function auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_withDefaults(oldDefaults, newDefaults) {
+  const DEFAULTS2 = auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_merge(oldDefaults, newDefaults);
+  const endpoint2 = auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_endpointWithDefaults.bind(null, DEFAULTS2);
+  return Object.assign(endpoint2, {
+    DEFAULTS: DEFAULTS2,
+    defaults: auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_withDefaults.bind(null, DEFAULTS2),
+    merge: auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_merge.bind(null, DEFAULTS2),
+    parse: auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_parse
+  });
+}
+
+// pkg/dist-src/index.js
+var auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_endpoint = auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_withDefaults(null, auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_DEFAULTS);
+
+
+;// CONCATENATED MODULE: ./node_modules/@octokit/auth-oauth-device/node_modules/@octokit/request-error/dist-src/index.js
+class auth_oauth_device_node_modules_octokit_request_error_dist_src_RequestError extends Error {
+  name;
+  /**
+   * http status code
+   */
+  status;
+  /**
+   * Request options that lead to the error.
+   */
+  request;
+  /**
+   * Response object if a response was received
+   */
+  response;
+  constructor(message, statusCode, options) {
+    super(message, { cause: options.cause });
+    this.name = "HttpError";
+    this.status = Number.parseInt(statusCode);
+    if (Number.isNaN(this.status)) {
+      this.status = 0;
+    }
+    /* v8 ignore else -- @preserve -- Bug with vitest coverage where it sees an else branch that doesn't exist */
+    if ("response" in options) {
+      this.response = options.response;
+    }
+    const requestCopy = Object.assign({}, options.request);
+    if (options.request.headers.authorization) {
+      requestCopy.headers = Object.assign({}, options.request.headers, {
+        authorization: options.request.headers.authorization.replace(
+          /(?<! ) .*$/,
+          " [REDACTED]"
+        )
+      });
+    }
+    requestCopy.url = requestCopy.url.replace(/\bclient_secret=\w+/g, "client_secret=[REDACTED]").replace(/\baccess_token=\w+/g, "access_token=[REDACTED]");
+    this.request = requestCopy;
+  }
+}
+
+
+;// CONCATENATED MODULE: ./node_modules/@octokit/auth-oauth-device/node_modules/@octokit/request/dist-bundle/index.js
+// pkg/dist-src/index.js
+
+
+// pkg/dist-src/defaults.js
+
+
+// pkg/dist-src/version.js
+var auth_oauth_device_node_modules_octokit_request_dist_bundle_VERSION = "10.0.7";
+
+// pkg/dist-src/defaults.js
+var auth_oauth_device_node_modules_octokit_request_dist_bundle_defaults_default = {
+  headers: {
+    "user-agent": `octokit-request.js/${auth_oauth_device_node_modules_octokit_request_dist_bundle_VERSION} ${auth_oauth_device_node_modules_universal_user_agent_getUserAgent()}`
+  }
+};
+
+// pkg/dist-src/fetch-wrapper.js
+
+
+// pkg/dist-src/is-plain-object.js
+function auth_oauth_device_node_modules_octokit_request_dist_bundle_isPlainObject(value) {
+  if (typeof value !== "object" || value === null) return false;
+  if (Object.prototype.toString.call(value) !== "[object Object]") return false;
+  const proto = Object.getPrototypeOf(value);
+  if (proto === null) return true;
+  const Ctor = Object.prototype.hasOwnProperty.call(proto, "constructor") && proto.constructor;
+  return typeof Ctor === "function" && Ctor instanceof Ctor && Function.prototype.call(Ctor) === Function.prototype.call(value);
+}
+
+// pkg/dist-src/fetch-wrapper.js
+
+var auth_oauth_device_node_modules_octokit_request_dist_bundle_noop = () => "";
+async function auth_oauth_device_node_modules_octokit_request_dist_bundle_fetchWrapper(requestOptions) {
+  const fetch = requestOptions.request?.fetch || globalThis.fetch;
+  if (!fetch) {
+    throw new Error(
+      "fetch is not set. Please pass a fetch implementation as new Octokit({ request: { fetch }}). Learn more at https://github.com/octokit/octokit.js/#fetch-missing"
+    );
+  }
+  const log = requestOptions.request?.log || console;
+  const parseSuccessResponseBody = requestOptions.request?.parseSuccessResponseBody !== false;
+  const body = auth_oauth_device_node_modules_octokit_request_dist_bundle_isPlainObject(requestOptions.body) || Array.isArray(requestOptions.body) ? JSON.stringify(requestOptions.body) : requestOptions.body;
+  const requestHeaders = Object.fromEntries(
+    Object.entries(requestOptions.headers).map(([name, value]) => [
+      name,
+      String(value)
+    ])
+  );
+  let fetchResponse;
+  try {
+    fetchResponse = await fetch(requestOptions.url, {
+      method: requestOptions.method,
+      body,
+      redirect: requestOptions.request?.redirect,
+      headers: requestHeaders,
+      signal: requestOptions.request?.signal,
+      // duplex must be set if request.body is ReadableStream or Async Iterables.
+      // See https://fetch.spec.whatwg.org/#dom-requestinit-duplex.
+      ...requestOptions.body && { duplex: "half" }
+    });
+  } catch (error) {
+    let message = "Unknown Error";
+    if (error instanceof Error) {
+      if (error.name === "AbortError") {
+        error.status = 500;
+        throw error;
+      }
+      message = error.message;
+      if (error.name === "TypeError" && "cause" in error) {
+        if (error.cause instanceof Error) {
+          message = error.cause.message;
+        } else if (typeof error.cause === "string") {
+          message = error.cause;
+        }
+      }
+    }
+    const requestError = new auth_oauth_device_node_modules_octokit_request_error_dist_src_RequestError(message, 500, {
+      request: requestOptions
+    });
+    requestError.cause = error;
+    throw requestError;
+  }
+  const status = fetchResponse.status;
+  const url = fetchResponse.url;
+  const responseHeaders = {};
+  for (const [key, value] of fetchResponse.headers) {
+    responseHeaders[key] = value;
+  }
+  const octokitResponse = {
+    url,
+    status,
+    headers: responseHeaders,
+    data: ""
+  };
+  if ("deprecation" in responseHeaders) {
+    const matches = responseHeaders.link && responseHeaders.link.match(/<([^<>]+)>; rel="deprecation"/);
+    const deprecationLink = matches && matches.pop();
+    log.warn(
+      `[@octokit/request] "${requestOptions.method} ${requestOptions.url}" is deprecated. It is scheduled to be removed on ${responseHeaders.sunset}${deprecationLink ? `. See ${deprecationLink}` : ""}`
+    );
+  }
+  if (status === 204 || status === 205) {
+    return octokitResponse;
+  }
+  if (requestOptions.method === "HEAD") {
+    if (status < 400) {
+      return octokitResponse;
+    }
+    throw new auth_oauth_device_node_modules_octokit_request_error_dist_src_RequestError(fetchResponse.statusText, status, {
+      response: octokitResponse,
+      request: requestOptions
+    });
+  }
+  if (status === 304) {
+    octokitResponse.data = await auth_oauth_device_node_modules_octokit_request_dist_bundle_getResponseData(fetchResponse);
+    throw new auth_oauth_device_node_modules_octokit_request_error_dist_src_RequestError("Not modified", status, {
+      response: octokitResponse,
+      request: requestOptions
+    });
+  }
+  if (status >= 400) {
+    octokitResponse.data = await auth_oauth_device_node_modules_octokit_request_dist_bundle_getResponseData(fetchResponse);
+    throw new auth_oauth_device_node_modules_octokit_request_error_dist_src_RequestError(auth_oauth_device_node_modules_octokit_request_dist_bundle_toErrorMessage(octokitResponse.data), status, {
+      response: octokitResponse,
+      request: requestOptions
+    });
+  }
+  octokitResponse.data = parseSuccessResponseBody ? await auth_oauth_device_node_modules_octokit_request_dist_bundle_getResponseData(fetchResponse) : fetchResponse.body;
+  return octokitResponse;
+}
+async function auth_oauth_device_node_modules_octokit_request_dist_bundle_getResponseData(response) {
+  const contentType = response.headers.get("content-type");
+  if (!contentType) {
+    return response.text().catch(auth_oauth_device_node_modules_octokit_request_dist_bundle_noop);
+  }
+  const mimetype = (0,fast_content_type_parse/* safeParse */.xL)(contentType);
+  if (auth_oauth_device_node_modules_octokit_request_dist_bundle_isJSONResponse(mimetype)) {
+    let text = "";
+    try {
+      text = await response.text();
+      return JSON.parse(text);
+    } catch (err) {
+      return text;
+    }
+  } else if (mimetype.type.startsWith("text/") || mimetype.parameters.charset?.toLowerCase() === "utf-8") {
+    return response.text().catch(auth_oauth_device_node_modules_octokit_request_dist_bundle_noop);
+  } else {
+    return response.arrayBuffer().catch(
+      /* v8 ignore next -- @preserve */
+      () => new ArrayBuffer(0)
+    );
+  }
+}
+function auth_oauth_device_node_modules_octokit_request_dist_bundle_isJSONResponse(mimetype) {
+  return mimetype.type === "application/json" || mimetype.type === "application/scim+json";
+}
+function auth_oauth_device_node_modules_octokit_request_dist_bundle_toErrorMessage(data) {
+  if (typeof data === "string") {
+    return data;
+  }
+  if (data instanceof ArrayBuffer) {
+    return "Unknown error";
+  }
+  if ("message" in data) {
+    const suffix = "documentation_url" in data ? ` - ${data.documentation_url}` : "";
+    return Array.isArray(data.errors) ? `${data.message}: ${data.errors.map((v) => JSON.stringify(v)).join(", ")}${suffix}` : `${data.message}${suffix}`;
+  }
+  return `Unknown error: ${JSON.stringify(data)}`;
+}
+
+// pkg/dist-src/with-defaults.js
+function auth_oauth_device_node_modules_octokit_request_dist_bundle_withDefaults(oldEndpoint, newDefaults) {
+  const endpoint2 = oldEndpoint.defaults(newDefaults);
+  const newApi = function(route, parameters) {
+    const endpointOptions = endpoint2.merge(route, parameters);
+    if (!endpointOptions.request || !endpointOptions.request.hook) {
+      return auth_oauth_device_node_modules_octokit_request_dist_bundle_fetchWrapper(endpoint2.parse(endpointOptions));
+    }
+    const request2 = (route2, parameters2) => {
+      return auth_oauth_device_node_modules_octokit_request_dist_bundle_fetchWrapper(
+        endpoint2.parse(endpoint2.merge(route2, parameters2))
+      );
+    };
+    Object.assign(request2, {
+      endpoint: endpoint2,
+      defaults: auth_oauth_device_node_modules_octokit_request_dist_bundle_withDefaults.bind(null, endpoint2)
+    });
+    return endpointOptions.request.hook(request2, endpointOptions);
+  };
+  return Object.assign(newApi, {
+    endpoint: endpoint2,
+    defaults: auth_oauth_device_node_modules_octokit_request_dist_bundle_withDefaults.bind(null, endpoint2)
+  });
+}
+
+// pkg/dist-src/index.js
+var auth_oauth_device_node_modules_octokit_request_dist_bundle_request = auth_oauth_device_node_modules_octokit_request_dist_bundle_withDefaults(auth_oauth_device_node_modules_octokit_endpoint_dist_bundle_endpoint, auth_oauth_device_node_modules_octokit_request_dist_bundle_defaults_default);
+
+/* v8 ignore next -- @preserve */
+/* v8 ignore else -- @preserve */
+
 ;// CONCATENATED MODULE: ./node_modules/@octokit/oauth-authorization-url/dist-src/index.js
 function oauthAuthorizationUrl(options) {
   const clientType = options.clientType || "oauth-app";
@@ -44466,10 +47409,8 @@ function urlBuilderAuthorize(base, options) {
   };
   let url = base;
   Object.keys(map).filter((k) => options[k] !== null).filter((k) => {
-    if (k !== "scopes")
-      return true;
-    if (options.clientType === "github-app")
-      return false;
+    if (k !== "scopes") return true;
+    if (options.clientType === "github-app") return false;
     return !Array.isArray(options[k]) || options[k].length > 0;
   }).map((key) => [map[key], `${options[key]}`]).forEach(([key, value], index) => {
     url += index === 0 ? `?` : "&";
@@ -44478,6 +47419,610 @@ function urlBuilderAuthorize(base, options) {
   return url;
 }
 
+
+;// CONCATENATED MODULE: ./node_modules/@octokit/oauth-methods/node_modules/universal-user-agent/index.js
+function oauth_methods_node_modules_universal_user_agent_getUserAgent() {
+  if (typeof navigator === "object" && "userAgent" in navigator) {
+    return navigator.userAgent;
+  }
+
+  if (typeof process === "object" && process.version !== undefined) {
+    return `Node.js/${process.version.substr(1)} (${process.platform}; ${
+      process.arch
+    })`;
+  }
+
+  return "<environment undetectable>";
+}
+
+;// CONCATENATED MODULE: ./node_modules/@octokit/oauth-methods/node_modules/@octokit/endpoint/dist-bundle/index.js
+// pkg/dist-src/defaults.js
+
+
+// pkg/dist-src/version.js
+var oauth_methods_node_modules_octokit_endpoint_dist_bundle_VERSION = "0.0.0-development";
+
+// pkg/dist-src/defaults.js
+var oauth_methods_node_modules_octokit_endpoint_dist_bundle_userAgent = `octokit-endpoint.js/${oauth_methods_node_modules_octokit_endpoint_dist_bundle_VERSION} ${oauth_methods_node_modules_universal_user_agent_getUserAgent()}`;
+var oauth_methods_node_modules_octokit_endpoint_dist_bundle_DEFAULTS = {
+  method: "GET",
+  baseUrl: "https://api.github.com",
+  headers: {
+    accept: "application/vnd.github.v3+json",
+    "user-agent": oauth_methods_node_modules_octokit_endpoint_dist_bundle_userAgent
+  },
+  mediaType: {
+    format: ""
+  }
+};
+
+// pkg/dist-src/util/lowercase-keys.js
+function oauth_methods_node_modules_octokit_endpoint_dist_bundle_lowercaseKeys(object) {
+  if (!object) {
+    return {};
+  }
+  return Object.keys(object).reduce((newObj, key) => {
+    newObj[key.toLowerCase()] = object[key];
+    return newObj;
+  }, {});
+}
+
+// pkg/dist-src/util/is-plain-object.js
+function oauth_methods_node_modules_octokit_endpoint_dist_bundle_isPlainObject(value) {
+  if (typeof value !== "object" || value === null) return false;
+  if (Object.prototype.toString.call(value) !== "[object Object]") return false;
+  const proto = Object.getPrototypeOf(value);
+  if (proto === null) return true;
+  const Ctor = Object.prototype.hasOwnProperty.call(proto, "constructor") && proto.constructor;
+  return typeof Ctor === "function" && Ctor instanceof Ctor && Function.prototype.call(Ctor) === Function.prototype.call(value);
+}
+
+// pkg/dist-src/util/merge-deep.js
+function oauth_methods_node_modules_octokit_endpoint_dist_bundle_mergeDeep(defaults, options) {
+  const result = Object.assign({}, defaults);
+  Object.keys(options).forEach((key) => {
+    if (oauth_methods_node_modules_octokit_endpoint_dist_bundle_isPlainObject(options[key])) {
+      if (!(key in defaults)) Object.assign(result, { [key]: options[key] });
+      else result[key] = oauth_methods_node_modules_octokit_endpoint_dist_bundle_mergeDeep(defaults[key], options[key]);
+    } else {
+      Object.assign(result, { [key]: options[key] });
+    }
+  });
+  return result;
+}
+
+// pkg/dist-src/util/remove-undefined-properties.js
+function oauth_methods_node_modules_octokit_endpoint_dist_bundle_removeUndefinedProperties(obj) {
+  for (const key in obj) {
+    if (obj[key] === void 0) {
+      delete obj[key];
+    }
+  }
+  return obj;
+}
+
+// pkg/dist-src/merge.js
+function oauth_methods_node_modules_octokit_endpoint_dist_bundle_merge(defaults, route, options) {
+  if (typeof route === "string") {
+    let [method, url] = route.split(" ");
+    options = Object.assign(url ? { method, url } : { url: method }, options);
+  } else {
+    options = Object.assign({}, route);
+  }
+  options.headers = oauth_methods_node_modules_octokit_endpoint_dist_bundle_lowercaseKeys(options.headers);
+  oauth_methods_node_modules_octokit_endpoint_dist_bundle_removeUndefinedProperties(options);
+  oauth_methods_node_modules_octokit_endpoint_dist_bundle_removeUndefinedProperties(options.headers);
+  const mergedOptions = oauth_methods_node_modules_octokit_endpoint_dist_bundle_mergeDeep(defaults || {}, options);
+  if (options.url === "/graphql") {
+    if (defaults && defaults.mediaType.previews?.length) {
+      mergedOptions.mediaType.previews = defaults.mediaType.previews.filter(
+        (preview) => !mergedOptions.mediaType.previews.includes(preview)
+      ).concat(mergedOptions.mediaType.previews);
+    }
+    mergedOptions.mediaType.previews = (mergedOptions.mediaType.previews || []).map((preview) => preview.replace(/-preview/, ""));
+  }
+  return mergedOptions;
+}
+
+// pkg/dist-src/util/add-query-parameters.js
+function oauth_methods_node_modules_octokit_endpoint_dist_bundle_addQueryParameters(url, parameters) {
+  const separator = /\?/.test(url) ? "&" : "?";
+  const names = Object.keys(parameters);
+  if (names.length === 0) {
+    return url;
+  }
+  return url + separator + names.map((name) => {
+    if (name === "q") {
+      return "q=" + parameters.q.split("+").map(encodeURIComponent).join("+");
+    }
+    return `${name}=${encodeURIComponent(parameters[name])}`;
+  }).join("&");
+}
+
+// pkg/dist-src/util/extract-url-variable-names.js
+var oauth_methods_node_modules_octokit_endpoint_dist_bundle_urlVariableRegex = /\{[^{}}]+\}/g;
+function oauth_methods_node_modules_octokit_endpoint_dist_bundle_removeNonChars(variableName) {
+  return variableName.replace(/(?:^\W+)|(?:(?<!\W)\W+$)/g, "").split(/,/);
+}
+function oauth_methods_node_modules_octokit_endpoint_dist_bundle_extractUrlVariableNames(url) {
+  const matches = url.match(oauth_methods_node_modules_octokit_endpoint_dist_bundle_urlVariableRegex);
+  if (!matches) {
+    return [];
+  }
+  return matches.map(oauth_methods_node_modules_octokit_endpoint_dist_bundle_removeNonChars).reduce((a, b) => a.concat(b), []);
+}
+
+// pkg/dist-src/util/omit.js
+function oauth_methods_node_modules_octokit_endpoint_dist_bundle_omit(object, keysToOmit) {
+  const result = { __proto__: null };
+  for (const key of Object.keys(object)) {
+    if (keysToOmit.indexOf(key) === -1) {
+      result[key] = object[key];
+    }
+  }
+  return result;
+}
+
+// pkg/dist-src/util/url-template.js
+function oauth_methods_node_modules_octokit_endpoint_dist_bundle_encodeReserved(str) {
+  return str.split(/(%[0-9A-Fa-f]{2})/g).map(function(part) {
+    if (!/%[0-9A-Fa-f]/.test(part)) {
+      part = encodeURI(part).replace(/%5B/g, "[").replace(/%5D/g, "]");
+    }
+    return part;
+  }).join("");
+}
+function oauth_methods_node_modules_octokit_endpoint_dist_bundle_encodeUnreserved(str) {
+  return encodeURIComponent(str).replace(/[!'()*]/g, function(c) {
+    return "%" + c.charCodeAt(0).toString(16).toUpperCase();
+  });
+}
+function oauth_methods_node_modules_octokit_endpoint_dist_bundle_encodeValue(operator, value, key) {
+  value = operator === "+" || operator === "#" ? oauth_methods_node_modules_octokit_endpoint_dist_bundle_encodeReserved(value) : oauth_methods_node_modules_octokit_endpoint_dist_bundle_encodeUnreserved(value);
+  if (key) {
+    return oauth_methods_node_modules_octokit_endpoint_dist_bundle_encodeUnreserved(key) + "=" + value;
+  } else {
+    return value;
+  }
+}
+function oauth_methods_node_modules_octokit_endpoint_dist_bundle_isDefined(value) {
+  return value !== void 0 && value !== null;
+}
+function oauth_methods_node_modules_octokit_endpoint_dist_bundle_isKeyOperator(operator) {
+  return operator === ";" || operator === "&" || operator === "?";
+}
+function oauth_methods_node_modules_octokit_endpoint_dist_bundle_getValues(context, operator, key, modifier) {
+  var value = context[key], result = [];
+  if (oauth_methods_node_modules_octokit_endpoint_dist_bundle_isDefined(value) && value !== "") {
+    if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+      value = value.toString();
+      if (modifier && modifier !== "*") {
+        value = value.substring(0, parseInt(modifier, 10));
+      }
+      result.push(
+        oauth_methods_node_modules_octokit_endpoint_dist_bundle_encodeValue(operator, value, oauth_methods_node_modules_octokit_endpoint_dist_bundle_isKeyOperator(operator) ? key : "")
+      );
+    } else {
+      if (modifier === "*") {
+        if (Array.isArray(value)) {
+          value.filter(oauth_methods_node_modules_octokit_endpoint_dist_bundle_isDefined).forEach(function(value2) {
+            result.push(
+              oauth_methods_node_modules_octokit_endpoint_dist_bundle_encodeValue(operator, value2, oauth_methods_node_modules_octokit_endpoint_dist_bundle_isKeyOperator(operator) ? key : "")
+            );
+          });
+        } else {
+          Object.keys(value).forEach(function(k) {
+            if (oauth_methods_node_modules_octokit_endpoint_dist_bundle_isDefined(value[k])) {
+              result.push(oauth_methods_node_modules_octokit_endpoint_dist_bundle_encodeValue(operator, value[k], k));
+            }
+          });
+        }
+      } else {
+        const tmp = [];
+        if (Array.isArray(value)) {
+          value.filter(oauth_methods_node_modules_octokit_endpoint_dist_bundle_isDefined).forEach(function(value2) {
+            tmp.push(oauth_methods_node_modules_octokit_endpoint_dist_bundle_encodeValue(operator, value2));
+          });
+        } else {
+          Object.keys(value).forEach(function(k) {
+            if (oauth_methods_node_modules_octokit_endpoint_dist_bundle_isDefined(value[k])) {
+              tmp.push(oauth_methods_node_modules_octokit_endpoint_dist_bundle_encodeUnreserved(k));
+              tmp.push(oauth_methods_node_modules_octokit_endpoint_dist_bundle_encodeValue(operator, value[k].toString()));
+            }
+          });
+        }
+        if (oauth_methods_node_modules_octokit_endpoint_dist_bundle_isKeyOperator(operator)) {
+          result.push(oauth_methods_node_modules_octokit_endpoint_dist_bundle_encodeUnreserved(key) + "=" + tmp.join(","));
+        } else if (tmp.length !== 0) {
+          result.push(tmp.join(","));
+        }
+      }
+    }
+  } else {
+    if (operator === ";") {
+      if (oauth_methods_node_modules_octokit_endpoint_dist_bundle_isDefined(value)) {
+        result.push(oauth_methods_node_modules_octokit_endpoint_dist_bundle_encodeUnreserved(key));
+      }
+    } else if (value === "" && (operator === "&" || operator === "?")) {
+      result.push(oauth_methods_node_modules_octokit_endpoint_dist_bundle_encodeUnreserved(key) + "=");
+    } else if (value === "") {
+      result.push("");
+    }
+  }
+  return result;
+}
+function oauth_methods_node_modules_octokit_endpoint_dist_bundle_parseUrl(template) {
+  return {
+    expand: oauth_methods_node_modules_octokit_endpoint_dist_bundle_expand.bind(null, template)
+  };
+}
+function oauth_methods_node_modules_octokit_endpoint_dist_bundle_expand(template, context) {
+  var operators = ["+", "#", ".", "/", ";", "?", "&"];
+  template = template.replace(
+    /\{([^\{\}]+)\}|([^\{\}]+)/g,
+    function(_, expression, literal) {
+      if (expression) {
+        let operator = "";
+        const values = [];
+        if (operators.indexOf(expression.charAt(0)) !== -1) {
+          operator = expression.charAt(0);
+          expression = expression.substr(1);
+        }
+        expression.split(/,/g).forEach(function(variable) {
+          var tmp = /([^:\*]*)(?::(\d+)|(\*))?/.exec(variable);
+          values.push(oauth_methods_node_modules_octokit_endpoint_dist_bundle_getValues(context, operator, tmp[1], tmp[2] || tmp[3]));
+        });
+        if (operator && operator !== "+") {
+          var separator = ",";
+          if (operator === "?") {
+            separator = "&";
+          } else if (operator !== "#") {
+            separator = operator;
+          }
+          return (values.length !== 0 ? operator : "") + values.join(separator);
+        } else {
+          return values.join(",");
+        }
+      } else {
+        return oauth_methods_node_modules_octokit_endpoint_dist_bundle_encodeReserved(literal);
+      }
+    }
+  );
+  if (template === "/") {
+    return template;
+  } else {
+    return template.replace(/\/$/, "");
+  }
+}
+
+// pkg/dist-src/parse.js
+function oauth_methods_node_modules_octokit_endpoint_dist_bundle_parse(options) {
+  let method = options.method.toUpperCase();
+  let url = (options.url || "/").replace(/:([a-z]\w+)/g, "{$1}");
+  let headers = Object.assign({}, options.headers);
+  let body;
+  let parameters = oauth_methods_node_modules_octokit_endpoint_dist_bundle_omit(options, [
+    "method",
+    "baseUrl",
+    "url",
+    "headers",
+    "request",
+    "mediaType"
+  ]);
+  const urlVariableNames = oauth_methods_node_modules_octokit_endpoint_dist_bundle_extractUrlVariableNames(url);
+  url = oauth_methods_node_modules_octokit_endpoint_dist_bundle_parseUrl(url).expand(parameters);
+  if (!/^http/.test(url)) {
+    url = options.baseUrl + url;
+  }
+  const omittedParameters = Object.keys(options).filter((option) => urlVariableNames.includes(option)).concat("baseUrl");
+  const remainingParameters = oauth_methods_node_modules_octokit_endpoint_dist_bundle_omit(parameters, omittedParameters);
+  const isBinaryRequest = /application\/octet-stream/i.test(headers.accept);
+  if (!isBinaryRequest) {
+    if (options.mediaType.format) {
+      headers.accept = headers.accept.split(/,/).map(
+        (format) => format.replace(
+          /application\/vnd(\.\w+)(\.v3)?(\.\w+)?(\+json)?$/,
+          `application/vnd$1$2.${options.mediaType.format}`
+        )
+      ).join(",");
+    }
+    if (url.endsWith("/graphql")) {
+      if (options.mediaType.previews?.length) {
+        const previewsFromAcceptHeader = headers.accept.match(/(?<![\w-])[\w-]+(?=-preview)/g) || [];
+        headers.accept = previewsFromAcceptHeader.concat(options.mediaType.previews).map((preview) => {
+          const format = options.mediaType.format ? `.${options.mediaType.format}` : "+json";
+          return `application/vnd.github.${preview}-preview${format}`;
+        }).join(",");
+      }
+    }
+  }
+  if (["GET", "HEAD"].includes(method)) {
+    url = oauth_methods_node_modules_octokit_endpoint_dist_bundle_addQueryParameters(url, remainingParameters);
+  } else {
+    if ("data" in remainingParameters) {
+      body = remainingParameters.data;
+    } else {
+      if (Object.keys(remainingParameters).length) {
+        body = remainingParameters;
+      }
+    }
+  }
+  if (!headers["content-type"] && typeof body !== "undefined") {
+    headers["content-type"] = "application/json; charset=utf-8";
+  }
+  if (["PATCH", "PUT"].includes(method) && typeof body === "undefined") {
+    body = "";
+  }
+  return Object.assign(
+    { method, url, headers },
+    typeof body !== "undefined" ? { body } : null,
+    options.request ? { request: options.request } : null
+  );
+}
+
+// pkg/dist-src/endpoint-with-defaults.js
+function oauth_methods_node_modules_octokit_endpoint_dist_bundle_endpointWithDefaults(defaults, route, options) {
+  return oauth_methods_node_modules_octokit_endpoint_dist_bundle_parse(oauth_methods_node_modules_octokit_endpoint_dist_bundle_merge(defaults, route, options));
+}
+
+// pkg/dist-src/with-defaults.js
+function oauth_methods_node_modules_octokit_endpoint_dist_bundle_withDefaults(oldDefaults, newDefaults) {
+  const DEFAULTS2 = oauth_methods_node_modules_octokit_endpoint_dist_bundle_merge(oldDefaults, newDefaults);
+  const endpoint2 = oauth_methods_node_modules_octokit_endpoint_dist_bundle_endpointWithDefaults.bind(null, DEFAULTS2);
+  return Object.assign(endpoint2, {
+    DEFAULTS: DEFAULTS2,
+    defaults: oauth_methods_node_modules_octokit_endpoint_dist_bundle_withDefaults.bind(null, DEFAULTS2),
+    merge: oauth_methods_node_modules_octokit_endpoint_dist_bundle_merge.bind(null, DEFAULTS2),
+    parse: oauth_methods_node_modules_octokit_endpoint_dist_bundle_parse
+  });
+}
+
+// pkg/dist-src/index.js
+var oauth_methods_node_modules_octokit_endpoint_dist_bundle_endpoint = oauth_methods_node_modules_octokit_endpoint_dist_bundle_withDefaults(null, oauth_methods_node_modules_octokit_endpoint_dist_bundle_DEFAULTS);
+
+
+;// CONCATENATED MODULE: ./node_modules/@octokit/oauth-methods/node_modules/@octokit/request-error/dist-src/index.js
+class oauth_methods_node_modules_octokit_request_error_dist_src_RequestError extends Error {
+  name;
+  /**
+   * http status code
+   */
+  status;
+  /**
+   * Request options that lead to the error.
+   */
+  request;
+  /**
+   * Response object if a response was received
+   */
+  response;
+  constructor(message, statusCode, options) {
+    super(message, { cause: options.cause });
+    this.name = "HttpError";
+    this.status = Number.parseInt(statusCode);
+    if (Number.isNaN(this.status)) {
+      this.status = 0;
+    }
+    /* v8 ignore else -- @preserve -- Bug with vitest coverage where it sees an else branch that doesn't exist */
+    if ("response" in options) {
+      this.response = options.response;
+    }
+    const requestCopy = Object.assign({}, options.request);
+    if (options.request.headers.authorization) {
+      requestCopy.headers = Object.assign({}, options.request.headers, {
+        authorization: options.request.headers.authorization.replace(
+          /(?<! ) .*$/,
+          " [REDACTED]"
+        )
+      });
+    }
+    requestCopy.url = requestCopy.url.replace(/\bclient_secret=\w+/g, "client_secret=[REDACTED]").replace(/\baccess_token=\w+/g, "access_token=[REDACTED]");
+    this.request = requestCopy;
+  }
+}
+
+
+;// CONCATENATED MODULE: ./node_modules/@octokit/oauth-methods/node_modules/@octokit/request/dist-bundle/index.js
+// pkg/dist-src/index.js
+
+
+// pkg/dist-src/defaults.js
+
+
+// pkg/dist-src/version.js
+var oauth_methods_node_modules_octokit_request_dist_bundle_VERSION = "10.0.7";
+
+// pkg/dist-src/defaults.js
+var oauth_methods_node_modules_octokit_request_dist_bundle_defaults_default = {
+  headers: {
+    "user-agent": `octokit-request.js/${oauth_methods_node_modules_octokit_request_dist_bundle_VERSION} ${oauth_methods_node_modules_universal_user_agent_getUserAgent()}`
+  }
+};
+
+// pkg/dist-src/fetch-wrapper.js
+
+
+// pkg/dist-src/is-plain-object.js
+function oauth_methods_node_modules_octokit_request_dist_bundle_isPlainObject(value) {
+  if (typeof value !== "object" || value === null) return false;
+  if (Object.prototype.toString.call(value) !== "[object Object]") return false;
+  const proto = Object.getPrototypeOf(value);
+  if (proto === null) return true;
+  const Ctor = Object.prototype.hasOwnProperty.call(proto, "constructor") && proto.constructor;
+  return typeof Ctor === "function" && Ctor instanceof Ctor && Function.prototype.call(Ctor) === Function.prototype.call(value);
+}
+
+// pkg/dist-src/fetch-wrapper.js
+
+var oauth_methods_node_modules_octokit_request_dist_bundle_noop = () => "";
+async function oauth_methods_node_modules_octokit_request_dist_bundle_fetchWrapper(requestOptions) {
+  const fetch = requestOptions.request?.fetch || globalThis.fetch;
+  if (!fetch) {
+    throw new Error(
+      "fetch is not set. Please pass a fetch implementation as new Octokit({ request: { fetch }}). Learn more at https://github.com/octokit/octokit.js/#fetch-missing"
+    );
+  }
+  const log = requestOptions.request?.log || console;
+  const parseSuccessResponseBody = requestOptions.request?.parseSuccessResponseBody !== false;
+  const body = oauth_methods_node_modules_octokit_request_dist_bundle_isPlainObject(requestOptions.body) || Array.isArray(requestOptions.body) ? JSON.stringify(requestOptions.body) : requestOptions.body;
+  const requestHeaders = Object.fromEntries(
+    Object.entries(requestOptions.headers).map(([name, value]) => [
+      name,
+      String(value)
+    ])
+  );
+  let fetchResponse;
+  try {
+    fetchResponse = await fetch(requestOptions.url, {
+      method: requestOptions.method,
+      body,
+      redirect: requestOptions.request?.redirect,
+      headers: requestHeaders,
+      signal: requestOptions.request?.signal,
+      // duplex must be set if request.body is ReadableStream or Async Iterables.
+      // See https://fetch.spec.whatwg.org/#dom-requestinit-duplex.
+      ...requestOptions.body && { duplex: "half" }
+    });
+  } catch (error) {
+    let message = "Unknown Error";
+    if (error instanceof Error) {
+      if (error.name === "AbortError") {
+        error.status = 500;
+        throw error;
+      }
+      message = error.message;
+      if (error.name === "TypeError" && "cause" in error) {
+        if (error.cause instanceof Error) {
+          message = error.cause.message;
+        } else if (typeof error.cause === "string") {
+          message = error.cause;
+        }
+      }
+    }
+    const requestError = new oauth_methods_node_modules_octokit_request_error_dist_src_RequestError(message, 500, {
+      request: requestOptions
+    });
+    requestError.cause = error;
+    throw requestError;
+  }
+  const status = fetchResponse.status;
+  const url = fetchResponse.url;
+  const responseHeaders = {};
+  for (const [key, value] of fetchResponse.headers) {
+    responseHeaders[key] = value;
+  }
+  const octokitResponse = {
+    url,
+    status,
+    headers: responseHeaders,
+    data: ""
+  };
+  if ("deprecation" in responseHeaders) {
+    const matches = responseHeaders.link && responseHeaders.link.match(/<([^<>]+)>; rel="deprecation"/);
+    const deprecationLink = matches && matches.pop();
+    log.warn(
+      `[@octokit/request] "${requestOptions.method} ${requestOptions.url}" is deprecated. It is scheduled to be removed on ${responseHeaders.sunset}${deprecationLink ? `. See ${deprecationLink}` : ""}`
+    );
+  }
+  if (status === 204 || status === 205) {
+    return octokitResponse;
+  }
+  if (requestOptions.method === "HEAD") {
+    if (status < 400) {
+      return octokitResponse;
+    }
+    throw new oauth_methods_node_modules_octokit_request_error_dist_src_RequestError(fetchResponse.statusText, status, {
+      response: octokitResponse,
+      request: requestOptions
+    });
+  }
+  if (status === 304) {
+    octokitResponse.data = await oauth_methods_node_modules_octokit_request_dist_bundle_getResponseData(fetchResponse);
+    throw new oauth_methods_node_modules_octokit_request_error_dist_src_RequestError("Not modified", status, {
+      response: octokitResponse,
+      request: requestOptions
+    });
+  }
+  if (status >= 400) {
+    octokitResponse.data = await oauth_methods_node_modules_octokit_request_dist_bundle_getResponseData(fetchResponse);
+    throw new oauth_methods_node_modules_octokit_request_error_dist_src_RequestError(oauth_methods_node_modules_octokit_request_dist_bundle_toErrorMessage(octokitResponse.data), status, {
+      response: octokitResponse,
+      request: requestOptions
+    });
+  }
+  octokitResponse.data = parseSuccessResponseBody ? await oauth_methods_node_modules_octokit_request_dist_bundle_getResponseData(fetchResponse) : fetchResponse.body;
+  return octokitResponse;
+}
+async function oauth_methods_node_modules_octokit_request_dist_bundle_getResponseData(response) {
+  const contentType = response.headers.get("content-type");
+  if (!contentType) {
+    return response.text().catch(oauth_methods_node_modules_octokit_request_dist_bundle_noop);
+  }
+  const mimetype = (0,fast_content_type_parse/* safeParse */.xL)(contentType);
+  if (oauth_methods_node_modules_octokit_request_dist_bundle_isJSONResponse(mimetype)) {
+    let text = "";
+    try {
+      text = await response.text();
+      return JSON.parse(text);
+    } catch (err) {
+      return text;
+    }
+  } else if (mimetype.type.startsWith("text/") || mimetype.parameters.charset?.toLowerCase() === "utf-8") {
+    return response.text().catch(oauth_methods_node_modules_octokit_request_dist_bundle_noop);
+  } else {
+    return response.arrayBuffer().catch(
+      /* v8 ignore next -- @preserve */
+      () => new ArrayBuffer(0)
+    );
+  }
+}
+function oauth_methods_node_modules_octokit_request_dist_bundle_isJSONResponse(mimetype) {
+  return mimetype.type === "application/json" || mimetype.type === "application/scim+json";
+}
+function oauth_methods_node_modules_octokit_request_dist_bundle_toErrorMessage(data) {
+  if (typeof data === "string") {
+    return data;
+  }
+  if (data instanceof ArrayBuffer) {
+    return "Unknown error";
+  }
+  if ("message" in data) {
+    const suffix = "documentation_url" in data ? ` - ${data.documentation_url}` : "";
+    return Array.isArray(data.errors) ? `${data.message}: ${data.errors.map((v) => JSON.stringify(v)).join(", ")}${suffix}` : `${data.message}${suffix}`;
+  }
+  return `Unknown error: ${JSON.stringify(data)}`;
+}
+
+// pkg/dist-src/with-defaults.js
+function oauth_methods_node_modules_octokit_request_dist_bundle_withDefaults(oldEndpoint, newDefaults) {
+  const endpoint2 = oldEndpoint.defaults(newDefaults);
+  const newApi = function(route, parameters) {
+    const endpointOptions = endpoint2.merge(route, parameters);
+    if (!endpointOptions.request || !endpointOptions.request.hook) {
+      return oauth_methods_node_modules_octokit_request_dist_bundle_fetchWrapper(endpoint2.parse(endpointOptions));
+    }
+    const request2 = (route2, parameters2) => {
+      return oauth_methods_node_modules_octokit_request_dist_bundle_fetchWrapper(
+        endpoint2.parse(endpoint2.merge(route2, parameters2))
+      );
+    };
+    Object.assign(request2, {
+      endpoint: endpoint2,
+      defaults: oauth_methods_node_modules_octokit_request_dist_bundle_withDefaults.bind(null, endpoint2)
+    });
+    return endpointOptions.request.hook(request2, endpointOptions);
+  };
+  return Object.assign(newApi, {
+    endpoint: endpoint2,
+    defaults: oauth_methods_node_modules_octokit_request_dist_bundle_withDefaults.bind(null, endpoint2)
+  });
+}
+
+// pkg/dist-src/index.js
+var oauth_methods_node_modules_octokit_request_dist_bundle_request = oauth_methods_node_modules_octokit_request_dist_bundle_withDefaults(oauth_methods_node_modules_octokit_endpoint_dist_bundle_endpoint, oauth_methods_node_modules_octokit_request_dist_bundle_defaults_default);
+
+/* v8 ignore next -- @preserve */
+/* v8 ignore else -- @preserve */
 
 ;// CONCATENATED MODULE: ./node_modules/@octokit/oauth-methods/dist-bundle/index.js
 // pkg/dist-src/version.js
@@ -44503,7 +48048,7 @@ async function oauthRequest(request, route, parameters) {
   };
   const response = await request(route, withOAuthParameters);
   if ("error" in response.data) {
-    const error = new RequestError(
+    const error = new oauth_methods_node_modules_octokit_request_error_dist_src_RequestError(
       `${response.data.error_description} (${response.data.error}, ${response.data.error_uri})`,
       400,
       {
@@ -44521,7 +48066,7 @@ async function oauthRequest(request, route, parameters) {
 
 // pkg/dist-src/get-web-flow-authorization-url.js
 function getWebFlowAuthorizationUrl({
-  request = dist_bundle_request,
+  request = oauth_methods_node_modules_octokit_request_dist_bundle_request,
   ...options
 }) {
   const baseUrl = requestToOAuthBaseUrl(request);
@@ -44534,7 +48079,7 @@ function getWebFlowAuthorizationUrl({
 // pkg/dist-src/exchange-web-flow-code.js
 
 async function exchangeWebFlowCode(options) {
-  const request = options.request || dist_bundle_request;
+  const request = options.request || oauth_methods_node_modules_octokit_request_dist_bundle_request;
   const response = await oauthRequest(
     request,
     "POST /login/oauth/access_token",
@@ -44574,7 +48119,7 @@ function toTimestamp(apiTimeInMs, expirationInSeconds) {
 // pkg/dist-src/create-device-code.js
 
 async function createDeviceCode(options) {
-  const request = options.request || dist_bundle_request;
+  const request = options.request || oauth_methods_node_modules_octokit_request_dist_bundle_request;
   const parameters = {
     client_id: options.clientId
   };
@@ -44587,7 +48132,7 @@ async function createDeviceCode(options) {
 // pkg/dist-src/exchange-device-code.js
 
 async function exchangeDeviceCode(options) {
-  const request = options.request || dist_bundle_request;
+  const request = options.request || oauth_methods_node_modules_octokit_request_dist_bundle_request;
   const response = await oauthRequest(
     request,
     "POST /login/oauth/access_token",
@@ -44628,7 +48173,7 @@ function toTimestamp2(apiTimeInMs, expirationInSeconds) {
 // pkg/dist-src/check-token.js
 
 async function checkToken(options) {
-  const request = options.request || dist_bundle_request;
+  const request = options.request || oauth_methods_node_modules_octokit_request_dist_bundle_request;
   const response = await request("POST /applications/{client_id}/token", {
     headers: {
       authorization: `basic ${btoa(
@@ -44656,7 +48201,7 @@ async function checkToken(options) {
 // pkg/dist-src/refresh-token.js
 
 async function refreshToken(options) {
-  const request = options.request || dist_bundle_request;
+  const request = options.request || oauth_methods_node_modules_octokit_request_dist_bundle_request;
   const response = await oauthRequest(
     request,
     "POST /login/oauth/access_token",
@@ -44697,7 +48242,7 @@ async function scopeToken(options) {
     token,
     ...requestOptions
   } = options;
-  const request = options.request || dist_bundle_request;
+  const request = options.request || oauth_methods_node_modules_octokit_request_dist_bundle_request;
   const response = await request(
     "POST /applications/{client_id}/token/scoped",
     {
@@ -44724,7 +48269,7 @@ async function scopeToken(options) {
 // pkg/dist-src/reset-token.js
 
 async function resetToken(options) {
-  const request = options.request || dist_bundle_request;
+  const request = options.request || oauth_methods_node_modules_octokit_request_dist_bundle_request;
   const auth = btoa(`${options.clientId}:${options.clientSecret}`);
   const response = await request(
     "PATCH /applications/{client_id}/token",
@@ -44754,7 +48299,7 @@ async function resetToken(options) {
 // pkg/dist-src/delete-token.js
 
 async function deleteToken(options) {
-  const request = options.request || dist_bundle_request;
+  const request = options.request || oauth_methods_node_modules_octokit_request_dist_bundle_request;
   const auth = btoa(`${options.clientId}:${options.clientSecret}`);
   return request(
     "DELETE /applications/{client_id}/token",
@@ -44771,7 +48316,7 @@ async function deleteToken(options) {
 // pkg/dist-src/delete-authorization.js
 
 async function deleteAuthorization(options) {
-  const request = options.request || dist_bundle_request;
+  const request = options.request || oauth_methods_node_modules_octokit_request_dist_bundle_request;
   const auth = btoa(`${options.clientId}:${options.clientSecret}`);
   return request(
     "DELETE /applications/{client_id}/grant",
@@ -44892,9 +48437,9 @@ var auth_oauth_device_dist_bundle_VERSION = "0.0.0-development";
 
 // pkg/dist-src/index.js
 function createOAuthDeviceAuth(options) {
-  const requestWithDefaults = options.request || dist_bundle_request.defaults({
+  const requestWithDefaults = options.request || auth_oauth_device_node_modules_octokit_request_dist_bundle_request.defaults({
     headers: {
-      "user-agent": `octokit-auth-oauth-device.js/${auth_oauth_device_dist_bundle_VERSION} ${getUserAgent()}`
+      "user-agent": `octokit-auth-oauth-device.js/${auth_oauth_device_dist_bundle_VERSION} ${auth_oauth_device_node_modules_universal_user_agent_getUserAgent()}`
     }
   });
   const { request = requestWithDefaults, ...otherOptions } = options;
@@ -45101,9 +48646,9 @@ function createOAuthUserAuth({
   clientId,
   clientSecret,
   clientType = "oauth-app",
-  request = dist_bundle_request.defaults({
+  request = node_modules_octokit_request_dist_bundle_request.defaults({
     headers: {
-      "user-agent": `octokit-auth-oauth-app.js/${auth_oauth_user_dist_bundle_VERSION} ${getUserAgent()}`
+      "user-agent": `octokit-auth-oauth-app.js/${auth_oauth_user_dist_bundle_VERSION} ${auth_oauth_user_node_modules_universal_user_agent_getUserAgent()}`
     }
   }),
   onTokenCreated,
@@ -45203,9 +48748,9 @@ var auth_oauth_app_dist_bundle_VERSION = "0.0.0-development";
 function createOAuthAppAuth(options) {
   const state = Object.assign(
     {
-      request: dist_bundle_request.defaults({
+      request: _octokit_request_dist_bundle_request.defaults({
         headers: {
-          "user-agent": `octokit-auth-oauth-app.js/${auth_oauth_app_dist_bundle_VERSION} ${getUserAgent()}`
+          "user-agent": `octokit-auth-oauth-app.js/${auth_oauth_app_dist_bundle_VERSION} ${auth_oauth_app_node_modules_universal_user_agent_getUserAgent()}`
         }
       }),
       clientType: "oauth-app"
@@ -46293,9 +49838,19 @@ function getTimestamp(date) {
 async function getAppAuthentication({
   appId,
   privateKey,
-  timeDifference
+  timeDifference,
+  createJwt
 }) {
   try {
+    if (createJwt) {
+      const { jwt, expiresAt } = await createJwt(appId, timeDifference);
+      return {
+        type: "app",
+        token: jwt,
+        appId,
+        expiresAt
+      };
+    }
     const authOptions = {
       id: appId,
       privateKey
@@ -46706,7 +50261,7 @@ async function sendRequestWithRetries(state, request, options, createdAt, retrie
 }
 
 // pkg/dist-src/version.js
-var dist_node_VERSION = "7.2.1";
+var dist_node_VERSION = "8.1.2";
 
 // pkg/dist-src/index.js
 
@@ -46714,23 +50269,25 @@ function createAppAuth(options) {
   if (!options.appId) {
     throw new Error("[@octokit/auth-app] appId option is required");
   }
-  if (!options.privateKey) {
+  if (!options.privateKey && !options.createJwt) {
     throw new Error("[@octokit/auth-app] privateKey option is required");
+  } else if (options.privateKey && options.createJwt) {
+    throw new Error(
+      "[@octokit/auth-app] privateKey and createJwt options are mutually exclusive"
+    );
   }
   if ("installationId" in options && !options.installationId) {
     throw new Error(
       "[@octokit/auth-app] installationId is set to a falsy value"
     );
   }
-  const log = Object.assign(
-    {
-      warn: console.warn.bind(console)
-    },
-    options.log
-  );
-  const request = options.request || dist_bundle_request.defaults({
+  const log = options.log || {};
+  if (typeof log.warn !== "function") {
+    log.warn = console.warn.bind(console);
+  }
+  const request = options.request || request_dist_bundle_request.defaults({
     headers: {
-      "user-agent": `octokit-auth-app.js/${dist_node_VERSION} ${getUserAgent()}`
+      "user-agent": `octokit-auth-app.js/${dist_node_VERSION} ${node_modules_universal_user_agent_getUserAgent()}`
     }
   });
   const state = Object.assign(
@@ -46755,6 +50312,21 @@ function createAppAuth(options) {
   });
 }
 
+
+;// CONCATENATED MODULE: ./node_modules/@octokit/oauth-app/node_modules/universal-user-agent/index.js
+function oauth_app_node_modules_universal_user_agent_getUserAgent() {
+  if (typeof navigator === "object" && "userAgent" in navigator) {
+    return navigator.userAgent;
+  }
+
+  if (typeof process === "object" && process.version !== undefined) {
+    return `Node.js/${process.version.substr(1)} (${process.platform}; ${
+      process.arch
+    })`;
+  }
+
+  return "<environment undetectable>";
+}
 
 ;// CONCATENATED MODULE: ./node_modules/@octokit/oauth-app/node_modules/before-after-hook/lib/register.js
 // @ts-check
@@ -46901,6 +50473,595 @@ function node_modules_before_after_hook_Collection() {
 
 /* harmony default export */ const oauth_app_node_modules_before_after_hook = ({ Singular: node_modules_before_after_hook_Singular, Collection: node_modules_before_after_hook_Collection });
 
+;// CONCATENATED MODULE: ./node_modules/@octokit/oauth-app/node_modules/@octokit/endpoint/dist-bundle/index.js
+// pkg/dist-src/defaults.js
+
+
+// pkg/dist-src/version.js
+var oauth_app_node_modules_octokit_endpoint_dist_bundle_VERSION = "0.0.0-development";
+
+// pkg/dist-src/defaults.js
+var oauth_app_node_modules_octokit_endpoint_dist_bundle_userAgent = `octokit-endpoint.js/${oauth_app_node_modules_octokit_endpoint_dist_bundle_VERSION} ${oauth_app_node_modules_universal_user_agent_getUserAgent()}`;
+var oauth_app_node_modules_octokit_endpoint_dist_bundle_DEFAULTS = {
+  method: "GET",
+  baseUrl: "https://api.github.com",
+  headers: {
+    accept: "application/vnd.github.v3+json",
+    "user-agent": oauth_app_node_modules_octokit_endpoint_dist_bundle_userAgent
+  },
+  mediaType: {
+    format: ""
+  }
+};
+
+// pkg/dist-src/util/lowercase-keys.js
+function oauth_app_node_modules_octokit_endpoint_dist_bundle_lowercaseKeys(object) {
+  if (!object) {
+    return {};
+  }
+  return Object.keys(object).reduce((newObj, key) => {
+    newObj[key.toLowerCase()] = object[key];
+    return newObj;
+  }, {});
+}
+
+// pkg/dist-src/util/is-plain-object.js
+function oauth_app_node_modules_octokit_endpoint_dist_bundle_isPlainObject(value) {
+  if (typeof value !== "object" || value === null) return false;
+  if (Object.prototype.toString.call(value) !== "[object Object]") return false;
+  const proto = Object.getPrototypeOf(value);
+  if (proto === null) return true;
+  const Ctor = Object.prototype.hasOwnProperty.call(proto, "constructor") && proto.constructor;
+  return typeof Ctor === "function" && Ctor instanceof Ctor && Function.prototype.call(Ctor) === Function.prototype.call(value);
+}
+
+// pkg/dist-src/util/merge-deep.js
+function oauth_app_node_modules_octokit_endpoint_dist_bundle_mergeDeep(defaults, options) {
+  const result = Object.assign({}, defaults);
+  Object.keys(options).forEach((key) => {
+    if (oauth_app_node_modules_octokit_endpoint_dist_bundle_isPlainObject(options[key])) {
+      if (!(key in defaults)) Object.assign(result, { [key]: options[key] });
+      else result[key] = oauth_app_node_modules_octokit_endpoint_dist_bundle_mergeDeep(defaults[key], options[key]);
+    } else {
+      Object.assign(result, { [key]: options[key] });
+    }
+  });
+  return result;
+}
+
+// pkg/dist-src/util/remove-undefined-properties.js
+function oauth_app_node_modules_octokit_endpoint_dist_bundle_removeUndefinedProperties(obj) {
+  for (const key in obj) {
+    if (obj[key] === void 0) {
+      delete obj[key];
+    }
+  }
+  return obj;
+}
+
+// pkg/dist-src/merge.js
+function oauth_app_node_modules_octokit_endpoint_dist_bundle_merge(defaults, route, options) {
+  if (typeof route === "string") {
+    let [method, url] = route.split(" ");
+    options = Object.assign(url ? { method, url } : { url: method }, options);
+  } else {
+    options = Object.assign({}, route);
+  }
+  options.headers = oauth_app_node_modules_octokit_endpoint_dist_bundle_lowercaseKeys(options.headers);
+  oauth_app_node_modules_octokit_endpoint_dist_bundle_removeUndefinedProperties(options);
+  oauth_app_node_modules_octokit_endpoint_dist_bundle_removeUndefinedProperties(options.headers);
+  const mergedOptions = oauth_app_node_modules_octokit_endpoint_dist_bundle_mergeDeep(defaults || {}, options);
+  if (options.url === "/graphql") {
+    if (defaults && defaults.mediaType.previews?.length) {
+      mergedOptions.mediaType.previews = defaults.mediaType.previews.filter(
+        (preview) => !mergedOptions.mediaType.previews.includes(preview)
+      ).concat(mergedOptions.mediaType.previews);
+    }
+    mergedOptions.mediaType.previews = (mergedOptions.mediaType.previews || []).map((preview) => preview.replace(/-preview/, ""));
+  }
+  return mergedOptions;
+}
+
+// pkg/dist-src/util/add-query-parameters.js
+function oauth_app_node_modules_octokit_endpoint_dist_bundle_addQueryParameters(url, parameters) {
+  const separator = /\?/.test(url) ? "&" : "?";
+  const names = Object.keys(parameters);
+  if (names.length === 0) {
+    return url;
+  }
+  return url + separator + names.map((name) => {
+    if (name === "q") {
+      return "q=" + parameters.q.split("+").map(encodeURIComponent).join("+");
+    }
+    return `${name}=${encodeURIComponent(parameters[name])}`;
+  }).join("&");
+}
+
+// pkg/dist-src/util/extract-url-variable-names.js
+var oauth_app_node_modules_octokit_endpoint_dist_bundle_urlVariableRegex = /\{[^{}}]+\}/g;
+function oauth_app_node_modules_octokit_endpoint_dist_bundle_removeNonChars(variableName) {
+  return variableName.replace(/(?:^\W+)|(?:(?<!\W)\W+$)/g, "").split(/,/);
+}
+function oauth_app_node_modules_octokit_endpoint_dist_bundle_extractUrlVariableNames(url) {
+  const matches = url.match(oauth_app_node_modules_octokit_endpoint_dist_bundle_urlVariableRegex);
+  if (!matches) {
+    return [];
+  }
+  return matches.map(oauth_app_node_modules_octokit_endpoint_dist_bundle_removeNonChars).reduce((a, b) => a.concat(b), []);
+}
+
+// pkg/dist-src/util/omit.js
+function oauth_app_node_modules_octokit_endpoint_dist_bundle_omit(object, keysToOmit) {
+  const result = { __proto__: null };
+  for (const key of Object.keys(object)) {
+    if (keysToOmit.indexOf(key) === -1) {
+      result[key] = object[key];
+    }
+  }
+  return result;
+}
+
+// pkg/dist-src/util/url-template.js
+function oauth_app_node_modules_octokit_endpoint_dist_bundle_encodeReserved(str) {
+  return str.split(/(%[0-9A-Fa-f]{2})/g).map(function(part) {
+    if (!/%[0-9A-Fa-f]/.test(part)) {
+      part = encodeURI(part).replace(/%5B/g, "[").replace(/%5D/g, "]");
+    }
+    return part;
+  }).join("");
+}
+function oauth_app_node_modules_octokit_endpoint_dist_bundle_encodeUnreserved(str) {
+  return encodeURIComponent(str).replace(/[!'()*]/g, function(c) {
+    return "%" + c.charCodeAt(0).toString(16).toUpperCase();
+  });
+}
+function oauth_app_node_modules_octokit_endpoint_dist_bundle_encodeValue(operator, value, key) {
+  value = operator === "+" || operator === "#" ? oauth_app_node_modules_octokit_endpoint_dist_bundle_encodeReserved(value) : oauth_app_node_modules_octokit_endpoint_dist_bundle_encodeUnreserved(value);
+  if (key) {
+    return oauth_app_node_modules_octokit_endpoint_dist_bundle_encodeUnreserved(key) + "=" + value;
+  } else {
+    return value;
+  }
+}
+function oauth_app_node_modules_octokit_endpoint_dist_bundle_isDefined(value) {
+  return value !== void 0 && value !== null;
+}
+function oauth_app_node_modules_octokit_endpoint_dist_bundle_isKeyOperator(operator) {
+  return operator === ";" || operator === "&" || operator === "?";
+}
+function oauth_app_node_modules_octokit_endpoint_dist_bundle_getValues(context, operator, key, modifier) {
+  var value = context[key], result = [];
+  if (oauth_app_node_modules_octokit_endpoint_dist_bundle_isDefined(value) && value !== "") {
+    if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+      value = value.toString();
+      if (modifier && modifier !== "*") {
+        value = value.substring(0, parseInt(modifier, 10));
+      }
+      result.push(
+        oauth_app_node_modules_octokit_endpoint_dist_bundle_encodeValue(operator, value, oauth_app_node_modules_octokit_endpoint_dist_bundle_isKeyOperator(operator) ? key : "")
+      );
+    } else {
+      if (modifier === "*") {
+        if (Array.isArray(value)) {
+          value.filter(oauth_app_node_modules_octokit_endpoint_dist_bundle_isDefined).forEach(function(value2) {
+            result.push(
+              oauth_app_node_modules_octokit_endpoint_dist_bundle_encodeValue(operator, value2, oauth_app_node_modules_octokit_endpoint_dist_bundle_isKeyOperator(operator) ? key : "")
+            );
+          });
+        } else {
+          Object.keys(value).forEach(function(k) {
+            if (oauth_app_node_modules_octokit_endpoint_dist_bundle_isDefined(value[k])) {
+              result.push(oauth_app_node_modules_octokit_endpoint_dist_bundle_encodeValue(operator, value[k], k));
+            }
+          });
+        }
+      } else {
+        const tmp = [];
+        if (Array.isArray(value)) {
+          value.filter(oauth_app_node_modules_octokit_endpoint_dist_bundle_isDefined).forEach(function(value2) {
+            tmp.push(oauth_app_node_modules_octokit_endpoint_dist_bundle_encodeValue(operator, value2));
+          });
+        } else {
+          Object.keys(value).forEach(function(k) {
+            if (oauth_app_node_modules_octokit_endpoint_dist_bundle_isDefined(value[k])) {
+              tmp.push(oauth_app_node_modules_octokit_endpoint_dist_bundle_encodeUnreserved(k));
+              tmp.push(oauth_app_node_modules_octokit_endpoint_dist_bundle_encodeValue(operator, value[k].toString()));
+            }
+          });
+        }
+        if (oauth_app_node_modules_octokit_endpoint_dist_bundle_isKeyOperator(operator)) {
+          result.push(oauth_app_node_modules_octokit_endpoint_dist_bundle_encodeUnreserved(key) + "=" + tmp.join(","));
+        } else if (tmp.length !== 0) {
+          result.push(tmp.join(","));
+        }
+      }
+    }
+  } else {
+    if (operator === ";") {
+      if (oauth_app_node_modules_octokit_endpoint_dist_bundle_isDefined(value)) {
+        result.push(oauth_app_node_modules_octokit_endpoint_dist_bundle_encodeUnreserved(key));
+      }
+    } else if (value === "" && (operator === "&" || operator === "?")) {
+      result.push(oauth_app_node_modules_octokit_endpoint_dist_bundle_encodeUnreserved(key) + "=");
+    } else if (value === "") {
+      result.push("");
+    }
+  }
+  return result;
+}
+function oauth_app_node_modules_octokit_endpoint_dist_bundle_parseUrl(template) {
+  return {
+    expand: oauth_app_node_modules_octokit_endpoint_dist_bundle_expand.bind(null, template)
+  };
+}
+function oauth_app_node_modules_octokit_endpoint_dist_bundle_expand(template, context) {
+  var operators = ["+", "#", ".", "/", ";", "?", "&"];
+  template = template.replace(
+    /\{([^\{\}]+)\}|([^\{\}]+)/g,
+    function(_, expression, literal) {
+      if (expression) {
+        let operator = "";
+        const values = [];
+        if (operators.indexOf(expression.charAt(0)) !== -1) {
+          operator = expression.charAt(0);
+          expression = expression.substr(1);
+        }
+        expression.split(/,/g).forEach(function(variable) {
+          var tmp = /([^:\*]*)(?::(\d+)|(\*))?/.exec(variable);
+          values.push(oauth_app_node_modules_octokit_endpoint_dist_bundle_getValues(context, operator, tmp[1], tmp[2] || tmp[3]));
+        });
+        if (operator && operator !== "+") {
+          var separator = ",";
+          if (operator === "?") {
+            separator = "&";
+          } else if (operator !== "#") {
+            separator = operator;
+          }
+          return (values.length !== 0 ? operator : "") + values.join(separator);
+        } else {
+          return values.join(",");
+        }
+      } else {
+        return oauth_app_node_modules_octokit_endpoint_dist_bundle_encodeReserved(literal);
+      }
+    }
+  );
+  if (template === "/") {
+    return template;
+  } else {
+    return template.replace(/\/$/, "");
+  }
+}
+
+// pkg/dist-src/parse.js
+function oauth_app_node_modules_octokit_endpoint_dist_bundle_parse(options) {
+  let method = options.method.toUpperCase();
+  let url = (options.url || "/").replace(/:([a-z]\w+)/g, "{$1}");
+  let headers = Object.assign({}, options.headers);
+  let body;
+  let parameters = oauth_app_node_modules_octokit_endpoint_dist_bundle_omit(options, [
+    "method",
+    "baseUrl",
+    "url",
+    "headers",
+    "request",
+    "mediaType"
+  ]);
+  const urlVariableNames = oauth_app_node_modules_octokit_endpoint_dist_bundle_extractUrlVariableNames(url);
+  url = oauth_app_node_modules_octokit_endpoint_dist_bundle_parseUrl(url).expand(parameters);
+  if (!/^http/.test(url)) {
+    url = options.baseUrl + url;
+  }
+  const omittedParameters = Object.keys(options).filter((option) => urlVariableNames.includes(option)).concat("baseUrl");
+  const remainingParameters = oauth_app_node_modules_octokit_endpoint_dist_bundle_omit(parameters, omittedParameters);
+  const isBinaryRequest = /application\/octet-stream/i.test(headers.accept);
+  if (!isBinaryRequest) {
+    if (options.mediaType.format) {
+      headers.accept = headers.accept.split(/,/).map(
+        (format) => format.replace(
+          /application\/vnd(\.\w+)(\.v3)?(\.\w+)?(\+json)?$/,
+          `application/vnd$1$2.${options.mediaType.format}`
+        )
+      ).join(",");
+    }
+    if (url.endsWith("/graphql")) {
+      if (options.mediaType.previews?.length) {
+        const previewsFromAcceptHeader = headers.accept.match(/(?<![\w-])[\w-]+(?=-preview)/g) || [];
+        headers.accept = previewsFromAcceptHeader.concat(options.mediaType.previews).map((preview) => {
+          const format = options.mediaType.format ? `.${options.mediaType.format}` : "+json";
+          return `application/vnd.github.${preview}-preview${format}`;
+        }).join(",");
+      }
+    }
+  }
+  if (["GET", "HEAD"].includes(method)) {
+    url = oauth_app_node_modules_octokit_endpoint_dist_bundle_addQueryParameters(url, remainingParameters);
+  } else {
+    if ("data" in remainingParameters) {
+      body = remainingParameters.data;
+    } else {
+      if (Object.keys(remainingParameters).length) {
+        body = remainingParameters;
+      }
+    }
+  }
+  if (!headers["content-type"] && typeof body !== "undefined") {
+    headers["content-type"] = "application/json; charset=utf-8";
+  }
+  if (["PATCH", "PUT"].includes(method) && typeof body === "undefined") {
+    body = "";
+  }
+  return Object.assign(
+    { method, url, headers },
+    typeof body !== "undefined" ? { body } : null,
+    options.request ? { request: options.request } : null
+  );
+}
+
+// pkg/dist-src/endpoint-with-defaults.js
+function oauth_app_node_modules_octokit_endpoint_dist_bundle_endpointWithDefaults(defaults, route, options) {
+  return oauth_app_node_modules_octokit_endpoint_dist_bundle_parse(oauth_app_node_modules_octokit_endpoint_dist_bundle_merge(defaults, route, options));
+}
+
+// pkg/dist-src/with-defaults.js
+function oauth_app_node_modules_octokit_endpoint_dist_bundle_withDefaults(oldDefaults, newDefaults) {
+  const DEFAULTS2 = oauth_app_node_modules_octokit_endpoint_dist_bundle_merge(oldDefaults, newDefaults);
+  const endpoint2 = oauth_app_node_modules_octokit_endpoint_dist_bundle_endpointWithDefaults.bind(null, DEFAULTS2);
+  return Object.assign(endpoint2, {
+    DEFAULTS: DEFAULTS2,
+    defaults: oauth_app_node_modules_octokit_endpoint_dist_bundle_withDefaults.bind(null, DEFAULTS2),
+    merge: oauth_app_node_modules_octokit_endpoint_dist_bundle_merge.bind(null, DEFAULTS2),
+    parse: oauth_app_node_modules_octokit_endpoint_dist_bundle_parse
+  });
+}
+
+// pkg/dist-src/index.js
+var oauth_app_node_modules_octokit_endpoint_dist_bundle_endpoint = oauth_app_node_modules_octokit_endpoint_dist_bundle_withDefaults(null, oauth_app_node_modules_octokit_endpoint_dist_bundle_DEFAULTS);
+
+
+;// CONCATENATED MODULE: ./node_modules/@octokit/oauth-app/node_modules/@octokit/request-error/dist-src/index.js
+class oauth_app_node_modules_octokit_request_error_dist_src_RequestError extends Error {
+  name;
+  /**
+   * http status code
+   */
+  status;
+  /**
+   * Request options that lead to the error.
+   */
+  request;
+  /**
+   * Response object if a response was received
+   */
+  response;
+  constructor(message, statusCode, options) {
+    super(message, { cause: options.cause });
+    this.name = "HttpError";
+    this.status = Number.parseInt(statusCode);
+    if (Number.isNaN(this.status)) {
+      this.status = 0;
+    }
+    /* v8 ignore else -- @preserve -- Bug with vitest coverage where it sees an else branch that doesn't exist */
+    if ("response" in options) {
+      this.response = options.response;
+    }
+    const requestCopy = Object.assign({}, options.request);
+    if (options.request.headers.authorization) {
+      requestCopy.headers = Object.assign({}, options.request.headers, {
+        authorization: options.request.headers.authorization.replace(
+          /(?<! ) .*$/,
+          " [REDACTED]"
+        )
+      });
+    }
+    requestCopy.url = requestCopy.url.replace(/\bclient_secret=\w+/g, "client_secret=[REDACTED]").replace(/\baccess_token=\w+/g, "access_token=[REDACTED]");
+    this.request = requestCopy;
+  }
+}
+
+
+;// CONCATENATED MODULE: ./node_modules/@octokit/oauth-app/node_modules/@octokit/request/dist-bundle/index.js
+// pkg/dist-src/index.js
+
+
+// pkg/dist-src/defaults.js
+
+
+// pkg/dist-src/version.js
+var oauth_app_node_modules_octokit_request_dist_bundle_VERSION = "10.0.7";
+
+// pkg/dist-src/defaults.js
+var oauth_app_node_modules_octokit_request_dist_bundle_defaults_default = {
+  headers: {
+    "user-agent": `octokit-request.js/${oauth_app_node_modules_octokit_request_dist_bundle_VERSION} ${oauth_app_node_modules_universal_user_agent_getUserAgent()}`
+  }
+};
+
+// pkg/dist-src/fetch-wrapper.js
+
+
+// pkg/dist-src/is-plain-object.js
+function oauth_app_node_modules_octokit_request_dist_bundle_isPlainObject(value) {
+  if (typeof value !== "object" || value === null) return false;
+  if (Object.prototype.toString.call(value) !== "[object Object]") return false;
+  const proto = Object.getPrototypeOf(value);
+  if (proto === null) return true;
+  const Ctor = Object.prototype.hasOwnProperty.call(proto, "constructor") && proto.constructor;
+  return typeof Ctor === "function" && Ctor instanceof Ctor && Function.prototype.call(Ctor) === Function.prototype.call(value);
+}
+
+// pkg/dist-src/fetch-wrapper.js
+
+var oauth_app_node_modules_octokit_request_dist_bundle_noop = () => "";
+async function oauth_app_node_modules_octokit_request_dist_bundle_fetchWrapper(requestOptions) {
+  const fetch = requestOptions.request?.fetch || globalThis.fetch;
+  if (!fetch) {
+    throw new Error(
+      "fetch is not set. Please pass a fetch implementation as new Octokit({ request: { fetch }}). Learn more at https://github.com/octokit/octokit.js/#fetch-missing"
+    );
+  }
+  const log = requestOptions.request?.log || console;
+  const parseSuccessResponseBody = requestOptions.request?.parseSuccessResponseBody !== false;
+  const body = oauth_app_node_modules_octokit_request_dist_bundle_isPlainObject(requestOptions.body) || Array.isArray(requestOptions.body) ? JSON.stringify(requestOptions.body) : requestOptions.body;
+  const requestHeaders = Object.fromEntries(
+    Object.entries(requestOptions.headers).map(([name, value]) => [
+      name,
+      String(value)
+    ])
+  );
+  let fetchResponse;
+  try {
+    fetchResponse = await fetch(requestOptions.url, {
+      method: requestOptions.method,
+      body,
+      redirect: requestOptions.request?.redirect,
+      headers: requestHeaders,
+      signal: requestOptions.request?.signal,
+      // duplex must be set if request.body is ReadableStream or Async Iterables.
+      // See https://fetch.spec.whatwg.org/#dom-requestinit-duplex.
+      ...requestOptions.body && { duplex: "half" }
+    });
+  } catch (error) {
+    let message = "Unknown Error";
+    if (error instanceof Error) {
+      if (error.name === "AbortError") {
+        error.status = 500;
+        throw error;
+      }
+      message = error.message;
+      if (error.name === "TypeError" && "cause" in error) {
+        if (error.cause instanceof Error) {
+          message = error.cause.message;
+        } else if (typeof error.cause === "string") {
+          message = error.cause;
+        }
+      }
+    }
+    const requestError = new oauth_app_node_modules_octokit_request_error_dist_src_RequestError(message, 500, {
+      request: requestOptions
+    });
+    requestError.cause = error;
+    throw requestError;
+  }
+  const status = fetchResponse.status;
+  const url = fetchResponse.url;
+  const responseHeaders = {};
+  for (const [key, value] of fetchResponse.headers) {
+    responseHeaders[key] = value;
+  }
+  const octokitResponse = {
+    url,
+    status,
+    headers: responseHeaders,
+    data: ""
+  };
+  if ("deprecation" in responseHeaders) {
+    const matches = responseHeaders.link && responseHeaders.link.match(/<([^<>]+)>; rel="deprecation"/);
+    const deprecationLink = matches && matches.pop();
+    log.warn(
+      `[@octokit/request] "${requestOptions.method} ${requestOptions.url}" is deprecated. It is scheduled to be removed on ${responseHeaders.sunset}${deprecationLink ? `. See ${deprecationLink}` : ""}`
+    );
+  }
+  if (status === 204 || status === 205) {
+    return octokitResponse;
+  }
+  if (requestOptions.method === "HEAD") {
+    if (status < 400) {
+      return octokitResponse;
+    }
+    throw new oauth_app_node_modules_octokit_request_error_dist_src_RequestError(fetchResponse.statusText, status, {
+      response: octokitResponse,
+      request: requestOptions
+    });
+  }
+  if (status === 304) {
+    octokitResponse.data = await oauth_app_node_modules_octokit_request_dist_bundle_getResponseData(fetchResponse);
+    throw new oauth_app_node_modules_octokit_request_error_dist_src_RequestError("Not modified", status, {
+      response: octokitResponse,
+      request: requestOptions
+    });
+  }
+  if (status >= 400) {
+    octokitResponse.data = await oauth_app_node_modules_octokit_request_dist_bundle_getResponseData(fetchResponse);
+    throw new oauth_app_node_modules_octokit_request_error_dist_src_RequestError(oauth_app_node_modules_octokit_request_dist_bundle_toErrorMessage(octokitResponse.data), status, {
+      response: octokitResponse,
+      request: requestOptions
+    });
+  }
+  octokitResponse.data = parseSuccessResponseBody ? await oauth_app_node_modules_octokit_request_dist_bundle_getResponseData(fetchResponse) : fetchResponse.body;
+  return octokitResponse;
+}
+async function oauth_app_node_modules_octokit_request_dist_bundle_getResponseData(response) {
+  const contentType = response.headers.get("content-type");
+  if (!contentType) {
+    return response.text().catch(oauth_app_node_modules_octokit_request_dist_bundle_noop);
+  }
+  const mimetype = (0,fast_content_type_parse/* safeParse */.xL)(contentType);
+  if (oauth_app_node_modules_octokit_request_dist_bundle_isJSONResponse(mimetype)) {
+    let text = "";
+    try {
+      text = await response.text();
+      return JSON.parse(text);
+    } catch (err) {
+      return text;
+    }
+  } else if (mimetype.type.startsWith("text/") || mimetype.parameters.charset?.toLowerCase() === "utf-8") {
+    return response.text().catch(oauth_app_node_modules_octokit_request_dist_bundle_noop);
+  } else {
+    return response.arrayBuffer().catch(
+      /* v8 ignore next -- @preserve */
+      () => new ArrayBuffer(0)
+    );
+  }
+}
+function oauth_app_node_modules_octokit_request_dist_bundle_isJSONResponse(mimetype) {
+  return mimetype.type === "application/json" || mimetype.type === "application/scim+json";
+}
+function oauth_app_node_modules_octokit_request_dist_bundle_toErrorMessage(data) {
+  if (typeof data === "string") {
+    return data;
+  }
+  if (data instanceof ArrayBuffer) {
+    return "Unknown error";
+  }
+  if ("message" in data) {
+    const suffix = "documentation_url" in data ? ` - ${data.documentation_url}` : "";
+    return Array.isArray(data.errors) ? `${data.message}: ${data.errors.map((v) => JSON.stringify(v)).join(", ")}${suffix}` : `${data.message}${suffix}`;
+  }
+  return `Unknown error: ${JSON.stringify(data)}`;
+}
+
+// pkg/dist-src/with-defaults.js
+function oauth_app_node_modules_octokit_request_dist_bundle_withDefaults(oldEndpoint, newDefaults) {
+  const endpoint2 = oldEndpoint.defaults(newDefaults);
+  const newApi = function(route, parameters) {
+    const endpointOptions = endpoint2.merge(route, parameters);
+    if (!endpointOptions.request || !endpointOptions.request.hook) {
+      return oauth_app_node_modules_octokit_request_dist_bundle_fetchWrapper(endpoint2.parse(endpointOptions));
+    }
+    const request2 = (route2, parameters2) => {
+      return oauth_app_node_modules_octokit_request_dist_bundle_fetchWrapper(
+        endpoint2.parse(endpoint2.merge(route2, parameters2))
+      );
+    };
+    Object.assign(request2, {
+      endpoint: endpoint2,
+      defaults: oauth_app_node_modules_octokit_request_dist_bundle_withDefaults.bind(null, endpoint2)
+    });
+    return endpointOptions.request.hook(request2, endpointOptions);
+  };
+  return Object.assign(newApi, {
+    endpoint: endpoint2,
+    defaults: oauth_app_node_modules_octokit_request_dist_bundle_withDefaults.bind(null, endpoint2)
+  });
+}
+
+// pkg/dist-src/index.js
+var oauth_app_node_modules_octokit_request_dist_bundle_request = oauth_app_node_modules_octokit_request_dist_bundle_withDefaults(oauth_app_node_modules_octokit_endpoint_dist_bundle_endpoint, oauth_app_node_modules_octokit_request_dist_bundle_defaults_default);
+
+/* v8 ignore next -- @preserve */
+/* v8 ignore else -- @preserve */
+
 ;// CONCATENATED MODULE: ./node_modules/@octokit/oauth-app/node_modules/@octokit/graphql/dist-bundle/index.js
 // pkg/dist-src/index.js
 
@@ -47013,9 +51174,9 @@ function node_modules_octokit_graphql_dist_bundle_withDefaults(request2, newDefa
 }
 
 // pkg/dist-src/index.js
-var graphql_dist_bundle_graphql2 = node_modules_octokit_graphql_dist_bundle_withDefaults(dist_bundle_request, {
+var graphql_dist_bundle_graphql2 = node_modules_octokit_graphql_dist_bundle_withDefaults(oauth_app_node_modules_octokit_request_dist_bundle_request, {
   headers: {
-    "user-agent": `octokit-graphql.js/${node_modules_octokit_graphql_dist_bundle_VERSION} ${getUserAgent()}`
+    "user-agent": `octokit-graphql.js/${node_modules_octokit_graphql_dist_bundle_VERSION} ${oauth_app_node_modules_universal_user_agent_getUserAgent()}`
   },
   method: "POST",
   url: "/graphql"
@@ -47084,7 +51245,7 @@ var auth_token_dist_bundle_createTokenAuth = function createTokenAuth2(token) {
 
 
 ;// CONCATENATED MODULE: ./node_modules/@octokit/oauth-app/node_modules/@octokit/core/dist-src/version.js
-const _octokit_core_dist_src_version_VERSION = "6.1.5";
+const _octokit_core_dist_src_version_VERSION = "7.0.6";
 
 
 ;// CONCATENATED MODULE: ./node_modules/@octokit/oauth-app/node_modules/@octokit/core/dist-src/index.js
@@ -47094,11 +51255,26 @@ const _octokit_core_dist_src_version_VERSION = "6.1.5";
 
 
 
-const core_dist_src_noop = () => {
+const _octokit_core_dist_src_noop = () => {
 };
 const core_dist_src_consoleWarn = console.warn.bind(console);
 const core_dist_src_consoleError = console.error.bind(console);
-const core_dist_src_userAgentTrail = `octokit-core.js/${_octokit_core_dist_src_version_VERSION} ${getUserAgent()}`;
+function core_dist_src_createLogger(logger = {}) {
+  if (typeof logger.debug !== "function") {
+    logger.debug = _octokit_core_dist_src_noop;
+  }
+  if (typeof logger.info !== "function") {
+    logger.info = _octokit_core_dist_src_noop;
+  }
+  if (typeof logger.warn !== "function") {
+    logger.warn = core_dist_src_consoleWarn;
+  }
+  if (typeof logger.error !== "function") {
+    logger.error = core_dist_src_consoleError;
+  }
+  return logger;
+}
+const core_dist_src_userAgentTrail = `octokit-core.js/${_octokit_core_dist_src_version_VERSION} ${oauth_app_node_modules_universal_user_agent_getUserAgent()}`;
 class core_dist_src_Octokit {
   static VERSION = _octokit_core_dist_src_version_VERSION;
   static defaults(defaults) {
@@ -47142,7 +51318,7 @@ class core_dist_src_Octokit {
   constructor(options = {}) {
     const hook = new oauth_app_node_modules_before_after_hook.Collection();
     const requestDefaults = {
-      baseUrl: dist_bundle_request.endpoint.DEFAULTS.baseUrl,
+      baseUrl: oauth_app_node_modules_octokit_request_dist_bundle_request.endpoint.DEFAULTS.baseUrl,
       headers: {},
       request: Object.assign({}, options.request, {
         // @ts-ignore internal usage only, no need to type
@@ -47163,17 +51339,9 @@ class core_dist_src_Octokit {
     if (options.timeZone) {
       requestDefaults.headers["time-zone"] = options.timeZone;
     }
-    this.request = dist_bundle_request.defaults(requestDefaults);
+    this.request = oauth_app_node_modules_octokit_request_dist_bundle_request.defaults(requestDefaults);
     this.graphql = graphql_dist_bundle_withCustomRequest(this.request).defaults(requestDefaults);
-    this.log = Object.assign(
-      {
-        debug: core_dist_src_noop,
-        info: core_dist_src_noop,
-        warn: core_dist_src_consoleWarn,
-        error: core_dist_src_consoleError
-      },
-      options.log
-    );
+    this.log = core_dist_src_createLogger(options.log);
     this.hook = hook;
     if (!options.authStrategy) {
       if (!options.auth) {
@@ -47301,7 +51469,7 @@ var createUnauthenticatedAuth = function createUnauthenticatedAuth2(options) {
 
 
 // pkg/dist-src/version.js
-var oauth_app_dist_node_VERSION = "7.1.6";
+var oauth_app_dist_node_VERSION = "8.0.3";
 
 // pkg/dist-src/add-event-handler.js
 function addEventHandler(state, eventName, eventHandler) {
@@ -47321,7 +51489,7 @@ function addEventHandler(state, eventName, eventHandler) {
 
 
 var OAuthAppOctokit = core_dist_src_Octokit.defaults({
-  userAgent: `octokit-oauth-app.js/${oauth_app_dist_node_VERSION} ${getUserAgent()}`
+  userAgent: `octokit-oauth-app.js/${oauth_app_dist_node_VERSION} ${oauth_app_node_modules_universal_user_agent_getUserAgent()}`
 });
 
 // pkg/dist-src/methods/get-user-octokit.js
@@ -48033,7 +52201,10 @@ var OAuthApp = class {
     };
     this.on = addEventHandler.bind(null, state);
     this.octokit = octokit;
-    this.getUserOctokit = getUserOctokitWithState.bind(null, state);
+    this.getUserOctokit = getUserOctokitWithState.bind(
+      null,
+      state
+    );
     this.getWebFlowAuthorizationUrl = getWebFlowAuthorizationUrlWithState.bind(
       null,
       state
@@ -48084,7 +52255,7 @@ const external_node_buffer_namespaceObject = __WEBPACK_EXTERNAL_createRequire(im
 
 
 // pkg/dist-src/version.js
-var webhooks_methods_dist_node_VERSION = "5.1.1";
+var webhooks_methods_dist_node_VERSION = "6.0.0";
 
 // pkg/dist-src/node/sign.js
 async function sign(secret, payload) {
@@ -48144,7 +52315,7 @@ async function verifyWithFallback(secret, payload, signature, additionalSecrets)
 
 ;// CONCATENATED MODULE: ./node_modules/@octokit/webhooks/dist-bundle/index.js
 // pkg/dist-src/create-logger.js
-var createLogger = (logger = {}) => {
+var dist_bundle_createLogger = (logger = {}) => {
   if (typeof logger.debug !== "function") {
     logger.debug = () => {
     };
@@ -48258,6 +52429,11 @@ var emitterEventNames = [
   "issue_comment.created",
   "issue_comment.deleted",
   "issue_comment.edited",
+  "issue_dependencies",
+  "issue_dependencies.blocked_by_added",
+  "issue_dependencies.blocked_by_removed",
+  "issue_dependencies.blocking_added",
+  "issue_dependencies.blocking_removed",
   "issues",
   "issues.assigned",
   "issues.closed",
@@ -48431,10 +52607,12 @@ var emitterEventNames = [
   "repository_vulnerability_alert.reopen",
   "repository_vulnerability_alert.resolve",
   "secret_scanning_alert",
+  "secret_scanning_alert.assigned",
   "secret_scanning_alert.created",
   "secret_scanning_alert.publicly_leaked",
   "secret_scanning_alert.reopened",
   "secret_scanning_alert.resolved",
+  "secret_scanning_alert.unassigned",
   "secret_scanning_alert.validated",
   "secret_scanning_alert_location",
   "secret_scanning_alert_location.created",
@@ -48482,6 +52660,37 @@ var emitterEventNames = [
   "workflow_run.requested"
 ];
 
+// pkg/dist-src/event-handler/validate-event-name.js
+function validateEventName(eventName, options = {}) {
+  if (typeof eventName !== "string") {
+    throw new TypeError("eventName must be of type string");
+  }
+  if (eventName === "*") {
+    throw new TypeError(
+      `Using the "*" event with the regular Webhooks.on() function is not supported. Please use the Webhooks.onAny() method instead`
+    );
+  }
+  if (eventName === "error") {
+    throw new TypeError(
+      `Using the "error" event with the regular Webhooks.on() function is not supported. Please use the Webhooks.onError() method instead`
+    );
+  }
+  if (options.onUnknownEventName === "ignore") {
+    return;
+  }
+  if (!emitterEventNames.includes(eventName)) {
+    if (options.onUnknownEventName !== "warn") {
+      throw new TypeError(
+        `"${eventName}" is not a known webhook name (https://developer.github.com/v3/activity/events/types/)`
+      );
+    } else {
+      (options.log || console).warn(
+        `"${eventName}" is not a known webhook name (https://developer.github.com/v3/activity/events/types/)`
+      );
+    }
+  }
+}
+
 // pkg/dist-src/event-handler/on.js
 function handleEventHandlers(state, webhookName, handler) {
   if (!state.hooks[webhookName]) {
@@ -48496,16 +52705,10 @@ function receiverOn(state, webhookNameOrNames, handler) {
     );
     return;
   }
-  if (["*", "error"].includes(webhookNameOrNames)) {
-    const webhookName = webhookNameOrNames === "*" ? "any" : webhookNameOrNames;
-    const message = `Using the "${webhookNameOrNames}" event with the regular Webhooks.on() function is not supported. Please use the Webhooks.on${webhookName.charAt(0).toUpperCase() + webhookName.slice(1)}() method instead`;
-    throw new Error(message);
-  }
-  if (!emitterEventNames.includes(webhookNameOrNames)) {
-    state.log.warn(
-      `"${webhookNameOrNames}" is not a known webhook name (https://developer.github.com/v3/activity/events/types/)`
-    );
-  }
+  validateEventName(webhookNameOrNames, {
+    onUnknownEventName: "warn",
+    log: state.log
+  });
   handleEventHandlers(state, webhookNameOrNames, handler);
 }
 function receiverOnAny(state, handler) {
@@ -48614,7 +52817,7 @@ function removeListener(state, webhookNameOrNames, handler) {
 function createEventHandler(options) {
   const state = {
     hooks: {},
-    log: createLogger(options && options.log)
+    log: dist_bundle_createLogger(options && options.log)
   };
   if (options && options.transform) {
     state.transform = options.transform;
@@ -48644,9 +52847,9 @@ async function verifyAndReceive(state, event) {
     const error = new Error(
       "[@octokit/webhooks] signature does not match event payload and secret"
     );
-    return state.eventHandler.receive(
-      Object.assign(error, { event, status: 400 })
-    );
+    error.event = event;
+    error.status = 400;
+    return state.eventHandler.receive(error);
   }
   let payload;
   try {
@@ -48663,6 +52866,23 @@ async function verifyAndReceive(state, event) {
   });
 }
 
+// pkg/dist-src/normalize-trailing-slashes.js
+function normalizeTrailingSlashes(path) {
+  let i = path.length;
+  if (i === 0) {
+    return "/";
+  }
+  while (i > 0) {
+    if (path.charCodeAt(--i) !== 47) {
+      break;
+    }
+  }
+  if (i === -1) {
+    return "/";
+  }
+  return path.slice(0, i + 1);
+}
+
 // pkg/dist-src/middleware/create-middleware.js
 var isApplicationJsonRE = /^\s*(application\/json)\s*(?:;|$)/u;
 var WEBHOOK_HEADERS = (/* unused pure expression or super */ null && ([
@@ -48673,10 +52893,14 @@ var WEBHOOK_HEADERS = (/* unused pure expression or super */ null && ([
 function createMiddleware(options) {
   const { handleResponse: handleResponse3, getRequestHeader: getRequestHeader3, getPayload: getPayload3 } = options;
   return function middleware(webhooks, options2) {
+    const middlewarePath = normalizeTrailingSlashes(options2.path);
     return async function octokitWebhooksMiddleware(request, response, next) {
       let pathname;
       try {
-        pathname = new URL(request.url, "http://localhost").pathname;
+        pathname = new URL(
+          normalizeTrailingSlashes(request.url),
+          "http://localhost"
+        ).pathname;
       } catch (error) {
         return handleResponse3(
           JSON.stringify({
@@ -48689,7 +52913,7 @@ function createMiddleware(options) {
           response
         );
       }
-      if (pathname !== options2.path) {
+      if (pathname !== middlewarePath) {
         next?.();
         return handleResponse3(null);
       } else if (request.method !== "POST") {
@@ -48870,7 +53094,7 @@ function getPayloadFromRequestStream(request) {
 // pkg/dist-src/middleware/node/index.js
 function dist_bundle_createNodeMiddleware(webhooks, {
   path = "/api/github/webhooks",
-  log = createLogger(),
+  log = dist_bundle_createLogger(),
   timeout = 9e3
 } = {}) {
   return createMiddleware({
@@ -48908,7 +53132,7 @@ function handleResponse2(body, status = 200, headers = {}) {
 // pkg/dist-src/middleware/web/index.js
 function createWebMiddleware(webhooks, {
   path = "/api/github/webhooks",
-  log = createLogger(),
+  log = dist_bundle_createLogger(),
   timeout = 9e3
 } = {}) {
   return createMiddleware({
@@ -48941,7 +53165,7 @@ var Webhooks = class {
       secret: options.secret,
       additionalSecrets: options.additionalSecrets,
       hooks: {},
-      log: createLogger(options.log)
+      log: dist_bundle_createLogger(options.log)
     };
     this.sign = sign.bind(null, options.secret);
     this.verify = verify.bind(null, options.secret);
@@ -48967,14 +53191,16 @@ function dist_bundle_normalizePaginatedListResponse(response) {
       data: []
     };
   }
-  const responseNeedsNormalization = "total_count" in response.data && !("url" in response.data);
+  const responseNeedsNormalization = ("total_count" in response.data || "total_commits" in response.data) && !("url" in response.data);
   if (!responseNeedsNormalization) return response;
   const incompleteResults = response.data.incomplete_results;
   const repositorySelection = response.data.repository_selection;
   const totalCount = response.data.total_count;
+  const totalCommits = response.data.total_commits;
   delete response.data.incomplete_results;
   delete response.data.repository_selection;
   delete response.data.total_count;
+  delete response.data.total_commits;
   const namespaceKey = Object.keys(response.data)[0];
   const data = response.data[namespaceKey];
   response.data = data;
@@ -48985,6 +53211,7 @@ function dist_bundle_normalizePaginatedListResponse(response) {
     response.data.repository_selection = repositorySelection;
   }
   response.data.total_count = totalCount;
+  response.data.total_commits = totalCommits;
   return response;
 }
 
@@ -49005,6 +53232,16 @@ function dist_bundle_iterator(octokit, route, parameters) {
           url = ((normalizedResponse.headers.link || "").match(
             /<([^<>]+)>;\s*rel="next"/
           ) || [])[1];
+          if (!url && "total_commits" in normalizedResponse.data) {
+            const parsedUrl = new URL(normalizedResponse.url);
+            const params = parsedUrl.searchParams;
+            const page = parseInt(params.get("page") || "1", 10);
+            const per_page = parseInt(params.get("per_page") || "250", 10);
+            if (page * per_page < normalizedResponse.data.total_commits) {
+              params.set("page", String(page + 1));
+              url = parsedUrl.toString();
+            }
+          }
           return { value: normalizedResponse };
         } catch (error) {
           if (error.status !== 409) throw error;
@@ -49071,7 +53308,9 @@ var dist_bundle_paginatingEndpoints = (/* unused pure expression or super */ nul
   "GET /enterprises/{enterprise}/code-security/configurations",
   "GET /enterprises/{enterprise}/code-security/configurations/{configuration_id}/repositories",
   "GET /enterprises/{enterprise}/dependabot/alerts",
-  "GET /enterprises/{enterprise}/secret-scanning/alerts",
+  "GET /enterprises/{enterprise}/teams",
+  "GET /enterprises/{enterprise}/teams/{enterprise-team}/memberships",
+  "GET /enterprises/{enterprise}/teams/{enterprise-team}/organizations",
   "GET /events",
   "GET /gists",
   "GET /gists/public",
@@ -49089,9 +53328,11 @@ var dist_bundle_paginatingEndpoints = (/* unused pure expression or super */ nul
   "GET /networks/{owner}/{repo}/events",
   "GET /notifications",
   "GET /organizations",
+  "GET /organizations/{org}/dependabot/repository-access",
   "GET /orgs/{org}/actions/cache/usage-by-repository",
   "GET /orgs/{org}/actions/hosted-runners",
   "GET /orgs/{org}/actions/permissions/repositories",
+  "GET /orgs/{org}/actions/permissions/self-hosted-runners/repositories",
   "GET /orgs/{org}/actions/runner-groups",
   "GET /orgs/{org}/actions/runner-groups/{runner_group_id}/hosted-runners",
   "GET /orgs/{org}/actions/runner-groups/{runner_group_id}/repositories",
@@ -49101,6 +53342,7 @@ var dist_bundle_paginatingEndpoints = (/* unused pure expression or super */ nul
   "GET /orgs/{org}/actions/secrets/{secret_name}/repositories",
   "GET /orgs/{org}/actions/variables",
   "GET /orgs/{org}/actions/variables/{name}/repositories",
+  "GET /orgs/{org}/attestations/repositories",
   "GET /orgs/{org}/attestations/{subject_digest}",
   "GET /orgs/{org}/blocks",
   "GET /orgs/{org}/campaigns",
@@ -49141,6 +53383,9 @@ var dist_bundle_paginatingEndpoints = (/* unused pure expression or super */ nul
   "GET /orgs/{org}/personal-access-tokens/{pat_id}/repositories",
   "GET /orgs/{org}/private-registries",
   "GET /orgs/{org}/projects",
+  "GET /orgs/{org}/projectsV2",
+  "GET /orgs/{org}/projectsV2/{project_number}/fields",
+  "GET /orgs/{org}/projectsV2/{project_number}/items",
   "GET /orgs/{org}/properties/values",
   "GET /orgs/{org}/public_members",
   "GET /orgs/{org}/repos",
@@ -49149,6 +53394,7 @@ var dist_bundle_paginatingEndpoints = (/* unused pure expression or super */ nul
   "GET /orgs/{org}/rulesets/{ruleset_id}/history",
   "GET /orgs/{org}/secret-scanning/alerts",
   "GET /orgs/{org}/security-advisories",
+  "GET /orgs/{org}/settings/immutable-releases/repositories",
   "GET /orgs/{org}/settings/network-configurations",
   "GET /orgs/{org}/team/{team_slug}/copilot/metrics",
   "GET /orgs/{org}/teams",
@@ -49161,9 +53407,7 @@ var dist_bundle_paginatingEndpoints = (/* unused pure expression or super */ nul
   "GET /orgs/{org}/teams/{team_slug}/projects",
   "GET /orgs/{org}/teams/{team_slug}/repos",
   "GET /orgs/{org}/teams/{team_slug}/teams",
-  "GET /projects/columns/{column_id}/cards",
   "GET /projects/{project_id}/collaborators",
-  "GET /projects/{project_id}/columns",
   "GET /repos/{owner}/{repo}/actions/artifacts",
   "GET /repos/{owner}/{repo}/actions/caches",
   "GET /repos/{owner}/{repo}/actions/organization-secrets",
@@ -49199,6 +53443,8 @@ var dist_bundle_paginatingEndpoints = (/* unused pure expression or super */ nul
   "GET /repos/{owner}/{repo}/commits/{ref}/check-suites",
   "GET /repos/{owner}/{repo}/commits/{ref}/status",
   "GET /repos/{owner}/{repo}/commits/{ref}/statuses",
+  "GET /repos/{owner}/{repo}/compare/{basehead}",
+  "GET /repos/{owner}/{repo}/compare/{base}...{head}",
   "GET /repos/{owner}/{repo}/contributors",
   "GET /repos/{owner}/{repo}/dependabot/alerts",
   "GET /repos/{owner}/{repo}/dependabot/secrets",
@@ -49219,6 +53465,8 @@ var dist_bundle_paginatingEndpoints = (/* unused pure expression or super */ nul
   "GET /repos/{owner}/{repo}/issues/comments/{comment_id}/reactions",
   "GET /repos/{owner}/{repo}/issues/events",
   "GET /repos/{owner}/{repo}/issues/{issue_number}/comments",
+  "GET /repos/{owner}/{repo}/issues/{issue_number}/dependencies/blocked_by",
+  "GET /repos/{owner}/{repo}/issues/{issue_number}/dependencies/blocking",
   "GET /repos/{owner}/{repo}/issues/{issue_number}/events",
   "GET /repos/{owner}/{repo}/issues/{issue_number}/labels",
   "GET /repos/{owner}/{repo}/issues/{issue_number}/reactions",
@@ -49311,6 +53559,9 @@ var dist_bundle_paginatingEndpoints = (/* unused pure expression or super */ nul
   "GET /users/{username}/orgs",
   "GET /users/{username}/packages",
   "GET /users/{username}/projects",
+  "GET /users/{username}/projectsV2",
+  "GET /users/{username}/projectsV2/{project_number}/fields",
+  "GET /users/{username}/projectsV2/{project_number}/items",
   "GET /users/{username}/received_events",
   "GET /users/{username}/received_events/public",
   "GET /users/{username}/repos",
@@ -49347,7 +53598,7 @@ dist_bundle_paginateRest.VERSION = _octokit_plugin_paginate_rest_dist_bundle_VER
 
 
 // pkg/dist-src/version.js
-var app_dist_node_VERSION = "15.1.6";
+var app_dist_node_VERSION = "16.1.2";
 
 // pkg/dist-src/webhooks.js
 
@@ -49729,6 +53980,7 @@ function onSecondaryRateLimit(retryAfter, options, octokit) {
 var dist_bundle_App = App.defaults({ Octokit: dist_bundle_Octokit });
 var dist_bundle_OAuthApp = OAuthApp.defaults({ Octokit: dist_bundle_Octokit });
 
+/* v8 ignore next no need to test internals of the throttle plugin -- @preserve */
 
 ;// CONCATENATED MODULE: ./src/utils/github.ts
 
