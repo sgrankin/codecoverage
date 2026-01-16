@@ -4,10 +4,11 @@ import * as github from '@actions/github'
 import {correctLineTotals, filterCoverageByFile} from './utils/general.js'
 import {parseLCov} from './utils/lcov.js'
 import {parseClover} from './utils/clover.js'
+import {parseCobertura} from './utils/cobertura.js'
 import {parseGoCoverage} from './utils/gocoverage.js'
 import {GithubUtil} from './utils/github.js'
 
-const SUPPORTED_FORMATS = ['lcov', 'clover', 'go']
+const SUPPORTED_FORMATS = ['lcov', 'clover', 'cobertura', 'go']
 
 /** Starting Point of the Github Action*/
 export async function play(): Promise<void> {
@@ -50,6 +51,8 @@ export async function play(): Promise<void> {
     // 1. Parse coverage file
     if (COVERAGE_FORMAT === 'clover') {
       var parsedCov = await parseClover(COVERAGE_FILE_PATH, workspacePath)
+    } else if (COVERAGE_FORMAT === 'cobertura') {
+      var parsedCov = await parseCobertura(COVERAGE_FILE_PATH, workspacePath)
     } else if (COVERAGE_FORMAT === 'go') {
       // Assuming that go.mod is available in working directory
       var parsedCov = await parseGoCoverage(COVERAGE_FILE_PATH, 'go.mod')

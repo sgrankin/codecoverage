@@ -32,4 +32,5 @@ This is a GitHub Action for annotating PRs with lines missing test coverage.
 
 - `lcov` (default)
 - `clover`
+- `cobertura`
 - `go`
