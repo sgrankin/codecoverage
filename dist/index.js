@@ -61288,8 +61288,8 @@ class GithubUtil {
                 // Only annotate relevant line ranges
                 for (const uRange of uncoveredRanges) {
                     const message = uRange.end_line > uRange.start_line
-                        ? 'These lines are not covered by a test'
-                        : 'This line is not covered by a test';
+                        ? `Changed lines ${uRange.start_line}-${uRange.end_line} are not tested`
+                        : `Changed line ${uRange.start_line} is not tested`;
                     annotations.push({
                         path: current.fileName,
                         start_line: uRange.start_line,

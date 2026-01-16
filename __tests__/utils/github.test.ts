@@ -72,19 +72,19 @@ const buildAnnotationsTestCases = [
         path: 'file1.txt',
         start_line: 132,
         end_line: 136,
-        message: 'These lines are not covered by a test'
+        message: 'Changed lines 132-136 are not tested'
       },
       {
         path: 'file1.txt',
         start_line: 1007,
         end_line: 1007,
-        message: 'This line is not covered by a test'
+        message: 'Changed line 1007 is not tested'
       },
       {
         path: 'test/dir/file1.txt',
         start_line: 22,
         end_line: 22,
-        message: 'This line is not covered by a test'
+        message: 'Changed line 22 is not tested'
       }
     ]
   },
@@ -121,7 +121,7 @@ const buildAnnotationsTestCases = [
         path: 'file.ts',
         start_line: 5,
         end_line: 9,
-        message: 'These lines are not covered by a test'
+        message: 'Changed lines 5-9 are not tested'
       }
     ]
   },
@@ -145,13 +145,13 @@ const buildAnnotationsTestCases = [
         path: 'file.ts',
         start_line: 5,
         end_line: 6,
-        message: 'These lines are not covered by a test'
+        message: 'Changed lines 5-6 are not tested'
       },
       {
         path: 'file.ts',
         start_line: 8,
         end_line: 9,
-        message: 'These lines are not covered by a test'
+        message: 'Changed lines 8-9 are not tested'
       }
     ]
   },
@@ -171,7 +171,7 @@ const buildAnnotationsTestCases = [
         path: 'file.ts',
         start_line: 5,
         end_line: 9,
-        message: 'These lines are not covered by a test'
+        message: 'Changed lines 5-9 are not tested'
       }
     ]
   },
@@ -211,13 +211,13 @@ const buildAnnotationsTestCases = [
         path: 'file.ts',
         start_line: 10,
         end_line: 10,
-        message: 'This line is not covered by a test'
+        message: 'Changed line 10 is not tested'
       },
       {
         path: 'file.ts',
         start_line: 20,
         end_line: 20,
-        message: 'This line is not covered by a test'
+        message: 'Changed line 20 is not tested'
       }
     ]
   },
