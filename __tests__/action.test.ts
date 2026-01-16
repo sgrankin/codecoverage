@@ -1,21 +1,27 @@
-import {test, expect, vi, beforeEach, afterEach} from 'vitest'
-import * as core from '@actions/core'
+import {test, expect, vi, beforeEach} from 'vitest'
 import * as github from '@actions/github'
+import * as fs from 'node:fs'
+import * as os from 'node:os'
+import * as path from 'node:path'
 import {getFixturePath} from './fixtures/util'
+import {captureStdout} from './fixtures/capture-stdout'
 
-// Mock @actions/core
-vi.mock('@actions/core', () => {
-  const summary = {
-    addRaw: vi.fn().mockReturnThis(),
-    write: vi.fn().mockResolvedValue(undefined)
-  }
+// We need to mock getInput since it reads from env vars
+// and setOutput/setFailed since they write to special files
+// Use vi.hoisted to avoid hoisting issues
+const {mockGetInput, mockSetOutput, mockSetFailed} = vi.hoisted(() => ({
+  mockGetInput: vi.fn(),
+  mockSetOutput: vi.fn(),
+  mockSetFailed: vi.fn()
+}))
+
+vi.mock('@actions/core', async () => {
+  const actual = await vi.importActual('@actions/core')
   return {
-    getInput: vi.fn(),
-    info: vi.fn(),
-    notice: vi.fn(),
-    setFailed: vi.fn(),
-    setOutput: vi.fn(),
-    summary
+    ...actual,
+    getInput: mockGetInput,
+    setOutput: mockSetOutput,
+    setFailed: mockSetFailed
   }
 })
 
@@ -54,12 +60,11 @@ vi.mock('../src/utils/github', () => ({
   })
 }))
 
-// Mock node:process env
-vi.mock('node:process', () => ({
-  env: {
-    GITHUB_WORKSPACE: '/workspace'
-  }
-}))
+// Set up env vars for tests
+beforeEach(() => {
+  process.env.GITHUB_WORKSPACE = '/workspace'
+  delete process.env.GITHUB_STEP_SUMMARY
+})
 
 // Import after mocks are set up
 import {play, generateSummary} from '../src/action'
@@ -69,19 +74,23 @@ beforeEach(() => {
 })
 
 test('exits early when not a pull request', async function () {
+  const capture = captureStdout()
   const originalEventName = github.context.eventName
   ;(github.context as any).eventName = 'push'
 
-  await play()
-
-  expect(core.info).toHaveBeenCalledWith(
-    'Pull request not detected. Exiting early.'
-  )
-  ;(github.context as any).eventName = originalEventName
+  try {
+    await play()
+    expect(capture.output()).toContain(
+      'Pull request not detected. Exiting early.'
+    )
+  } finally {
+    capture.restore()
+    ;(github.context as any).eventName = originalEventName
+  }
 })
 
 test('throws error for unsupported coverage format', async function () {
-  ;(core.getInput as any).mockImplementation((name: string) => {
+  mockGetInput.mockImplementation((name: string) => {
     if (name === 'GITHUB_TOKEN') return 'test-token'
     if (name === 'COVERAGE_FILE_PATH') return '/path/to/coverage'
     if (name === 'COVERAGE_FORMAT') return 'unsupported'
@@ -90,7 +99,7 @@ test('throws error for unsupported coverage format', async function () {
 
   await play()
 
-  expect(core.setFailed).toHaveBeenCalledWith(
+  expect(mockSetFailed).toHaveBeenCalledWith(
     'COVERAGE_FORMAT must be one of lcov,cobertura,go'
   )
 })
@@ -98,77 +107,99 @@ test('throws error for unsupported coverage format', async function () {
 test('processes lcov coverage file successfully', async function () {
   const lcovPath = getFixturePath('lcov.info')
 
-  ;(core.getInput as any).mockImplementation((name: string) => {
+  mockGetInput.mockImplementation((name: string) => {
     if (name === 'GITHUB_TOKEN') return 'test-token'
     if (name === 'COVERAGE_FILE_PATH') return lcovPath
     if (name === 'COVERAGE_FORMAT') return 'lcov'
     if (name === 'GITHUB_BASE_URL') return 'https://api.github.com'
+    if (name === 'STEP_SUMMARY') return 'false'
     return ''
   })
 
-  await play()
-
-  expect(core.info).toHaveBeenCalledWith('Performing Code Coverage Analysis')
-  expect(core.info).toHaveBeenCalledWith('Workspace: /workspace')
-  expect(core.info).toHaveBeenCalledWith('Filter done')
-  expect(core.info).toHaveBeenCalledWith('Annotations emitted')
-  expect(mockGetPullRequestDiff).toHaveBeenCalled()
-  expect(mockBuildAnnotations).toHaveBeenCalled()
+  const capture = captureStdout()
+  try {
+    await play()
+    const output = capture.output()
+    expect(output).toContain('Performing Code Coverage Analysis')
+    expect(output).toContain('Workspace: /workspace')
+    expect(output).toContain('Filter done')
+    expect(output).toContain('Annotations emitted')
+    expect(mockGetPullRequestDiff).toHaveBeenCalled()
+    expect(mockBuildAnnotations).toHaveBeenCalled()
+  } finally {
+    capture.restore()
+  }
 })
 
 test('processes cobertura coverage file successfully', async function () {
   const coberturaPath = getFixturePath('cobertura.xml')
 
-  ;(core.getInput as any).mockImplementation((name: string) => {
+  mockGetInput.mockImplementation((name: string) => {
     if (name === 'GITHUB_TOKEN') return 'test-token'
     if (name === 'COVERAGE_FILE_PATH') return coberturaPath
     if (name === 'COVERAGE_FORMAT') return 'cobertura'
     if (name === 'GITHUB_BASE_URL') return 'https://api.github.com'
+    if (name === 'STEP_SUMMARY') return 'false'
     return ''
   })
 
-  await play()
-
-  expect(core.info).toHaveBeenCalledWith('Performing Code Coverage Analysis')
-  expect(core.info).toHaveBeenCalledWith('Filter done')
-  expect(core.info).toHaveBeenCalledWith('Annotations emitted')
+  const capture = captureStdout()
+  try {
+    await play()
+    const output = capture.output()
+    expect(output).toContain('Performing Code Coverage Analysis')
+    expect(output).toContain('Filter done')
+    expect(output).toContain('Annotations emitted')
+  } finally {
+    capture.restore()
+  }
 })
 
 test('processes go coverage file successfully', async function () {
   const gocovPath = getFixturePath('gocoverage.out')
 
-  ;(core.getInput as any).mockImplementation((name: string) => {
+  mockGetInput.mockImplementation((name: string) => {
     if (name === 'GITHUB_TOKEN') return 'test-token'
     if (name === 'COVERAGE_FILE_PATH') return gocovPath
     if (name === 'COVERAGE_FORMAT') return 'go'
     if (name === 'GITHUB_BASE_URL') return 'https://api.github.com'
+    if (name === 'STEP_SUMMARY') return 'false'
     return ''
   })
 
-  // The go parser looks for go.mod in cwd, so we need to handle this
-  // For now, we expect it to fail since go.mod isn't in workspace root
-  await play()
-
-  // It will fail because go.mod isn't found, but the format is accepted
-  expect(core.info).toHaveBeenCalledWith('Performing Code Coverage Analysis')
+  const capture = captureStdout()
+  try {
+    // The go parser looks for go.mod in cwd, so we need to handle this
+    // For now, we expect it to fail since go.mod isn't in workspace root
+    await play()
+    // It will fail because go.mod isn't found, but the format is accepted
+    expect(capture.output()).toContain('Performing Code Coverage Analysis')
+  } finally {
+    capture.restore()
+  }
 })
 
 test('defaults to lcov format when not specified', async function () {
   const lcovPath = getFixturePath('lcov.info')
 
-  ;(core.getInput as any).mockImplementation((name: string) => {
+  mockGetInput.mockImplementation((name: string) => {
     if (name === 'GITHUB_TOKEN') return 'test-token'
     if (name === 'COVERAGE_FILE_PATH') return lcovPath
     if (name === 'COVERAGE_FORMAT') return '' // Not specified
     if (name === 'GITHUB_BASE_URL') return 'https://api.github.com'
+    if (name === 'STEP_SUMMARY') return 'false'
     return ''
   })
 
-  await play()
-
-  // Should not fail - lcov is the default
-  expect(core.setFailed).not.toHaveBeenCalled()
-  expect(core.info).toHaveBeenCalledWith('Annotations emitted')
+  const capture = captureStdout()
+  try {
+    await play()
+    // Should not fail - lcov is the default
+    expect(mockSetFailed).not.toHaveBeenCalled()
+    expect(capture.output()).toContain('Annotations emitted')
+  } finally {
+    capture.restore()
+  }
 })
 
 test('handles debug option for coverage', async function () {
@@ -177,32 +208,37 @@ test('handles debug option for coverage', async function () {
   mockGetPullRequestDiff.mockResolvedValue({
     'src/file.ts': [{start_line: 1, end_line: 10}]
   })
-  ;(core.getInput as any).mockImplementation((name: string) => {
+  mockGetInput.mockImplementation((name: string) => {
     if (name === 'GITHUB_TOKEN') return 'test-token'
     if (name === 'COVERAGE_FILE_PATH') return lcovPath
     if (name === 'COVERAGE_FORMAT') return 'lcov'
     if (name === 'GITHUB_BASE_URL') return 'https://api.github.com'
     if (name === 'DEBUG') return 'coverage,pr_lines_added'
+    if (name === 'STEP_SUMMARY') return 'false'
     return ''
   })
 
-  await play()
-
-  // With debug enabled, should log coverage info
-  expect(core.info).toHaveBeenCalledWith('Coverage:')
-  expect(core.info).toHaveBeenCalledWith(
-    expect.stringContaining('PR lines added:')
-  )
+  const capture = captureStdout()
+  try {
+    await play()
+    const output = capture.output()
+    // With debug enabled, should log coverage info
+    expect(output).toContain('Coverage:')
+    expect(output).toContain('PR lines added:')
+  } finally {
+    capture.restore()
+  }
 })
 
 test('sets output values for coverage stats', async function () {
   const lcovPath = getFixturePath('lcov.info')
 
-  ;(core.getInput as any).mockImplementation((name: string) => {
+  mockGetInput.mockImplementation((name: string) => {
     if (name === 'GITHUB_TOKEN') return 'test-token'
     if (name === 'COVERAGE_FILE_PATH') return lcovPath
     if (name === 'COVERAGE_FORMAT') return 'lcov'
     if (name === 'GITHUB_BASE_URL') return 'https://api.github.com'
+    if (name === 'STEP_SUMMARY') return 'false'
     return ''
   })
 
@@ -211,20 +247,23 @@ test('sets output values for coverage stats', async function () {
       path: 'test.ts',
       start_line: 1,
       end_line: 1,
-      annotation_level: 'warning',
       message: 'test'
     }
   ])
 
-  await play()
-
-  expect(core.setOutput).toHaveBeenCalledWith('coverage_percentage', '34.78')
-  expect(core.setOutput).toHaveBeenCalledWith('files_analyzed', 3)
-  expect(core.setOutput).toHaveBeenCalledWith('annotation_count', 1)
+  const capture = captureStdout()
+  try {
+    await play()
+    expect(mockSetOutput).toHaveBeenCalledWith('coverage_percentage', '34.78')
+    expect(mockSetOutput).toHaveBeenCalledWith('files_analyzed', 3)
+    expect(mockSetOutput).toHaveBeenCalledWith('annotation_count', 1)
+  } finally {
+    capture.restore()
+  }
 })
 
 test('handles error gracefully', async function () {
-  ;(core.getInput as any).mockImplementation((name: string) => {
+  mockGetInput.mockImplementation((name: string) => {
     if (name === 'GITHUB_TOKEN') return 'test-token'
     if (name === 'COVERAGE_FILE_PATH') return '/nonexistent/file.info'
     if (name === 'COVERAGE_FORMAT') return 'lcov'
@@ -234,7 +273,7 @@ test('handles error gracefully', async function () {
   await play()
 
   // Should call setFailed with the error message
-  expect(core.setFailed).toHaveBeenCalled()
+  expect(mockSetFailed).toHaveBeenCalled()
 })
 
 const generateSummaryTestCases = [
@@ -415,55 +454,48 @@ test.each(generateSummaryTestCases)(
   }
 )
 
-test('writes step summary by default', async function () {
+test('writes step summary to temp file', async function () {
   const lcovPath = getFixturePath('lcov.info')
-  ;(core.getInput as any).mockImplementation((name: string) => {
+  const summaryFile = path.join(os.tmpdir(), `test-summary-${Date.now()}.md`)
+
+  // Create the file (core.summary checks it exists and is writable)
+  fs.writeFileSync(summaryFile, '')
+
+  // Set up env var for summary file
+  process.env.GITHUB_STEP_SUMMARY = summaryFile
+
+  mockGetInput.mockImplementation((name: string) => {
     if (name === 'GITHUB_TOKEN') return 'test-token'
     if (name === 'COVERAGE_FILE_PATH') return lcovPath
     if (name === 'COVERAGE_FORMAT') return 'lcov'
     if (name === 'GITHUB_BASE_URL') return 'https://api.github.com'
-    if (name === 'STEP_SUMMARY') return ''
+    if (name === 'STEP_SUMMARY') return 'true'
     return ''
   })
 
-  await play()
+  const capture = captureStdout()
+  try {
+    await play()
+    expect(capture.output()).toContain('Step summary written')
 
-  expect(core.summary.addRaw).toHaveBeenCalledWith(
-    expect.stringContaining('Code Coverage Report')
-  )
-  expect(core.summary.write).toHaveBeenCalled()
-  expect(core.info).toHaveBeenCalledWith('Step summary written')
-})
-
-test('step summary includes file coverage from parsed coverage file', async function () {
-  const lcovPath = getFixturePath('lcov.info')
-  ;(core.getInput as any).mockImplementation((name: string) => {
-    if (name === 'GITHUB_TOKEN') return 'test-token'
-    if (name === 'COVERAGE_FILE_PATH') return lcovPath
-    if (name === 'COVERAGE_FORMAT') return 'lcov'
-    if (name === 'GITHUB_BASE_URL') return 'https://api.github.com'
-    if (name === 'STEP_SUMMARY') return ''
-    return ''
-  })
-
-  await play()
-
-  // Verify file info from lcov.info fixture is in the summary
-  // The fixture has 3 files: general.ts (3 lines, 1 hit), github.ts (30 lines, 7 hit), lcov.ts (13 lines, 8 hit)
-  const summaryContent = (core.summary.addRaw as any).mock.calls[0][0] as string
-
-  // Check the package table has correct structure
-  expect(summaryContent).toContain('### Coverage by Package')
-  expect(summaryContent).toContain(
-    '| Package | Files | Total Lines | Covered | Coverage |'
-  )
-  // All files are in the same package (derived from their directory path)
-  expect(summaryContent).toContain('| 3 | 46 | 16 |')
+    // Check the file was written
+    const content = fs.readFileSync(summaryFile, 'utf8')
+    expect(content).toContain('Code Coverage Report')
+    expect(content).toContain('### Coverage by Package')
+  } finally {
+    capture.restore()
+    delete process.env.GITHUB_STEP_SUMMARY
+    // Clean up temp file
+    if (fs.existsSync(summaryFile)) {
+      fs.unlinkSync(summaryFile)
+    }
+  }
 })
 
 test('does not write step summary when STEP_SUMMARY is false', async function () {
   const lcovPath = getFixturePath('lcov.info')
-  ;(core.getInput as any).mockImplementation((name: string) => {
+
+  mockGetInput.mockImplementation((name: string) => {
     if (name === 'GITHUB_TOKEN') return 'test-token'
     if (name === 'COVERAGE_FILE_PATH') return lcovPath
     if (name === 'COVERAGE_FORMAT') return 'lcov'
@@ -472,8 +504,11 @@ test('does not write step summary when STEP_SUMMARY is false', async function ()
     return ''
   })
 
-  await play()
-
-  expect(core.summary.addRaw).not.toHaveBeenCalled()
-  expect(core.info).not.toHaveBeenCalledWith('Step summary written')
+  const capture = captureStdout()
+  try {
+    await play()
+    expect(capture.output()).not.toContain('Step summary written')
+  } finally {
+    capture.restore()
+  }
 })

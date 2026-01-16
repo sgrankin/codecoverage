@@ -1,7 +1,8 @@
-import {test, expect, vi} from 'vitest'
+import {test, expect, vi, beforeEach, afterEach} from 'vitest'
 import {GithubUtil} from '../../src/utils/github'
+import {captureStdout} from '../fixtures/capture-stdout'
 
-// Mock @actions/github
+// Mock @actions/github (still needed for context)
 vi.mock('@actions/github', () => ({
   context: {
     payload: {
@@ -20,12 +21,6 @@ vi.mock('@actions/github', () => ({
     },
     ref: 'refs/heads/main'
   }
-}))
-
-// Mock @actions/core
-vi.mock('@actions/core', () => ({
-  info: vi.fn(),
-  warning: vi.fn()
 }))
 
 test('github init successfully', async function () {
@@ -205,9 +200,16 @@ const buildAnnotationsTestCases = [
 test.each(buildAnnotationsTestCases)(
   'buildAnnotations: $name',
   ({prFiles, coverageFiles, expected}) => {
-    const githubUtil = new GithubUtil('1234', 'https://api.github.com')
-    const annotations = githubUtil.buildAnnotations(coverageFiles, prFiles)
-    expect(annotations).toEqual(expected)
+    const capture = captureStdout()
+    try {
+      const githubUtil = new GithubUtil('1234', 'https://api.github.com')
+      const annotations = githubUtil.buildAnnotations(coverageFiles, prFiles)
+      expect(annotations).toEqual(expected)
+      // Verify it logged annotation count
+      expect(capture.output()).toContain(`Annotation count: ${expected.length}`)
+    } finally {
+      capture.restore()
+    }
   }
 )
 
@@ -243,8 +245,6 @@ index abcdefg..1234567 100644
   })
 })
 
-import * as core from '@actions/core'
-
 const diffTooLargeTestCases = [
   {
     name: '403 with diff too large message',
@@ -263,22 +263,26 @@ const diffTooLargeTestCases = [
 test.each(diffTooLargeTestCases)(
   'getPullRequestDiff handles large diff error: $name',
   async ({error}) => {
-    const githubUtil = new GithubUtil('1234', 'https://api.github.com')
+    const capture = captureStdout()
+    try {
+      const githubUtil = new GithubUtil('1234', 'https://api.github.com')
 
-    ;(githubUtil as any).client = {
-      rest: {
-        pulls: {
-          get: vi.fn().mockRejectedValue(error)
+      ;(githubUtil as any).client = {
+        rest: {
+          pulls: {
+            get: vi.fn().mockRejectedValue(error)
+          }
         }
       }
+
+      const result = await githubUtil.getPullRequestDiff()
+
+      expect(result).toEqual({})
+      // Check that warning was emitted to stdout
+      expect(capture.output()).toContain('::warning::PR diff is too large')
+    } finally {
+      capture.restore()
     }
-
-    const result = await githubUtil.getPullRequestDiff()
-
-    expect(result).toEqual({})
-    expect(core.warning).toHaveBeenCalledWith(
-      expect.stringContaining('PR diff is too large')
-    )
   }
 )
 
