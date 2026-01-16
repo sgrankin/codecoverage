@@ -7,6 +7,7 @@ import {getFixturePath} from './fixtures/util'
 vi.mock('@actions/core', () => ({
   getInput: vi.fn(),
   info: vi.fn(),
+  warning: vi.fn(),
   setFailed: vi.fn(),
   setOutput: vi.fn()
 }))
@@ -34,17 +35,13 @@ vi.mock('@actions/github', () => ({
 }))
 
 // Mock GithubUtil
-const mockAnnotate = vi.fn().mockResolvedValue(201)
 const mockGetPullRequestDiff = vi.fn().mockResolvedValue({})
-const mockGetPullRequestRef = vi.fn().mockReturnValue('feature-branch')
 const mockBuildAnnotations = vi.fn().mockReturnValue([])
 
 vi.mock('../src/utils/github', () => ({
   GithubUtil: vi.fn(function () {
     return {
-      annotate: mockAnnotate,
       getPullRequestDiff: mockGetPullRequestDiff,
-      getPullRequestRef: mockGetPullRequestRef,
       buildAnnotations: mockBuildAnnotations
     }
   })
@@ -121,10 +118,9 @@ test('processes lcov coverage file successfully', async function () {
   expect(core.info).toHaveBeenCalledWith('Performing Code Coverage Analysis')
   expect(core.info).toHaveBeenCalledWith('Workspace: /workspace')
   expect(core.info).toHaveBeenCalledWith('Filter done')
-  expect(core.info).toHaveBeenCalledWith('Annotation done')
+  expect(core.info).toHaveBeenCalledWith('Annotations emitted')
   expect(mockGetPullRequestDiff).toHaveBeenCalled()
   expect(mockBuildAnnotations).toHaveBeenCalled()
-  expect(mockAnnotate).toHaveBeenCalled()
 })
 
 test('processes cobertura coverage file successfully', async function () {
@@ -142,7 +138,7 @@ test('processes cobertura coverage file successfully', async function () {
 
   expect(core.info).toHaveBeenCalledWith('Performing Code Coverage Analysis')
   expect(core.info).toHaveBeenCalledWith('Filter done')
-  expect(core.info).toHaveBeenCalledWith('Annotation done')
+  expect(core.info).toHaveBeenCalledWith('Annotations emitted')
 })
 
 test('processes go coverage file successfully', async function () {
@@ -179,7 +175,7 @@ test('defaults to lcov format when not specified', async function () {
 
   // Should not fail - lcov is the default
   expect(core.setFailed).not.toHaveBeenCalled()
-  expect(core.info).toHaveBeenCalledWith('Annotation done')
+  expect(core.info).toHaveBeenCalledWith('Annotations emitted')
 })
 
 test('handles debug option for coverage', async function () {

@@ -63,8 +63,9 @@ codecoverage/
         │
         ▼
 ┌─────────────────┐
-│ GitHub          │
-│ Annotations     │
+│ Workflow        │
+│ Commands        │
+│ (::warning::)   │
 └─────────────────┘
 ```
 
@@ -118,3 +119,4 @@ sgrankin/codecoverage (this fork)
 - Improved annotation coalescing to bridge non-executable gaps
 - Removed Clover support (ESM compatibility issues)
 - Upgraded to Node.js 20 runtime
+- Replaced Check Runs API with workflow commands for simpler annotations

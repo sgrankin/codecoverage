@@ -1,6 +1,5 @@
-import {test, expect, vi, beforeEach, afterEach} from 'vitest'
+import {test, expect, vi} from 'vitest'
 import {GithubUtil} from '../../src/utils/github'
-import * as github from '@actions/github'
 
 // Mock @actions/github
 vi.mock('@actions/github', () => ({
@@ -75,21 +74,18 @@ const buildAnnotationsTestCases = [
         path: 'file1.txt',
         start_line: 132,
         end_line: 136,
-        annotation_level: 'warning',
         message: 'These lines are not covered by a test'
       },
       {
         path: 'file1.txt',
         start_line: 1007,
         end_line: 1007,
-        annotation_level: 'warning',
         message: 'This line is not covered by a test'
       },
       {
         path: 'test/dir/file1.txt',
         start_line: 22,
         end_line: 22,
-        annotation_level: 'warning',
         message: 'This line is not covered by a test'
       }
     ]
@@ -125,7 +121,6 @@ const buildAnnotationsTestCases = [
         path: 'file.ts',
         start_line: 5,
         end_line: 9,
-        annotation_level: 'warning',
         message: 'These lines are not covered by a test'
       }
     ]
@@ -149,14 +144,12 @@ const buildAnnotationsTestCases = [
         path: 'file.ts',
         start_line: 5,
         end_line: 6,
-        annotation_level: 'warning',
         message: 'These lines are not covered by a test'
       },
       {
         path: 'file.ts',
         start_line: 8,
         end_line: 9,
-        annotation_level: 'warning',
         message: 'These lines are not covered by a test'
       }
     ]
@@ -176,7 +169,6 @@ const buildAnnotationsTestCases = [
         path: 'file.ts',
         start_line: 5,
         end_line: 9,
-        annotation_level: 'warning',
         message: 'These lines are not covered by a test'
       }
     ]
@@ -191,25 +183,6 @@ test.each(buildAnnotationsTestCases)(
     expect(annotations).toEqual(expected)
   }
 )
-
-test('getPullRequestRef returns branch from pull request', function () {
-  const githubUtil = new GithubUtil('1234', 'https://api.github.com')
-  const ref = githubUtil.getPullRequestRef()
-  expect(ref).toBe('feature-branch')
-})
-
-test('getPullRequestRef returns ref when no pull request', function () {
-  // Temporarily modify the context
-  const originalPayload = github.context.payload
-  github.context.payload = {}
-
-  const githubUtil = new GithubUtil('1234', 'https://api.github.com')
-  const ref = githubUtil.getPullRequestRef()
-  expect(ref).toBe('main')
-
-  // Restore
-  github.context.payload = originalPayload
-})
 
 test('getPullRequestDiff parses diff response', async function () {
   const mockDiff = `diff --git a/src/test.ts b/src/test.ts
@@ -240,212 +213,5 @@ index abcdefg..1234567 100644
   // Now returns raw line numbers instead of pre-coalesced ranges
   expect(result).toEqual({
     'src/test.ts': [2]
-  })
-})
-
-test('annotate creates check run with annotations', async function () {
-  const githubUtil = new GithubUtil('1234', 'https://api.github.com')
-
-  const mockCreate = vi.fn().mockResolvedValue({
-    status: 201,
-    data: {
-      id: 12345,
-      output: {
-        annotations_url: 'https://api.github.com/annotations/12345'
-      }
-    }
-  })
-
-  ;(githubUtil as any).client = {
-    rest: {
-      checks: {
-        create: mockCreate,
-        update: vi.fn()
-      }
-    }
-  }
-
-  const annotations = [
-    {
-      path: 'file1.txt',
-      start_line: 1,
-      end_line: 1,
-      annotation_level: 'warning' as const,
-      message: 'This line is not covered by a test'
-    }
-  ]
-
-  const result = await githubUtil.annotate({
-    referenceCommitHash: 'abc123',
-    annotations
-  })
-
-  expect(result).toBe(201)
-  expect(mockCreate).toHaveBeenCalledWith(
-    expect.objectContaining({
-      owner: 'test-owner',
-      repo: 'test-repo',
-      name: 'Annotate',
-      head_sha: 'abc123',
-      status: 'completed',
-      conclusion: 'success',
-      output: expect.objectContaining({
-        title: 'Coverage Tool',
-        summary: 'Missing Coverage',
-        annotations
-      })
-    })
-  )
-})
-
-test('annotate returns 0 for empty annotations', async function () {
-  const githubUtil = new GithubUtil('1234', 'https://api.github.com')
-
-  const result = await githubUtil.annotate({
-    referenceCommitHash: 'abc123',
-    annotations: []
-  })
-
-  expect(result).toBe(0)
-})
-
-test('annotate handles multiple chunks of annotations', async function () {
-  const githubUtil = new GithubUtil('1234', 'https://api.github.com')
-
-  const mockCreate = vi.fn().mockResolvedValue({
-    status: 201,
-    data: {
-      id: 12345,
-      output: {
-        annotations_url: 'https://api.github.com/annotations/12345'
-      }
-    }
-  })
-
-  const mockUpdate = vi.fn().mockResolvedValue({
-    status: 200,
-    data: {
-      id: 12345,
-      output: {
-        annotations_url: 'https://api.github.com/annotations/12345'
-      }
-    }
-  })
-
-  ;(githubUtil as any).client = {
-    rest: {
-      checks: {
-        create: mockCreate,
-        update: mockUpdate
-      }
-    }
-  }
-
-  // Create 75 annotations (more than 50 chunk size)
-  const annotations = Array.from({length: 75}, (_, i) => ({
-    path: `file${i}.txt`,
-    start_line: 1,
-    end_line: 1,
-    annotation_level: 'warning' as const,
-    message: 'This line is not covered by a test'
-  }))
-
-  const result = await githubUtil.annotate({
-    referenceCommitHash: 'abc123',
-    annotations
-  })
-
-  expect(result).toBe(200)
-  expect(mockCreate).toHaveBeenCalledTimes(1)
-  expect(mockUpdate).toHaveBeenCalledTimes(1)
-
-  // First call should be 'in_progress' without conclusion
-  expect(mockCreate).toHaveBeenCalledWith(
-    expect.objectContaining({
-      status: 'in_progress'
-    })
-  )
-  expect(mockCreate.mock.calls[0][0]).not.toHaveProperty('conclusion')
-
-  // Second call should be 'completed' with conclusion
-  expect(mockUpdate).toHaveBeenCalledWith(
-    expect.objectContaining({
-      check_run_id: 12345,
-      status: 'in_progress',
-      conclusion: 'success'
-    })
-  )
-})
-
-test('annotate returns -1 when branch is deleted (PR merged)', async function () {
-  const githubUtil = new GithubUtil('1234', 'https://api.github.com')
-
-  const mockCreate = vi.fn().mockRejectedValue({
-    status: 422,
-    message: 'No commit found for SHA: abc123'
-  })
-
-  ;(githubUtil as any).client = {
-    rest: {
-      checks: {
-        create: mockCreate,
-        update: vi.fn()
-      }
-    }
-  }
-
-  const annotations = [
-    {
-      path: 'file1.txt',
-      start_line: 1,
-      end_line: 1,
-      annotation_level: 'warning' as const,
-      message: 'This line is not covered by a test'
-    }
-  ]
-
-  const result = await githubUtil.annotate({
-    referenceCommitHash: 'abc123',
-    annotations
-  })
-
-  expect(result).toBe(-1)
-})
-
-test('annotate throws for other errors', async function () {
-  const githubUtil = new GithubUtil('1234', 'https://api.github.com')
-
-  const mockCreate = vi.fn().mockRejectedValue({
-    status: 500,
-    message: 'Internal server error'
-  })
-
-  ;(githubUtil as any).client = {
-    rest: {
-      checks: {
-        create: mockCreate,
-        update: vi.fn()
-      }
-    }
-  }
-
-  const annotations = [
-    {
-      path: 'file1.txt',
-      start_line: 1,
-      end_line: 1,
-      annotation_level: 'warning' as const,
-      message: 'This line is not covered by a test'
-    }
-  ]
-
-  await expect(
-    githubUtil.annotate({
-      referenceCommitHash: 'abc123',
-      annotations
-    })
-  ).rejects.toEqual({
-    status: 500,
-    message: 'Internal server error'
   })
 })

@@ -53903,12 +53903,6 @@ class GithubUtil {
         }
         this.client = new dist_bundle_Octokit({ auth: token, baseUrl });
     }
-    getPullRequestRef() {
-        const pullRequest = github.context.payload.pull_request;
-        return pullRequest
-            ? pullRequest.head.ref
-            : github.context.ref.replace('refs/heads/', '');
-    }
     async getPullRequestDiff() {
         const pull_number = github.context.issue.number;
         const response = await this.client.rest.pulls.get({
@@ -53926,73 +53920,6 @@ class GithubUtil {
             prFiles[item.filename] = item.addedLines;
         }
         return prFiles;
-    }
-    /**
-     * https://docs.github.com/en/rest/checks/runs?apiVersion=2022-11-28#create-a-check-run
-     * https://docs.github.com/en/rest/checks/runs?apiVersion=2022-11-28#update-a-check-run
-     *
-     * Returns: response status code, or -1 if branch was deleted (PR merged)
-     */
-    async annotate(input) {
-        if (input.annotations.length === 0) {
-            return 0;
-        }
-        // github API lets you post 50 annotations at a time
-        const chunkSize = 50;
-        const chunks = [];
-        for (let i = 0; i < input.annotations.length; i += chunkSize) {
-            chunks.push(input.annotations.slice(i, i + chunkSize));
-        }
-        let lastResponseStatus = 0;
-        let checkId = 0;
-        for (let i = 0; i < chunks.length; i++) {
-            let status = 'in_progress';
-            let conclusion = undefined;
-            if (i === chunks.length - 1) {
-                status = 'completed';
-                conclusion = 'success';
-            }
-            const params = {
-                ...github.context.repo,
-                name: 'Annotate',
-                head_sha: input.referenceCommitHash,
-                status,
-                ...(conclusion && { conclusion }),
-                output: {
-                    title: 'Coverage Tool',
-                    summary: 'Missing Coverage',
-                    annotations: chunks[i]
-                }
-            };
-            try {
-                let response;
-                if (i === 0) {
-                    response = await this.client.rest.checks.create({
-                        ...params
-                    });
-                    checkId = response.data.id;
-                }
-                else {
-                    response = await this.client.rest.checks.update({
-                        ...params,
-                        check_run_id: checkId,
-                        status: 'in_progress'
-                    });
-                }
-                core.info(response.data.output.annotations_url);
-                lastResponseStatus = response.status;
-            }
-            catch (error) {
-                // Check if this is a "branch deleted" error (typically 422 with specific message)
-                if (isBranchDeletedError(error)) {
-                    core.warning('PR branch appears to be deleted (PR may have been merged). ' +
-                        'Skipping annotations.');
-                    return -1;
-                }
-                throw error;
-            }
-        }
-        return lastResponseStatus;
     }
     buildAnnotations(coverageFiles, pullRequestFiles) {
         const annotations = [];
@@ -54015,7 +53942,6 @@ class GithubUtil {
                         path: current.fileName,
                         start_line: uRange.start_line,
                         end_line: uRange.end_line,
-                        annotation_level: 'warning',
                         message
                     });
                 }
@@ -54024,22 +53950,6 @@ class GithubUtil {
         core.info(`Annotation count: ${annotations.length}`);
         return annotations;
     }
-}
-/**
- * Check if an error indicates the PR branch was deleted.
- * GitHub API returns 422 with "No commit found for SHA" when the ref is gone.
- */
-function isBranchDeletedError(error) {
-    if (error && typeof error === 'object' && 'status' in error) {
-        const apiError = error;
-        if (apiError.status === 422) {
-            const message = apiError.message?.toLowerCase() || '';
-            return (message.includes('no commit found') ||
-                message.includes('sha') ||
-                message.includes('not found'));
-        }
-    }
-    return false;
 }
 
 ;// CONCATENATED MODULE: ./node_modules/@isaacs/balanced-match/dist/esm/index.js
@@ -62246,17 +62156,15 @@ async function play() {
         }
         const annotations = githubUtil.buildAnnotations(coverageByFile, pullRequestFiles);
         core.setOutput('annotation_count', annotations.length);
-        // 4. Annotate in github
-        const annotateResult = await githubUtil.annotate({
-            referenceCommitHash: githubUtil.getPullRequestRef(),
-            annotations
-        });
-        if (annotateResult === -1) {
-            // Branch was deleted (PR merged), exit gracefully
-            core.info('Exiting gracefully - PR branch no longer exists');
-            return;
+        // 4. Emit annotations using workflow commands
+        for (const annotation of annotations) {
+            core.warning(annotation.message, {
+                file: annotation.path,
+                startLine: annotation.start_line,
+                endLine: annotation.end_line
+            });
         }
-        core.info('Annotation done');
+        core.info('Annotations emitted');
         // 5. Write step summary
         const STEP_SUMMARY = core.getInput('STEP_SUMMARY');
         const summaryPath = external_node_process_namespaceObject.env.GITHUB_STEP_SUMMARY;
