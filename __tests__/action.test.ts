@@ -85,7 +85,7 @@ test('throws error for unsupported coverage format', async function () {
   await play()
 
   expect(core.setFailed).toHaveBeenCalledWith(
-    'COVERAGE_FORMAT must be one of lcov,clover,go'
+    'COVERAGE_FORMAT must be one of lcov,clover,cobertura,go'
   )
 })
 
@@ -118,6 +118,24 @@ test('processes clover coverage file successfully', async function () {
     if (name === 'GITHUB_TOKEN') return 'test-token'
     if (name === 'COVERAGE_FILE_PATH') return cloverPath
     if (name === 'COVERAGE_FORMAT') return 'clover'
+    if (name === 'GITHUB_BASE_URL') return 'https://api.github.com'
+    return ''
+  })
+
+  await play()
+
+  expect(core.info).toHaveBeenCalledWith('Performing Code Coverage Analysis')
+  expect(core.info).toHaveBeenCalledWith('Filter done')
+  expect(core.info).toHaveBeenCalledWith('Annotation done')
+})
+
+test('processes cobertura coverage file successfully', async function () {
+  const coberturaPath = getFixturePath('cobertura.xml')
+
+  ;(core.getInput as any).mockImplementation((name: string) => {
+    if (name === 'GITHUB_TOKEN') return 'test-token'
+    if (name === 'COVERAGE_FILE_PATH') return coberturaPath
+    if (name === 'COVERAGE_FORMAT') return 'cobertura'
     if (name === 'GITHUB_BASE_URL') return 'https://api.github.com'
     return ''
   })
