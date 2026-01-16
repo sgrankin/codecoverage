@@ -48,6 +48,8 @@ export class GithubUtil {
   /**
    * https://docs.github.com/en/rest/checks/runs?apiVersion=2022-11-28#create-a-check-run
    * https://docs.github.com/en/rest/checks/runs?apiVersion=2022-11-28#update-a-check-run
+   *
+   * Returns: response status code, or -1 if branch was deleted (PR merged)
    */
   async annotate(input: InputAnnotateParams): Promise<number> {
     if (input.annotations.length === 0) {
@@ -89,21 +91,33 @@ export class GithubUtil {
           annotations: chunks[i]
         }
       }
-      let response
-      if (i === 0) {
-        response = await this.client.rest.checks.create({
-          ...params
-        })
-        checkId = response.data.id
-      } else {
-        response = await this.client.rest.checks.update({
-          ...params,
-          check_run_id: checkId,
-          status: 'in_progress' as const
-        })
+      try {
+        let response
+        if (i === 0) {
+          response = await this.client.rest.checks.create({
+            ...params
+          })
+          checkId = response.data.id
+        } else {
+          response = await this.client.rest.checks.update({
+            ...params,
+            check_run_id: checkId,
+            status: 'in_progress' as const
+          })
+        }
+        core.info(response.data.output.annotations_url)
+        lastResponseStatus = response.status
+      } catch (error) {
+        // Check if this is a "branch deleted" error (typically 422 with specific message)
+        if (isBranchDeletedError(error)) {
+          core.warning(
+            'PR branch appears to be deleted (PR may have been merged). ' +
+              'Skipping annotations.'
+          )
+          return -1
+        }
+        throw error
       }
-      core.info(response.data.output.annotations_url)
-      lastResponseStatus = response.status
     }
     return lastResponseStatus
   }
@@ -152,6 +166,25 @@ export class GithubUtil {
     core.info(`Annotation count: ${annotations.length}`)
     return annotations
   }
+}
+
+/**
+ * Check if an error indicates the PR branch was deleted.
+ * GitHub API returns 422 with "No commit found for SHA" when the ref is gone.
+ */
+function isBranchDeletedError(error: unknown): boolean {
+  if (error && typeof error === 'object' && 'status' in error) {
+    const apiError = error as {status: number; message?: string}
+    if (apiError.status === 422) {
+      const message = apiError.message?.toLowerCase() || ''
+      return (
+        message.includes('no commit found') ||
+        message.includes('sha') ||
+        message.includes('not found')
+      )
+    }
+  }
+  return false
 }
 
 type InputAnnotateParams = {

@@ -25,7 +25,8 @@ vi.mock('@actions/github', () => ({
 
 // Mock @actions/core
 vi.mock('@actions/core', () => ({
-  info: vi.fn()
+  info: vi.fn(),
+  warning: vi.fn()
 }))
 
 test('github init successfully', async function () {
@@ -374,4 +375,77 @@ test('annotate handles multiple chunks of annotations', async function () {
       conclusion: 'success'
     })
   )
+})
+
+test('annotate returns -1 when branch is deleted (PR merged)', async function () {
+  const githubUtil = new GithubUtil('1234', 'https://api.github.com')
+
+  const mockCreate = vi.fn().mockRejectedValue({
+    status: 422,
+    message: 'No commit found for SHA: abc123'
+  })
+
+  ;(githubUtil as any).client = {
+    rest: {
+      checks: {
+        create: mockCreate,
+        update: vi.fn()
+      }
+    }
+  }
+
+  const annotations = [
+    {
+      path: 'file1.txt',
+      start_line: 1,
+      end_line: 1,
+      annotation_level: 'warning' as const,
+      message: 'This line is not covered by a test'
+    }
+  ]
+
+  const result = await githubUtil.annotate({
+    referenceCommitHash: 'abc123',
+    annotations
+  })
+
+  expect(result).toBe(-1)
+})
+
+test('annotate throws for other errors', async function () {
+  const githubUtil = new GithubUtil('1234', 'https://api.github.com')
+
+  const mockCreate = vi.fn().mockRejectedValue({
+    status: 500,
+    message: 'Internal server error'
+  })
+
+  ;(githubUtil as any).client = {
+    rest: {
+      checks: {
+        create: mockCreate,
+        update: vi.fn()
+      }
+    }
+  }
+
+  const annotations = [
+    {
+      path: 'file1.txt',
+      start_line: 1,
+      end_line: 1,
+      annotation_level: 'warning' as const,
+      message: 'This line is not covered by a test'
+    }
+  ]
+
+  await expect(
+    githubUtil.annotate({
+      referenceCommitHash: 'abc123',
+      annotations
+    })
+  ).rejects.toEqual({
+    status: 500,
+    message: 'Internal server error'
+  })
 })
