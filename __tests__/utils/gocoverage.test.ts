@@ -20,3 +20,11 @@ test('should throw err if go.mod path is not given', async function () {
     'No Go module path provided'
   )
 })
+
+test('should return empty module name for go.mod without module line', async function () {
+  const path = getFixturePath('gocoverage.out')
+  const goModPath = getFixturePath('go_empty.mod')
+  const output = await parseGoCoverage(path, goModPath)
+  // When module name is empty, paths won't be filtered
+  expect(output).toMatchSnapshot()
+})
