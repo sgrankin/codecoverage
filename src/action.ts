@@ -1,4 +1,5 @@
 import {env} from 'node:process'
+import * as fs from 'node:fs'
 import * as core from '@actions/core'
 import * as github from '@actions/github'
 import {correctLineTotals, filterCoverageByFile} from './utils/general.js'
@@ -8,6 +9,45 @@ import {parseGoCoverage} from './utils/gocoverage.js'
 import {GithubUtil} from './utils/github.js'
 
 const SUPPORTED_FORMATS = ['lcov', 'cobertura', 'go']
+
+interface SummaryParams {
+  coveragePercentage: string
+  totalLines: number
+  coveredLines: number
+  filesAnalyzed: number
+  annotationCount: number
+}
+
+export function generateSummary(params: SummaryParams): string {
+  const {
+    coveragePercentage,
+    totalLines,
+    coveredLines,
+    filesAnalyzed,
+    annotationCount
+  } = params
+  const uncoveredLines = totalLines - coveredLines
+
+  let statusEmoji = '🔴'
+  if (parseFloat(coveragePercentage) >= 80) {
+    statusEmoji = '🟢'
+  } else if (parseFloat(coveragePercentage) >= 60) {
+    statusEmoji = '🟡'
+  }
+
+  return `## ${statusEmoji} Code Coverage Report
+
+| Metric | Value |
+| ------ | ----- |
+| **Coverage** | ${coveragePercentage}% |
+| **Covered Lines** | ${coveredLines.toLocaleString()} |
+| **Uncovered Lines** | ${uncoveredLines.toLocaleString()} |
+| **Total Lines** | ${totalLines.toLocaleString()} |
+| **Files Analyzed** | ${filesAnalyzed.toLocaleString()} |
+
+${annotationCount > 0 ? `⚠️ **${annotationCount} annotation${annotationCount === 1 ? '' : 's'}** added for uncovered lines in this PR.` : '✅ No new uncovered lines detected in this PR.'}
+`
+}
 
 /** Starting Point of the Github Action*/
 export async function play(): Promise<void> {
@@ -108,6 +148,20 @@ export async function play(): Promise<void> {
       annotations
     })
     core.info('Annotation done')
+
+    // 5. Write step summary
+    const summaryPath = env.GITHUB_STEP_SUMMARY
+    if (summaryPath) {
+      const summary = generateSummary({
+        coveragePercentage,
+        totalLines,
+        coveredLines,
+        filesAnalyzed: parsedCov.length,
+        annotationCount: annotations.length
+      })
+      fs.appendFileSync(summaryPath, summary)
+      core.info('Step summary written')
+    }
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
     core.info(JSON.stringify(error))
