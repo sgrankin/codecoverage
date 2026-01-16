@@ -2,11 +2,16 @@ import {env} from 'node:process'
 import * as fs from 'node:fs'
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-import {correctLineTotals, filterCoverageByFile} from './utils/general.js'
+import {
+  correctLineTotals,
+  filterCoverageByFile,
+  CoverageParsed
+} from './utils/general.js'
 import {parseLCov} from './utils/lcov.js'
 import {parseCobertura} from './utils/cobertura.js'
 import {parseGoCoverage} from './utils/gocoverage.js'
 import {GithubUtil} from './utils/github.js'
+import {expandCoverageFilePaths} from './utils/files.js'
 
 const SUPPORTED_FORMATS = ['lcov', 'cobertura', 'go']
 
@@ -160,16 +165,27 @@ export async function play(): Promise<void> {
     const workspacePath = env.GITHUB_WORKSPACE || ''
     core.info(`Workspace: ${workspacePath}`)
 
-    // 1. Parse coverage file
-    let parsedCov
-    if (COVERAGE_FORMAT === 'cobertura') {
-      parsedCov = await parseCobertura(COVERAGE_FILE_PATH, workspacePath)
-    } else if (COVERAGE_FORMAT === 'go') {
-      // Assuming that go.mod is available in working directory
-      parsedCov = await parseGoCoverage(COVERAGE_FILE_PATH, 'go.mod')
-    } else {
-      // lcov default
-      parsedCov = await parseLCov(COVERAGE_FILE_PATH, workspacePath)
+    // 1. Expand file paths (supports globs and multiple paths)
+    const coverageFiles = await expandCoverageFilePaths(COVERAGE_FILE_PATH)
+    if (coverageFiles.length === 0) {
+      throw new Error(`No coverage files found matching: ${COVERAGE_FILE_PATH}`)
+    }
+    core.info(`Found ${coverageFiles.length} coverage file(s)`)
+
+    // 2. Parse all coverage files and merge results
+    let parsedCov: CoverageParsed = []
+    for (const coverageFile of coverageFiles) {
+      let fileCov: CoverageParsed
+      if (COVERAGE_FORMAT === 'cobertura') {
+        fileCov = await parseCobertura(coverageFile, workspacePath)
+      } else if (COVERAGE_FORMAT === 'go') {
+        // Assuming that go.mod is available in working directory
+        fileCov = await parseGoCoverage(coverageFile, 'go.mod')
+      } else {
+        // lcov default
+        fileCov = await parseLCov(coverageFile, workspacePath)
+      }
+      parsedCov = parsedCov.concat(fileCov)
     }
     // Correct line totals
     parsedCov = correctLineTotals(parsedCov)
