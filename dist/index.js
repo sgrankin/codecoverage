@@ -61490,8 +61490,9 @@ async function play() {
         const githubUtil = new GithubUtil(GITHUB_TOKEN, GITHUB_BASE_URL);
         // 3. Get current pull request files
         const pullRequestFiles = await githubUtil.getPullRequestDiff();
-        // Debug output: scoped to files in the diff
+        // Debug output: scoped to files in the diff (grouped to reduce noise)
         const prFileSet = new Set(Object.keys(pullRequestFiles));
+        core.startGroup('Debug: PR diff and coverage data');
         for (const [file, lines] of Object.entries(pullRequestFiles)) {
             core.info(`::debug-dump::diff::${JSON.stringify({ file, lines })}`);
         }
@@ -61505,6 +61506,7 @@ async function play() {
                 })}`);
             }
         }
+        core.endGroup();
         const annotations = githubUtil.buildAnnotations(coverageByFile, pullRequestFiles);
         core.setOutput('annotation_count', annotations.length);
         // 4. Emit annotations using workflow commands
@@ -61516,7 +61518,8 @@ async function play() {
             });
         }
         core.info('Annotations emitted');
-        // Debug output: annotations
+        // Debug output: annotations (grouped to reduce noise)
+        core.startGroup('Debug: Generated annotations');
         for (const annotation of annotations) {
             core.info(`::debug-dump::annotation::${JSON.stringify({
                 file: annotation.path,
@@ -61524,6 +61527,7 @@ async function play() {
                 end: annotation.end_line
             })}`);
         }
+        core.endGroup();
         // 5. Write step summary
         const STEP_SUMMARY = core.getInput('STEP_SUMMARY');
         if (STEP_SUMMARY !== 'false') {

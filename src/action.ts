@@ -212,8 +212,9 @@ export async function play(): Promise<void> {
     // 3. Get current pull request files
     const pullRequestFiles = await githubUtil.getPullRequestDiff()
 
-    // Debug output: scoped to files in the diff
+    // Debug output: scoped to files in the diff (grouped to reduce noise)
     const prFileSet = new Set(Object.keys(pullRequestFiles))
+    core.startGroup('Debug: PR diff and coverage data')
     for (const [file, lines] of Object.entries(pullRequestFiles)) {
       core.info(`::debug-dump::diff::${JSON.stringify({file, lines})}`)
     }
@@ -229,6 +230,7 @@ export async function play(): Promise<void> {
         )
       }
     }
+    core.endGroup()
 
     const annotations = githubUtil.buildAnnotations(
       coverageByFile,
@@ -246,7 +248,8 @@ export async function play(): Promise<void> {
     }
     core.info('Annotations emitted')
 
-    // Debug output: annotations
+    // Debug output: annotations (grouped to reduce noise)
+    core.startGroup('Debug: Generated annotations')
     for (const annotation of annotations) {
       core.info(
         `::debug-dump::annotation::${JSON.stringify({
@@ -256,6 +259,7 @@ export async function play(): Promise<void> {
         })}`
       )
     }
+    core.endGroup()
 
     // 5. Write step summary
     const STEP_SUMMARY = core.getInput('STEP_SUMMARY')
