@@ -231,17 +231,15 @@ export async function play(): Promise<void> {
     )
     core.setOutput('annotation_count', annotations.length)
 
-    // 4. Annotate in github
-    const annotateResult = await githubUtil.annotate({
-      referenceCommitHash: githubUtil.getPullRequestRef(),
-      annotations
-    })
-    if (annotateResult === -1) {
-      // Branch was deleted (PR merged), exit gracefully
-      core.info('Exiting gracefully - PR branch no longer exists')
-      return
+    // 4. Emit annotations using workflow commands
+    for (const annotation of annotations) {
+      core.warning(annotation.message, {
+        file: annotation.path,
+        startLine: annotation.start_line,
+        endLine: annotation.end_line
+      })
     }
-    core.info('Annotation done')
+    core.info('Annotations emitted')
 
     // 5. Write step summary
     const STEP_SUMMARY = core.getInput('STEP_SUMMARY')

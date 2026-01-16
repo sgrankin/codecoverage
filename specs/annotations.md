@@ -51,12 +51,19 @@ function example() {
 
 With bridging, this becomes a single annotation covering the logical block.
 
-## GitHub API Integration
+## Workflow Command Annotations
 
-Annotations are created via the GitHub Check Runs API:
-- Endpoint: `POST /repos/{owner}/{repo}/check-runs`
-- Annotation level: `warning`
-- Maximum 50 annotations per API call (GitHub limit)
+Annotations are emitted using GitHub Actions workflow commands:
+
+```
+::warning file={path},line={start},endLine={end}::{message}
+```
+
+This approach:
+- Uses `@actions/core.warning()` which emits the workflow command
+- No API calls needed beyond fetching the PR diff
+- No chunking required (unlike Check Runs API's 50 annotation limit)
+- Annotations appear inline on the PR's "Files changed" tab
 
 ## Filtering by PR Diff
 
