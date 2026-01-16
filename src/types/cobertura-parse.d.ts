@@ -5,17 +5,17 @@ declare module 'cobertura-parse' {
     functions: {
       found: number
       hit: number
-      details: Array<{name: string; line: number; hit: number}>
+      details: {name: string; line: number; hit: number}[]
     }
     lines: {
       found: number
       hit: number
-      details: Array<{line: number; hit: number}>
+      details: {line: number; hit: number}[]
     }
     branches: {
       found: number
       hit: number
-      details: Array<{line: number; branch: number; taken: number}>
+      details: {line: number; branch: number; taken: number}[]
     }
   }
 
