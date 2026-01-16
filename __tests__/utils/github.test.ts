@@ -51,14 +51,21 @@ test('build annotations', function () {
   }
 
   const coverageFiles = [
-    {fileName: 'unchanged.txt', missingLineNumbers: [1, 2, 3]},
+    {
+      fileName: 'unchanged.txt',
+      missingLineNumbers: [1, 2, 3],
+      executableLines: new Set([1, 2, 3])
+    },
     {
       fileName: 'file1.txt',
-      missingLineNumbers: [1, 2, 3, 132, 134, 135, 136, 1007, 1008]
+      missingLineNumbers: [1, 2, 3, 132, 134, 135, 136, 1007, 1008],
+      // Line 133 is non-executable (comment), so 132-136 should coalesce
+      executableLines: new Set([1, 2, 3, 132, 134, 135, 136, 1007, 1008])
     },
     {
       fileName: 'test/dir/file1.txt',
-      missingLineNumbers: [20, 21, 22]
+      missingLineNumbers: [20, 21, 22],
+      executableLines: new Set([20, 21, 22])
     }
   ]
 
@@ -68,13 +75,6 @@ test('build annotations', function () {
     {
       path: 'file1.txt',
       start_line: 132,
-      end_line: 132,
-      annotation_level: 'warning',
-      message: 'This line is not covered by a test'
-    },
-    {
-      path: 'file1.txt',
-      start_line: 134,
       end_line: 136,
       annotation_level: 'warning',
       message: 'These lines are not covered by a test'
@@ -104,11 +104,84 @@ test('build annotations returns empty array when no matching files', function ()
   }
 
   const coverageFiles = [
-    {fileName: 'file1.txt', missingLineNumbers: [1, 2, 3]}
+    {
+      fileName: 'file1.txt',
+      missingLineNumbers: [1, 2, 3],
+      executableLines: new Set([1, 2, 3])
+    }
   ]
 
   const annotations = githubUtil.buildAnnotations(coverageFiles, prFiles)
   expect(annotations).toEqual([])
+})
+
+test('build annotations bridges gaps for non-executable lines', function () {
+  const githubUtil = new GithubUtil('1234', 'https://api.github.com')
+
+  const prFiles = {
+    'file.ts': [{start_line: 1, end_line: 20}]
+  }
+
+  // Lines 5, 6, 8, 9 are uncovered
+  // Line 7 is a comment (non-executable)
+  const coverageFiles = [
+    {
+      fileName: 'file.ts',
+      missingLineNumbers: [5, 6, 8, 9],
+      executableLines: new Set([5, 6, 8, 9]) // Line 7 not included
+    }
+  ]
+
+  const annotations = githubUtil.buildAnnotations(coverageFiles, prFiles)
+
+  // Should produce single annotation bridging the comment line
+  expect(annotations).toEqual([
+    {
+      path: 'file.ts',
+      start_line: 5,
+      end_line: 9,
+      annotation_level: 'warning',
+      message: 'These lines are not covered by a test'
+    }
+  ])
+})
+
+test('build annotations does not bridge gaps with covered lines', function () {
+  const githubUtil = new GithubUtil('1234', 'https://api.github.com')
+
+  const prFiles = {
+    'file.ts': [{start_line: 1, end_line: 20}]
+  }
+
+  // Lines 5, 6, 8, 9 are uncovered
+  // Line 7 is covered (executable but has hits)
+  const coverageFiles = [
+    {
+      fileName: 'file.ts',
+      missingLineNumbers: [5, 6, 8, 9],
+      executableLines: new Set([5, 6, 7, 8, 9]) // Line 7 is executable (covered)
+    }
+  ]
+
+  const annotations = githubUtil.buildAnnotations(coverageFiles, prFiles)
+
+  // Should produce two annotations since line 7 is covered
+  expect(annotations).toEqual([
+    {
+      path: 'file.ts',
+      start_line: 5,
+      end_line: 6,
+      annotation_level: 'warning',
+      message: 'These lines are not covered by a test'
+    },
+    {
+      path: 'file.ts',
+      start_line: 8,
+      end_line: 9,
+      annotation_level: 'warning',
+      message: 'These lines are not covered by a test'
+    }
+  ])
 })
 
 test('getPullRequestRef returns branch from pull request', function () {

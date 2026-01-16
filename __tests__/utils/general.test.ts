@@ -4,6 +4,7 @@ import {parseLCov} from '../../src/utils/lcov'
 import {
   filterCoverageByFile,
   coalesceLineNumbers,
+  coalesceLineNumbersWithGaps,
   intersectLineRanges,
   correctLineTotals
 } from '../../src/utils/general'
@@ -23,6 +24,79 @@ test('coalesceLineNumbers', function () {
     {start_line: 3, end_line: 5},
     {start_line: 10, end_line: 10},
     {start_line: 12, end_line: 13}
+  ])
+})
+
+test('coalesceLineNumbers returns empty array for empty input', function () {
+  expect(coalesceLineNumbers([])).toEqual([])
+})
+
+test('coalesceLineNumbersWithGaps bridges non-executable lines', function () {
+  // Uncovered lines: 10, 11, 13, 14 (line 12 is a comment, not executable)
+  const uncoveredLines = [10, 11, 13, 14]
+  // Executable lines are 10, 11, 13, 14 (line 12 not included - it's a comment)
+  const executableLines = new Set([10, 11, 13, 14])
+
+  const ranges = coalesceLineNumbersWithGaps(uncoveredLines, executableLines)
+
+  // Should produce single range since line 12 is not executable
+  expect(ranges).toEqual([{start_line: 10, end_line: 14}])
+})
+
+test('coalesceLineNumbersWithGaps does not bridge covered lines', function () {
+  // Uncovered lines: 10, 11, 13, 14 (line 12 is covered)
+  const uncoveredLines = [10, 11, 13, 14]
+  // All lines 10-14 are executable (line 12 is covered, not in uncovered list)
+  const executableLines = new Set([10, 11, 12, 13, 14])
+
+  const ranges = coalesceLineNumbersWithGaps(uncoveredLines, executableLines)
+
+  // Should produce two ranges since line 12 is covered (executable but not uncovered)
+  expect(ranges).toEqual([
+    {start_line: 10, end_line: 11},
+    {start_line: 13, end_line: 14}
+  ])
+})
+
+test('coalesceLineNumbersWithGaps handles multiple small gaps', function () {
+  // Lines 5, 6, 8, 9, 11, 12 are uncovered
+  // Lines 7 and 10 are comments (non-executable)
+  const uncoveredLines = [5, 6, 8, 9, 11, 12]
+  const executableLines = new Set([5, 6, 8, 9, 11, 12])
+
+  const ranges = coalesceLineNumbersWithGaps(uncoveredLines, executableLines)
+
+  // Should coalesce into single range (gaps are small)
+  expect(ranges).toEqual([{start_line: 5, end_line: 12}])
+})
+
+test('coalesceLineNumbersWithGaps handles mixed gaps', function () {
+  // Lines 1, 2, 4, 5, 8, 9 are uncovered
+  // Line 3 is non-executable, lines 6, 7 are covered
+  const uncoveredLines = [1, 2, 4, 5, 8, 9]
+  const executableLines = new Set([1, 2, 4, 5, 6, 7, 8, 9])
+
+  const ranges = coalesceLineNumbersWithGaps(uncoveredLines, executableLines)
+
+  // Should produce two ranges: [1-5] (bridging non-exec line 3) and [8-9] (can't bridge covered 6,7)
+  expect(ranges).toEqual([
+    {start_line: 1, end_line: 5},
+    {start_line: 8, end_line: 9}
+  ])
+})
+
+test('coalesceLineNumbersWithGaps does not bridge large gaps', function () {
+  // Lines 1, 2 and 10, 11 are uncovered
+  // Lines 3-9 are all non-executable (e.g., large comment block)
+  const uncoveredLines = [1, 2, 10, 11]
+  const executableLines = new Set([1, 2, 10, 11])
+
+  const ranges = coalesceLineNumbersWithGaps(uncoveredLines, executableLines)
+
+  // Gap of 7 lines is too large (> MAX_BRIDGE_GAP of 5), should not bridge
+  expect(ranges).toEqual([
+    {start_line: 1, end_line: 2},
+    {start_line: 10, end_line: 11}
   ])
 })
 
