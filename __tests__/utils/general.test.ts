@@ -3,6 +3,7 @@ import {getFixturePath} from '../fixtures/util'
 import {parseLCov} from '../../src/utils/lcov'
 import {
   filterCoverageByFile,
+  mergeCoverageByFile,
   coalesceLineNumbers,
   coalesceLineNumbersWithGaps,
   intersectLineRanges,
@@ -107,6 +108,110 @@ test('range intersections', function () {
   ]
 
   expect(intersectLineRanges(a, b)).toEqual(expected)
+})
+
+test('mergeCoverageByFile merges multiple entries for same file', function () {
+  const coverage = [
+    {
+      file: 'src/foo.ts',
+      title: 'foo',
+      lines: {
+        found: 3,
+        hit: 1,
+        details: [
+          {line: 10, hit: 1},
+          {line: 20, hit: 0},
+          {line: 30, hit: 0}
+        ]
+      }
+    },
+    {
+      file: 'src/foo.ts', // Same file, different coverage
+      title: 'foo',
+      lines: {
+        found: 3,
+        hit: 2,
+        details: [
+          {line: 10, hit: 0},
+          {line: 20, hit: 1},
+          {line: 40, hit: 1} // New line not in first entry
+        ]
+      }
+    },
+    {
+      file: 'src/bar.ts', // Different file
+      title: 'bar',
+      lines: {
+        found: 1,
+        hit: 0,
+        details: [{line: 5, hit: 0}]
+      }
+    }
+  ]
+
+  const merged = mergeCoverageByFile(coverage)
+
+  expect(merged).toHaveLength(2)
+
+  const foo = merged.find(e => e.file === 'src/foo.ts')!
+  expect(foo).toBeDefined()
+  // Line 10: max(1, 0) = 1
+  // Line 20: max(0, 1) = 1
+  // Line 30: max(0, undefined) = 0
+  // Line 40: max(undefined, 1) = 1
+  expect(foo.lines.details).toEqual([
+    {line: 10, hit: 1},
+    {line: 20, hit: 1},
+    {line: 30, hit: 0},
+    {line: 40, hit: 1}
+  ])
+
+  const bar = merged.find(e => e.file === 'src/bar.ts')!
+  expect(bar).toBeDefined()
+  expect(bar.lines.details).toEqual([{line: 5, hit: 0}])
+})
+
+test('mergeCoverageByFile handles partial coverage correctly', function () {
+  // Simulates the real bug: one test run has coverage, another has zero
+  const coverage = [
+    {
+      file: 'src/helper.cs',
+      title: 'helper',
+      lines: {
+        found: 5,
+        hit: 5,
+        details: [
+          {line: 266, hit: 1},
+          {line: 267, hit: 1},
+          {line: 268, hit: 1},
+          {line: 269, hit: 1},
+          {line: 270, hit: 1}
+        ]
+      }
+    },
+    {
+      file: 'src/helper.cs',
+      title: 'helper',
+      lines: {
+        found: 5,
+        hit: 0, // Zero coverage in this run
+        details: [
+          {line: 266, hit: 0},
+          {line: 267, hit: 0},
+          {line: 268, hit: 0},
+          {line: 269, hit: 0},
+          {line: 270, hit: 0}
+        ]
+      }
+    }
+  ]
+
+  const merged = mergeCoverageByFile(coverage)
+
+  expect(merged).toHaveLength(1)
+  const helper = merged[0]
+  // All lines should show as covered (max of 1 and 0 = 1)
+  expect(helper.lines.details.every(d => d.hit === 1)).toBe(true)
 })
 
 test('correctLineTotals', function () {

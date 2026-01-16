@@ -4,6 +4,7 @@ import * as core from '@actions/core'
 import * as github from '@actions/github'
 import {
   correctLineTotals,
+  mergeCoverageByFile,
   filterCoverageByFile,
   CoverageParsed
 } from './utils/general.js'
@@ -178,7 +179,9 @@ export async function play(): Promise<void> {
       }
       parsedCov = parsedCov.concat(fileCov)
     }
-    // Correct line totals
+    // Merge coverage from multiple test runs (same file may appear multiple times)
+    parsedCov = mergeCoverageByFile(parsedCov)
+    // Correct line totals after merge
     parsedCov = correctLineTotals(parsedCov)
 
     // Sum up lines.found for each entry in parsedCov

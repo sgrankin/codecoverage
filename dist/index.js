@@ -46348,6 +46348,42 @@ var core = __nccwpck_require__(7484);
 // EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
 var github = __nccwpck_require__(3228);
 ;// CONCATENATED MODULE: ./src/utils/general.ts
+/**
+ * Merge coverage entries for the same file from multiple test runs.
+ * A line is considered covered if it was hit in ANY test run.
+ */
+function mergeCoverageByFile(coverage) {
+    const byFile = new Map();
+    for (const entry of coverage) {
+        const existing = byFile.get(entry.file);
+        if (!existing) {
+            // Clone the entry to avoid mutating the original
+            byFile.set(entry.file, {
+                ...entry,
+                lines: {
+                    ...entry.lines,
+                    details: entry.lines.details.map(d => ({ ...d }))
+                }
+            });
+        }
+        else {
+            // Merge line details: take max hit count for each line
+            const lineHits = new Map();
+            for (const detail of existing.lines.details) {
+                lineHits.set(detail.line, detail.hit);
+            }
+            for (const detail of entry.lines.details) {
+                const currentHit = lineHits.get(detail.line) ?? 0;
+                lineHits.set(detail.line, Math.max(currentHit, detail.hit));
+            }
+            // Rebuild details array
+            existing.lines.details = Array.from(lineHits.entries())
+                .map(([line, hit]) => ({ line, hit }))
+                .sort((a, b) => a.line - b.line);
+        }
+    }
+    return Array.from(byFile.values());
+}
 function filterCoverageByFile(coverage) {
     return coverage.map(item => {
         const allExecutableLines = new Set(item?.lines?.details.map(line => line.line) || []);
@@ -61430,7 +61466,9 @@ async function play() {
             }
             parsedCov = parsedCov.concat(fileCov);
         }
-        // Correct line totals
+        // Merge coverage from multiple test runs (same file may appear multiple times)
+        parsedCov = mergeCoverageByFile(parsedCov);
+        // Correct line totals after merge
         parsedCov = correctLineTotals(parsedCov);
         // Sum up lines.found for each entry in parsedCov
         const totalLines = parsedCov.reduce((acc, entry) => acc + entry.lines.found, 0);

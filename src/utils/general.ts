@@ -1,3 +1,41 @@
+/**
+ * Merge coverage entries for the same file from multiple test runs.
+ * A line is considered covered if it was hit in ANY test run.
+ */
+export function mergeCoverageByFile(coverage: CoverageParsed): CoverageParsed {
+  const byFile = new Map<string, CoverageEntry>()
+
+  for (const entry of coverage) {
+    const existing = byFile.get(entry.file)
+    if (!existing) {
+      // Clone the entry to avoid mutating the original
+      byFile.set(entry.file, {
+        ...entry,
+        lines: {
+          ...entry.lines,
+          details: entry.lines.details.map(d => ({...d}))
+        }
+      })
+    } else {
+      // Merge line details: take max hit count for each line
+      const lineHits = new Map<number, number>()
+      for (const detail of existing.lines.details) {
+        lineHits.set(detail.line, detail.hit)
+      }
+      for (const detail of entry.lines.details) {
+        const currentHit = lineHits.get(detail.line) ?? 0
+        lineHits.set(detail.line, Math.max(currentHit, detail.hit))
+      }
+      // Rebuild details array
+      existing.lines.details = Array.from(lineHits.entries())
+        .map(([line, hit]) => ({line, hit}))
+        .sort((a, b) => a.line - b.line)
+    }
+  }
+
+  return Array.from(byFile.values())
+}
+
 export function filterCoverageByFile(coverage: CoverageParsed): CoverageFile[] {
   return coverage.map(item => {
     const allExecutableLines = new Set(
