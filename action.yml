@@ -21,6 +21,13 @@ inputs:
   DEBUG:
     required: false
     description: "Log debugging information. Comma-separated list of possible values `coverage`, `pr_lines_added`"
+outputs:
+  coverage_percentage:
+    description: 'Overall code coverage percentage'
+  files_analyzed:
+    description: 'Number of files with coverage data'
+  annotation_count:
+    description: 'Number of annotations created for uncovered lines in the PR'
 runs:
   using: 'node20'
   main: 'dist/index.js'

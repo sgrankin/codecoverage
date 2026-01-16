@@ -70,9 +70,15 @@ export async function play(): Promise<void> {
       (acc, entry) => acc + entry.lines.hit,
       0
     )
+    const coveragePercentage =
+      totalLines > 0 ? ((coveredLines / totalLines) * 100).toFixed(2) : '0.00'
     core.info(
-      `Parsing done. ${parsedCov.length} files parsed. Total lines: ${totalLines}. Covered lines: ${coveredLines}.`
+      `Parsing done. ${parsedCov.length} files parsed. Total lines: ${totalLines}. Covered lines: ${coveredLines}. Coverage: ${coveragePercentage}%`
     )
+
+    // Set outputs for coverage stats
+    core.setOutput('coverage_percentage', coveragePercentage)
+    core.setOutput('files_analyzed', parsedCov.length)
 
     // 2. Filter Coverage By File Name
     const coverageByFile = filterCoverageByFile(parsedCov)
@@ -94,6 +100,7 @@ export async function play(): Promise<void> {
       coverageByFile,
       pullRequestFiles
     )
+    core.setOutput('annotation_count', annotations.length)
 
     // 4. Annotate in github
     await githubUtil.annotate({
