@@ -251,7 +251,7 @@ test('generateSummary returns correct markdown for high coverage', function () {
     coveragePercentage: '85.50',
     totalLines: 1000,
     coveredLines: 855,
-    filesAnalyzed: 25,
+    filesAnalyzed: 2,
     annotationCount: 0,
     files: [
       {file: 'src/utils.ts', totalLines: 500, coveredLines: 450},
@@ -259,50 +259,88 @@ test('generateSummary returns correct markdown for high coverage', function () {
     ]
   })
 
-  expect(summary).toContain('🟢 Code Coverage Report')
-  expect(summary).toContain('85.50%')
-  expect(summary).toContain('855')
-  expect(summary).toContain('145')
-  expect(summary).toContain('1,000')
-  expect(summary).toContain('25')
-  expect(summary).toContain('✅ No new uncovered lines detected')
-  // File table
-  expect(summary).toContain('### File Coverage')
-  expect(summary).toContain('src/main.ts')
-  expect(summary).toContain('src/utils.ts')
-  expect(summary).toContain('90.0%') // 450/500
-  expect(summary).toContain('81.0%') // 405/500
+  const expected = `## 🟢 Code Coverage Report
+
+| Metric | Value |
+| ------ | ----- |
+| **Coverage** | 85.50% |
+| **Covered Lines** | 855 |
+| **Uncovered Lines** | 145 |
+| **Total Lines** | 1,000 |
+| **Files Analyzed** | 2 |
+
+✅ No new uncovered lines detected in this PR.
+
+### File Coverage
+
+| File | Total Lines | Covered | Coverage |
+| ---- | ----------- | ------- | -------- |
+| src/main.ts | 500 | 405 | 81.0% |
+| src/utils.ts | 500 | 450 | 90.0% |
+`
+  expect(summary).toBe(expected)
 })
 
-test('generateSummary returns correct markdown for medium coverage', function () {
+test('generateSummary returns correct markdown for medium coverage with annotations', function () {
   const summary = generateSummary({
     coveragePercentage: '65.00',
     totalLines: 100,
     coveredLines: 65,
-    filesAnalyzed: 5,
+    filesAnalyzed: 1,
     annotationCount: 3,
     files: [{file: 'src/app.ts', totalLines: 100, coveredLines: 65}]
   })
 
-  expect(summary).toContain('🟡 Code Coverage Report')
-  expect(summary).toContain('65.00%')
-  expect(summary).toContain('⚠️ **3 annotations**')
+  const expected = `## 🟡 Code Coverage Report
+
+| Metric | Value |
+| ------ | ----- |
+| **Coverage** | 65.00% |
+| **Covered Lines** | 65 |
+| **Uncovered Lines** | 35 |
+| **Total Lines** | 100 |
+| **Files Analyzed** | 1 |
+
+⚠️ **3 annotations** added for uncovered lines in this PR.
+
+### File Coverage
+
+| File | Total Lines | Covered | Coverage |
+| ---- | ----------- | ------- | -------- |
+| src/app.ts | 100 | 65 | 65.0% |
+`
+  expect(summary).toBe(expected)
 })
 
-test('generateSummary returns correct markdown for low coverage', function () {
+test('generateSummary returns correct markdown for low coverage with single annotation', function () {
   const summary = generateSummary({
     coveragePercentage: '45.00',
     totalLines: 100,
     coveredLines: 45,
-    filesAnalyzed: 5,
+    filesAnalyzed: 1,
     annotationCount: 1,
     files: [{file: 'src/app.ts', totalLines: 100, coveredLines: 45}]
   })
 
-  expect(summary).toContain('🔴 Code Coverage Report')
-  expect(summary).toContain('45.00%')
-  expect(summary).toContain('⚠️ **1 annotation**')
-  expect(summary).not.toContain('annotations')
+  const expected = `## 🔴 Code Coverage Report
+
+| Metric | Value |
+| ------ | ----- |
+| **Coverage** | 45.00% |
+| **Covered Lines** | 45 |
+| **Uncovered Lines** | 55 |
+| **Total Lines** | 100 |
+| **Files Analyzed** | 1 |
+
+⚠️ **1 annotation** added for uncovered lines in this PR.
+
+### File Coverage
+
+| File | Total Lines | Covered | Coverage |
+| ---- | ----------- | ------- | -------- |
+| src/app.ts | 100 | 45 | 45.0% |
+`
+  expect(summary).toBe(expected)
 })
 
 test('generateSummary sorts files alphabetically', function () {
@@ -319,12 +357,27 @@ test('generateSummary sorts files alphabetically', function () {
     ]
   })
 
-  // Check that files appear in alphabetical order
-  const alphaIndex = summary.indexOf('src/alpha.ts')
-  const betaIndex = summary.indexOf('src/beta.ts')
-  const zebraIndex = summary.indexOf('src/zebra.ts')
-  expect(alphaIndex).toBeLessThan(betaIndex)
-  expect(betaIndex).toBeLessThan(zebraIndex)
+  const expected = `## 🟢 Code Coverage Report
+
+| Metric | Value |
+| ------ | ----- |
+| **Coverage** | 80.00% |
+| **Covered Lines** | 240 |
+| **Uncovered Lines** | 60 |
+| **Total Lines** | 300 |
+| **Files Analyzed** | 3 |
+
+✅ No new uncovered lines detected in this PR.
+
+### File Coverage
+
+| File | Total Lines | Covered | Coverage |
+| ---- | ----------- | ------- | -------- |
+| src/alpha.ts | 100 | 80 | 80.0% |
+| src/beta.ts | 100 | 80 | 80.0% |
+| src/zebra.ts | 100 | 80 | 80.0% |
+`
+  expect(summary).toBe(expected)
 })
 
 test('writes step summary when GITHUB_STEP_SUMMARY is set', async function () {
@@ -367,14 +420,16 @@ test('step summary includes file coverage from parsed coverage file', async func
   const summaryCall = (fs.appendFileSync as any).mock.calls[0]
   const summaryContent = summaryCall[1] as string
 
+  // Check the file table has correct structure and data
+  // Note: paths are resolved relative to mocked /workspace, so they include full path prefix
   expect(summaryContent).toContain('### File Coverage')
-  expect(summaryContent).toContain('src/utils/general.ts')
-  expect(summaryContent).toContain('src/utils/github.ts')
-  expect(summaryContent).toContain('src/utils/lcov.ts')
-  // Check coverage percentages are calculated correctly
-  expect(summaryContent).toContain('33.3%') // general.ts: 1/3
-  expect(summaryContent).toContain('23.3%') // github.ts: 7/30
-  expect(summaryContent).toContain('61.5%') // lcov.ts: 8/13
+  expect(summaryContent).toContain(
+    '| File | Total Lines | Covered | Coverage |'
+  )
+  // Verify coverage stats for each file (order is alphabetical by full path)
+  expect(summaryContent).toContain('general.ts | 3 | 1 | 33.3% |')
+  expect(summaryContent).toContain('github.ts | 30 | 7 | 23.3% |')
+  expect(summaryContent).toContain('lcov.ts | 13 | 8 | 61.5% |')
 })
 
 test('does not write step summary when STEP_SUMMARY is false', async function () {
