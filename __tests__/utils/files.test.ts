@@ -1,63 +1,69 @@
-import {test, expect, vi, beforeEach} from 'vitest'
+import {test, expect} from 'vitest'
 import {expandCoverageFilePaths} from '../../src/utils/files'
 import {getFixturePath} from '../fixtures/util'
 import * as path from 'path'
 
-test('expands single file path', async () => {
-  const lcovPath = getFixturePath('lcov.info')
-  const result = await expandCoverageFilePaths(lcovPath)
-  expect(result).toEqual([lcovPath])
-})
+const fixturesDir = path.dirname(getFixturePath('lcov.info'))
 
-test('expands glob pattern', async () => {
-  const fixturesDir = path.dirname(getFixturePath('lcov.info'))
-  const pattern = path.join(fixturesDir, '*.info')
-  const result = await expandCoverageFilePaths(pattern)
-  expect(result).toContain(getFixturePath('lcov.info'))
-})
+const expandTestCases = [
+  {
+    name: 'expands single file path',
+    input: getFixturePath('lcov.info'),
+    expectedContains: [getFixturePath('lcov.info')],
+    expectedLength: 1
+  },
+  {
+    name: 'expands glob pattern with *',
+    input: path.join(fixturesDir, '*.info'),
+    expectedContains: [getFixturePath('lcov.info')]
+  },
+  {
+    name: 'expands ** glob pattern',
+    input: path.join(fixturesDir, '**/*.xml'),
+    expectedContains: [getFixturePath('cobertura.xml')]
+  },
+  {
+    name: 'handles multiple paths separated by newlines',
+    input: `${getFixturePath('lcov.info')}\n${getFixturePath('cobertura.xml')}`,
+    expectedContains: [getFixturePath('lcov.info'), getFixturePath('cobertura.xml')],
+    expectedLength: 2
+  },
+  {
+    name: 'handles mixed paths and globs',
+    input: `${getFixturePath('lcov.info')}\n${path.join(fixturesDir, '*.xml')}`,
+    expectedContains: [getFixturePath('lcov.info'), getFixturePath('cobertura.xml')]
+  },
+  {
+    name: 'removes duplicates',
+    input: `${getFixturePath('lcov.info')}\n${getFixturePath('lcov.info')}`,
+    expectedContains: [getFixturePath('lcov.info')],
+    expectedLength: 1
+  },
+  {
+    name: 'ignores empty lines',
+    input: `\n${getFixturePath('lcov.info')}\n\n`,
+    expectedContains: [getFixturePath('lcov.info')],
+    expectedLength: 1
+  },
+  {
+    name: 'returns empty array for non-matching glob',
+    input: '/nonexistent/**/*.xyz',
+    expectedContains: [],
+    expectedLength: 0
+  }
+]
 
-test('expands ** glob pattern', async () => {
-  const fixturesDir = path.dirname(getFixturePath('lcov.info'))
-  const pattern = path.join(fixturesDir, '**/*.xml')
-  const result = await expandCoverageFilePaths(pattern)
-  expect(result).toContain(getFixturePath('cobertura.xml'))
-})
+test.each(expandTestCases)(
+  '$name',
+  async ({input, expectedContains, expectedLength}) => {
+    const result = await expandCoverageFilePaths(input)
 
-test('handles multiple paths separated by newlines', async () => {
-  const lcovPath = getFixturePath('lcov.info')
-  const coberturaPath = getFixturePath('cobertura.xml')
-  const input = `${lcovPath}\n${coberturaPath}`
-  const result = await expandCoverageFilePaths(input)
-  expect(result).toContain(lcovPath)
-  expect(result).toContain(coberturaPath)
-  expect(result).toHaveLength(2)
-})
+    for (const expected of expectedContains) {
+      expect(result).toContain(expected)
+    }
 
-test('handles mixed paths and globs', async () => {
-  const fixturesDir = path.dirname(getFixturePath('lcov.info'))
-  const lcovPath = getFixturePath('lcov.info')
-  const pattern = path.join(fixturesDir, '*.xml')
-  const input = `${lcovPath}\n${pattern}`
-  const result = await expandCoverageFilePaths(input)
-  expect(result).toContain(lcovPath)
-  expect(result).toContain(getFixturePath('cobertura.xml'))
-})
-
-test('removes duplicates', async () => {
-  const lcovPath = getFixturePath('lcov.info')
-  const input = `${lcovPath}\n${lcovPath}`
-  const result = await expandCoverageFilePaths(input)
-  expect(result).toEqual([lcovPath])
-})
-
-test('ignores empty lines', async () => {
-  const lcovPath = getFixturePath('lcov.info')
-  const input = `\n${lcovPath}\n\n`
-  const result = await expandCoverageFilePaths(input)
-  expect(result).toEqual([lcovPath])
-})
-
-test('returns empty array for non-matching glob', async () => {
-  const result = await expandCoverageFilePaths('/nonexistent/**/*.xyz')
-  expect(result).toEqual([])
-})
+    if (expectedLength !== undefined) {
+      expect(result).toHaveLength(expectedLength)
+    }
+  }
+)
