@@ -1,6 +1,6 @@
 name: 'Code Coverage Annotations'
 description: 'Annotate your pull requests to show where test coverage is missing'
-author: '@ggilder'
+author: '@sgrankin'
 branding:
   icon: alert-triangle
   color: orange
