@@ -60,7 +60,7 @@ export class GithubUtil {
       chunks.push(input.annotations.slice(i, i + chunkSize))
     }
     let lastResponseStatus = 0
-    let checkId
+    let checkId = 0
     for (let i = 0; i < chunks.length; i++) {
       let status: 'in_progress' | 'completed' | 'queued' = 'in_progress'
       let conclusion:

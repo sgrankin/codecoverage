@@ -142,7 +142,7 @@ export type CoverageParsed = {
     details: {
       line: number
       hit: number
-      name: string
+      name?: string
     }[]
   }
 }[]

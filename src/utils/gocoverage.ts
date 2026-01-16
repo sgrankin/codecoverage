@@ -20,7 +20,7 @@ export async function parseGoCoverage(
 
   const fileRaw = fs.readFileSync(coveragePath, 'utf8')
   return new Promise((resolve, reject) => {
-    gocov.parseContent(fileRaw, (err, result) => {
+    gocov.parseContent(fileRaw, (err: Error | null, result: CoverageParsed) => {
       if (err === null) {
         filterModulePaths(result, goModule)
         resolve(result)
@@ -31,7 +31,7 @@ export async function parseGoCoverage(
   })
 }
 
-function filterModulePaths(entries, moduleName: string): void {
+function filterModulePaths(entries: CoverageParsed, moduleName: string): void {
   for (const entry of entries) {
     entry.file = path.relative(moduleName, entry.file)
   }
