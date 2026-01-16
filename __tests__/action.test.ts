@@ -274,12 +274,11 @@ const generateSummaryTestCases = [
 
 ✅ No new uncovered lines detected in this PR.
 
-### File Coverage
+### Coverage by Package
 
-| File | Total Lines | Covered | Coverage |
-| ---- | ----------- | ------- | -------- |
-| src/main.ts | 500 | 405 | 81.0% |
-| src/utils.ts | 500 | 450 | 90.0% |
+| Package | Files | Total Lines | Covered | Coverage |
+| ------- | ----- | ----------- | ------- | -------- |
+| src | 2 | 1,000 | 855 | 85.5% |
 `
   },
   {
@@ -304,11 +303,11 @@ const generateSummaryTestCases = [
 
 ⚠️ **3 annotations** added for uncovered lines in this PR.
 
-### File Coverage
+### Coverage by Package
 
-| File | Total Lines | Covered | Coverage |
-| ---- | ----------- | ------- | -------- |
-| src/app.ts | 100 | 65 | 65.0% |
+| Package | Files | Total Lines | Covered | Coverage |
+| ------- | ----- | ----------- | ------- | -------- |
+| src | 1 | 100 | 65 | 65.0% |
 `
   },
   {
@@ -333,15 +332,15 @@ const generateSummaryTestCases = [
 
 ⚠️ **1 annotation** added for uncovered lines in this PR.
 
-### File Coverage
+### Coverage by Package
 
-| File | Total Lines | Covered | Coverage |
-| ---- | ----------- | ------- | -------- |
-| src/app.ts | 100 | 45 | 45.0% |
+| Package | Files | Total Lines | Covered | Coverage |
+| ------- | ----- | ----------- | ------- | -------- |
+| src | 1 | 100 | 45 | 45.0% |
 `
   },
   {
-    name: 'files sorted alphabetically',
+    name: 'files grouped by package and sorted',
     input: {
       coveragePercentage: '80.00',
       totalLines: 300,
@@ -349,9 +348,9 @@ const generateSummaryTestCases = [
       filesAnalyzed: 3,
       annotationCount: 0,
       files: [
-        {file: 'src/zebra.ts', totalLines: 100, coveredLines: 80},
+        {file: 'src/utils/zebra.ts', totalLines: 100, coveredLines: 80},
         {file: 'src/alpha.ts', totalLines: 100, coveredLines: 80},
-        {file: 'src/beta.ts', totalLines: 100, coveredLines: 80}
+        {file: 'lib/beta.ts', totalLines: 100, coveredLines: 80}
       ]
     },
     expected: `## 🟢 Code Coverage Report
@@ -366,17 +365,59 @@ const generateSummaryTestCases = [
 
 ✅ No new uncovered lines detected in this PR.
 
-### File Coverage
+### Coverage by Package
 
-| File | Total Lines | Covered | Coverage |
-| ---- | ----------- | ------- | -------- |
-| src/alpha.ts | 100 | 80 | 80.0% |
-| src/beta.ts | 100 | 80 | 80.0% |
-| src/zebra.ts | 100 | 80 | 80.0% |
+| Package | Files | Total Lines | Covered | Coverage |
+| ------- | ----- | ----------- | ------- | -------- |
+| lib | 1 | 100 | 80 | 80.0% |
+| src | 1 | 100 | 80 | 80.0% |
+| src/utils | 1 | 100 | 80 | 80.0% |
+`
+  },
+  {
+    name: 'uses explicit package when provided (cobertura)',
+    input: {
+      coveragePercentage: '75.00',
+      totalLines: 200,
+      coveredLines: 150,
+      filesAnalyzed: 2,
+      annotationCount: 0,
+      files: [
+        {
+          file: 'src/foo.ts',
+          totalLines: 100,
+          coveredLines: 80,
+          package: 'com.example.foo'
+        },
+        {
+          file: 'src/bar.ts',
+          totalLines: 100,
+          coveredLines: 70,
+          package: 'com.example.bar'
+        }
+      ]
+    },
+    expected: `## 🟡 Code Coverage Report
+
+| Metric | Value |
+| ------ | ----- |
+| **Coverage** | 75.00% |
+| **Covered Lines** | 150 |
+| **Uncovered Lines** | 50 |
+| **Total Lines** | 200 |
+| **Files Analyzed** | 2 |
+
+✅ No new uncovered lines detected in this PR.
+
+### Coverage by Package
+
+| Package | Files | Total Lines | Covered | Coverage |
+| ------- | ----- | ----------- | ------- | -------- |
+| com.example.bar | 1 | 100 | 70 | 70.0% |
+| com.example.foo | 1 | 100 | 80 | 80.0% |
 `
   }
 ]
-
 test.each(generateSummaryTestCases)(
   'generateSummary: $name',
   ({input, expected}) => {
@@ -425,16 +466,13 @@ test('step summary includes file coverage from parsed coverage file', async func
   const summaryCall = (fs.appendFileSync as any).mock.calls[0]
   const summaryContent = summaryCall[1] as string
 
-  // Check the file table has correct structure and data
-  // Note: paths are resolved relative to mocked /workspace, so they include full path prefix
-  expect(summaryContent).toContain('### File Coverage')
+  // Check the package table has correct structure
+  expect(summaryContent).toContain('### Coverage by Package')
   expect(summaryContent).toContain(
-    '| File | Total Lines | Covered | Coverage |'
+    '| Package | Files | Total Lines | Covered | Coverage |'
   )
-  // Verify coverage stats for each file (order is alphabetical by full path)
-  expect(summaryContent).toContain('general.ts | 3 | 1 | 33.3% |')
-  expect(summaryContent).toContain('github.ts | 30 | 7 | 23.3% |')
-  expect(summaryContent).toContain('lcov.ts | 13 | 8 | 61.5% |')
+  // All files are in the same package (derived from their directory path)
+  expect(summaryContent).toContain('| 3 | 46 | 16 |')
 })
 
 test('does not write step summary when STEP_SUMMARY is false', async function () {

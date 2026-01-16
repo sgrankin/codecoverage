@@ -133,9 +133,10 @@ export function correctLineTotals(coverage: CoverageParsed): CoverageParsed {
   }))
 }
 
-export type CoverageParsed = {
+export type CoverageEntry = {
   file: string
   title: string
+  package?: string
   lines: {
     found: number
     hit: number
@@ -145,7 +146,9 @@ export type CoverageParsed = {
       name?: string
     }[]
   }
-}[]
+}
+
+export type CoverageParsed = CoverageEntry[]
 
 export type CoverageFile = {
   fileName: string

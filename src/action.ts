@@ -14,6 +14,14 @@ interface FileCoverage {
   file: string
   totalLines: number
   coveredLines: number
+  package?: string
+}
+
+interface PackageCoverage {
+  package: string
+  totalLines: number
+  coveredLines: number
+  files: FileCoverage[]
 }
 
 interface SummaryParams {
@@ -23,6 +31,43 @@ interface SummaryParams {
   filesAnalyzed: number
   annotationCount: number
   files: FileCoverage[]
+}
+
+/** Extract package name from file path (directory path, or '.' for root) */
+function getPackageFromPath(filePath: string): string {
+  const lastSlash = filePath.lastIndexOf('/')
+  if (lastSlash > 0) {
+    return filePath.substring(0, lastSlash)
+  }
+  return '.'
+}
+
+/** Group files by package and compute aggregate coverage */
+function groupByPackage(files: FileCoverage[]): PackageCoverage[] {
+  const packageMap = new Map<string, FileCoverage[]>()
+
+  for (const file of files) {
+    // Use explicit package if available, otherwise derive from path
+    const pkg = file.package ?? getPackageFromPath(file.file)
+    if (!packageMap.has(pkg)) {
+      packageMap.set(pkg, [])
+    }
+    packageMap.get(pkg)!.push(file)
+  }
+
+  const packages: PackageCoverage[] = []
+  for (const [pkg, pkgFiles] of packageMap) {
+    const totalLines = pkgFiles.reduce((acc, f) => acc + f.totalLines, 0)
+    const coveredLines = pkgFiles.reduce((acc, f) => acc + f.coveredLines, 0)
+    packages.push({
+      package: pkg,
+      totalLines,
+      coveredLines,
+      files: pkgFiles.sort((a, b) => a.file.localeCompare(b.file))
+    })
+  }
+
+  return packages.sort((a, b) => a.package.localeCompare(b.package))
 }
 
 export function generateSummary(params: SummaryParams): string {
@@ -43,15 +88,17 @@ export function generateSummary(params: SummaryParams): string {
     statusEmoji = '🟡'
   }
 
-  // Build file coverage table, sorted by filename
-  const sortedFiles = [...files].sort((a, b) => a.file.localeCompare(b.file))
-  const fileRows = sortedFiles
-    .map(f => {
+  // Group files by package
+  const packages = groupByPackage(files)
+
+  // Build package coverage table
+  const packageRows = packages
+    .map(pkg => {
       const pct =
-        f.totalLines > 0
-          ? ((f.coveredLines / f.totalLines) * 100).toFixed(1)
+        pkg.totalLines > 0
+          ? ((pkg.coveredLines / pkg.totalLines) * 100).toFixed(1)
           : '0.0'
-      return `| ${f.file} | ${f.totalLines.toLocaleString()} | ${f.coveredLines.toLocaleString()} | ${pct}% |`
+      return `| ${pkg.package} | ${pkg.files.length} | ${pkg.totalLines.toLocaleString()} | ${pkg.coveredLines.toLocaleString()} | ${pct}% |`
     })
     .join('\n')
 
@@ -67,11 +114,11 @@ export function generateSummary(params: SummaryParams): string {
 
 ${annotationCount > 0 ? `⚠️ **${annotationCount} annotation${annotationCount === 1 ? '' : 's'}** added for uncovered lines in this PR.` : '✅ No new uncovered lines detected in this PR.'}
 
-### File Coverage
+### Coverage by Package
 
-| File | Total Lines | Covered | Coverage |
-| ---- | ----------- | ------- | -------- |
-${fileRows}
+| Package | Files | Total Lines | Covered | Coverage |
+| ------- | ----- | ----------- | ------- | -------- |
+${packageRows}
 `
 }
 
@@ -182,7 +229,8 @@ export async function play(): Promise<void> {
       const files: FileCoverage[] = parsedCov.map(entry => ({
         file: entry.file,
         totalLines: entry.lines.found,
-        coveredLines: entry.lines.hit
+        coveredLines: entry.lines.hit,
+        package: entry.package
       }))
       const summary = generateSummary({
         coveragePercentage,
