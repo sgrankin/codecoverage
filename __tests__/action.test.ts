@@ -202,31 +202,39 @@ test('defaults to lcov format when not specified', async function () {
   }
 })
 
-test('handles debug option for coverage', async function () {
+test('outputs diagnostic dump for files in PR diff', async function () {
   const lcovPath = getFixturePath('lcov.info')
 
+  // File path after path.relative('', './src/utils/general.ts') = 'src/utils/general.ts'
   mockGetPullRequestDiff.mockResolvedValue({
-    'src/file.ts': [{start_line: 1, end_line: 10}]
+    'src/utils/general.ts': [2, 3, 4]
   })
   mockGetInput.mockImplementation((name: string) => {
     if (name === 'GITHUB_TOKEN') return 'test-token'
     if (name === 'COVERAGE_FILE_PATH') return lcovPath
     if (name === 'COVERAGE_FORMAT') return 'lcov'
     if (name === 'GITHUB_BASE_URL') return 'https://api.github.com'
-    if (name === 'DEBUG') return 'coverage,pr_lines_added'
     if (name === 'STEP_SUMMARY') return 'false'
     return ''
   })
+
+  // Set empty workspace so file paths stay as-is
+  const oldWorkspace = process.env.GITHUB_WORKSPACE
+  process.env.GITHUB_WORKSPACE = ''
 
   const capture = captureStdout()
   try {
     await play()
     const output = capture.output()
-    // With debug enabled, should log coverage info
-    expect(output).toContain('Coverage:')
-    expect(output).toContain('PR lines added:')
+    // Should output debug-dump lines for diff and matching coverage
+    expect(output).toContain('::debug-dump::diff::')
+    expect(output).toContain('::debug-dump::coverage::')
+    expect(output).toContain('src/utils/general.ts')
+    // Should NOT output coverage for files not in diff
+    expect(output).not.toContain('"file":"src/utils/github.ts"')
   } finally {
     capture.restore()
+    process.env.GITHUB_WORKSPACE = oldWorkspace
   }
 })
 

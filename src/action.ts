@@ -151,15 +151,6 @@ export async function play(): Promise<void> {
       )
     }
 
-    const debugOpts: Record<string, boolean> = {}
-    const DEBUG = core.getInput('DEBUG')
-    if (DEBUG) {
-      const debugParts = DEBUG.split(',')
-      for (const part of debugParts) {
-        debugOpts[part] = true
-      }
-    }
-
     // TODO perhaps make base path configurable in case coverage artifacts are
     // not produced on the Github worker?
     const workspacePath = env.GITHUB_WORKSPACE || ''
@@ -212,19 +203,30 @@ export async function play(): Promise<void> {
     // 2. Filter Coverage By File Name
     const coverageByFile = filterCoverageByFile(parsedCov)
     core.info('Filter done')
-    if (debugOpts['coverage']) {
-      core.info(`Coverage:`)
-      for (const item of coverageByFile) {
-        core.info(JSON.stringify(item))
-      }
-    }
+
     const githubUtil = new GithubUtil(GITHUB_TOKEN, GITHUB_BASE_URL)
 
     // 3. Get current pull request files
     const pullRequestFiles = await githubUtil.getPullRequestDiff()
-    if (debugOpts['pr_lines_added']) {
-      core.info(`PR lines added: ${JSON.stringify(pullRequestFiles)}`)
+
+    // Debug output: scoped to files in the diff
+    const prFileSet = new Set(Object.keys(pullRequestFiles))
+    for (const [file, lines] of Object.entries(pullRequestFiles)) {
+      core.info(`::debug-dump::diff::${JSON.stringify({file, lines})}`)
     }
+    for (const item of coverageByFile) {
+      if (prFileSet.has(item.fileName)) {
+        core.info(
+          `::debug-dump::coverage::${JSON.stringify({
+            file: item.fileName,
+            missing: item.missingLineNumbers,
+            executable: [...item.executableLines],
+            covered: item.coveredLineCount
+          })}`
+        )
+      }
+    }
+
     const annotations = githubUtil.buildAnnotations(
       coverageByFile,
       pullRequestFiles
@@ -240,6 +242,17 @@ export async function play(): Promise<void> {
       })
     }
     core.info('Annotations emitted')
+
+    // Debug output: annotations
+    for (const annotation of annotations) {
+      core.info(
+        `::debug-dump::annotation::${JSON.stringify({
+          file: annotation.path,
+          start: annotation.start_line,
+          end: annotation.end_line
+        })}`
+      )
+    }
 
     // 5. Write step summary
     const STEP_SUMMARY = core.getInput('STEP_SUMMARY')
