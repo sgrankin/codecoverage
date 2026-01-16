@@ -2,11 +2,16 @@ import {env} from 'node:process'
 import * as fs from 'node:fs'
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-import {correctLineTotals, filterCoverageByFile} from './utils/general.js'
+import {
+  correctLineTotals,
+  filterCoverageByFile,
+  CoverageParsed
+} from './utils/general.js'
 import {parseLCov} from './utils/lcov.js'
 import {parseCobertura} from './utils/cobertura.js'
 import {parseGoCoverage} from './utils/gocoverage.js'
 import {GithubUtil} from './utils/github.js'
+import {expandCoverageFilePaths} from './utils/files.js'
 
 const SUPPORTED_FORMATS = ['lcov', 'cobertura', 'go']
 
@@ -14,6 +19,14 @@ interface FileCoverage {
   file: string
   totalLines: number
   coveredLines: number
+  package?: string
+}
+
+interface PackageCoverage {
+  package: string
+  totalLines: number
+  coveredLines: number
+  files: FileCoverage[]
 }
 
 interface SummaryParams {
@@ -23,6 +36,43 @@ interface SummaryParams {
   filesAnalyzed: number
   annotationCount: number
   files: FileCoverage[]
+}
+
+/** Extract package name from file path (directory path, or '.' for root) */
+function getPackageFromPath(filePath: string): string {
+  const lastSlash = filePath.lastIndexOf('/')
+  if (lastSlash > 0) {
+    return filePath.substring(0, lastSlash)
+  }
+  return '.'
+}
+
+/** Group files by package and compute aggregate coverage */
+function groupByPackage(files: FileCoverage[]): PackageCoverage[] {
+  const packageMap = new Map<string, FileCoverage[]>()
+
+  for (const file of files) {
+    // Use explicit package if available, otherwise derive from path
+    const pkg = file.package ?? getPackageFromPath(file.file)
+    if (!packageMap.has(pkg)) {
+      packageMap.set(pkg, [])
+    }
+    packageMap.get(pkg)!.push(file)
+  }
+
+  const packages: PackageCoverage[] = []
+  for (const [pkg, pkgFiles] of packageMap) {
+    const totalLines = pkgFiles.reduce((acc, f) => acc + f.totalLines, 0)
+    const coveredLines = pkgFiles.reduce((acc, f) => acc + f.coveredLines, 0)
+    packages.push({
+      package: pkg,
+      totalLines,
+      coveredLines,
+      files: pkgFiles.sort((a, b) => a.file.localeCompare(b.file))
+    })
+  }
+
+  return packages.sort((a, b) => a.package.localeCompare(b.package))
 }
 
 export function generateSummary(params: SummaryParams): string {
@@ -43,15 +93,17 @@ export function generateSummary(params: SummaryParams): string {
     statusEmoji = '🟡'
   }
 
-  // Build file coverage table, sorted by filename
-  const sortedFiles = [...files].sort((a, b) => a.file.localeCompare(b.file))
-  const fileRows = sortedFiles
-    .map(f => {
+  // Group files by package
+  const packages = groupByPackage(files)
+
+  // Build package coverage table
+  const packageRows = packages
+    .map(pkg => {
       const pct =
-        f.totalLines > 0
-          ? ((f.coveredLines / f.totalLines) * 100).toFixed(1)
+        pkg.totalLines > 0
+          ? ((pkg.coveredLines / pkg.totalLines) * 100).toFixed(1)
           : '0.0'
-      return `| ${f.file} | ${f.totalLines.toLocaleString()} | ${f.coveredLines.toLocaleString()} | ${pct}% |`
+      return `| ${pkg.package} | ${pkg.files.length} | ${pkg.totalLines.toLocaleString()} | ${pkg.coveredLines.toLocaleString()} | ${pct}% |`
     })
     .join('\n')
 
@@ -67,11 +119,11 @@ export function generateSummary(params: SummaryParams): string {
 
 ${annotationCount > 0 ? `⚠️ **${annotationCount} annotation${annotationCount === 1 ? '' : 's'}** added for uncovered lines in this PR.` : '✅ No new uncovered lines detected in this PR.'}
 
-### File Coverage
+### Coverage by Package
 
-| File | Total Lines | Covered | Coverage |
-| ---- | ----------- | ------- | -------- |
-${fileRows}
+| Package | Files | Total Lines | Covered | Coverage |
+| ------- | ----- | ----------- | ------- | -------- |
+${packageRows}
 `
 }
 
@@ -113,16 +165,27 @@ export async function play(): Promise<void> {
     const workspacePath = env.GITHUB_WORKSPACE || ''
     core.info(`Workspace: ${workspacePath}`)
 
-    // 1. Parse coverage file
-    let parsedCov
-    if (COVERAGE_FORMAT === 'cobertura') {
-      parsedCov = await parseCobertura(COVERAGE_FILE_PATH, workspacePath)
-    } else if (COVERAGE_FORMAT === 'go') {
-      // Assuming that go.mod is available in working directory
-      parsedCov = await parseGoCoverage(COVERAGE_FILE_PATH, 'go.mod')
-    } else {
-      // lcov default
-      parsedCov = await parseLCov(COVERAGE_FILE_PATH, workspacePath)
+    // 1. Expand file paths (supports globs and multiple paths)
+    const coverageFiles = await expandCoverageFilePaths(COVERAGE_FILE_PATH)
+    if (coverageFiles.length === 0) {
+      throw new Error(`No coverage files found matching: ${COVERAGE_FILE_PATH}`)
+    }
+    core.info(`Found ${coverageFiles.length} coverage file(s)`)
+
+    // 2. Parse all coverage files and merge results
+    let parsedCov: CoverageParsed = []
+    for (const coverageFile of coverageFiles) {
+      let fileCov: CoverageParsed
+      if (COVERAGE_FORMAT === 'cobertura') {
+        fileCov = await parseCobertura(coverageFile, workspacePath)
+      } else if (COVERAGE_FORMAT === 'go') {
+        // Assuming that go.mod is available in working directory
+        fileCov = await parseGoCoverage(coverageFile, 'go.mod')
+      } else {
+        // lcov default
+        fileCov = await parseLCov(coverageFile, workspacePath)
+      }
+      parsedCov = parsedCov.concat(fileCov)
     }
     // Correct line totals
     parsedCov = correctLineTotals(parsedCov)
@@ -182,7 +245,8 @@ export async function play(): Promise<void> {
       const files: FileCoverage[] = parsedCov.map(entry => ({
         file: entry.file,
         totalLines: entry.lines.found,
-        coveredLines: entry.lines.hit
+        coveredLines: entry.lines.hit,
+        package: entry.package
       }))
       const summary = generateSummary({
         coveragePercentage,

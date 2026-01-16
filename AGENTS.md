@@ -7,6 +7,7 @@ This is a GitHub Action for annotating PRs with lines missing test coverage.
 - **All tests must pass** before completing a commit
 - **Code coverage must be maintained** at or near 100%
 - Run `npm run test:cov` to run tests with coverage report
+- **Prefer table-driven tests** using `test.each()` for better readability and easier extension
 
 ## Commands
 
@@ -33,3 +34,11 @@ This is a GitHub Action for annotating PRs with lines missing test coverage.
 - `lcov` (default)
 - `cobertura`
 - `go`
+
+## Specifications
+
+The `specs/` directory contains design documentation. When making significant changes:
+
+- **Update existing specs** if modifying related functionality
+- **Create new specs** for major features or architectural decisions
+- Keep specs as living documentation that explains *why* decisions were made
