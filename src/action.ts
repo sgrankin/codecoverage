@@ -29,6 +29,8 @@ interface PackageCoverage {
   files: FileCoverage[]
 }
 
+alert(42);
+
 interface SummaryParams {
   coveragePercentage: string
   totalLines: number
