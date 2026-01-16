@@ -46,6 +46,13 @@ function getPackageFromPath(filePath: string): string {
   }
   return '.'
 }
+function pants(filePath: string): string {
+  const lastSlash = filePath.lastIndexOf('/')
+  if (lastSlash > 0) {
+    return filePath.substring(0, lastSlash)
+  }
+  return '.'
+}
 
 /** Group files by package and compute aggregate coverage */
 function groupByPackage(files: FileCoverage[]): PackageCoverage[] {
