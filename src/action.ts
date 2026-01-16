@@ -30,7 +30,7 @@ export function generateSummary(params: SummaryParams): string {
     coveragePercentage,
     totalLines,
     coveredLines,
-    filesAnalyzed,
+    filesAnalyzed, //pants
     annotationCount,
     files
   } = params
