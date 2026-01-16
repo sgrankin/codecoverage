@@ -1,6 +1,4 @@
-[![Coverage Status](https://coveralls.io/repos/github/ggilder/codecoverage/badge.svg?branch=main)](https://coveralls.io/github/ggilder/codecoverage?branch=main)
-
-![Build Status](https://github.com/ggilder/codecoverage/actions/workflows/test.yml/badge.svg)
+![Build Status](https://github.com/sgrankin/codecoverage/actions/workflows/test.yml/badge.svg)
 
 # Code Coverage Annotation
 
@@ -9,6 +7,8 @@ and hard to take action on. It's much more useful to catch gaps in coverage as
 they're introduced to a repo, right in the context of pull requests!
 
 All processing is done within Github Actions, no data is sent to an external server.
+
+> **Note**: This is a fork of [ggilder/codecoverage](https://github.com/ggilder/codecoverage) with updated dependencies and additional improvements.
 
 ## Sample PR Annotation
 <img width="1069" alt="Screen Shot 2022-06-26 at 7 11 21 PM" src="https://user-images.githubusercontent.com/23582455/175847244-dbed2fb3-70be-4bcd-a7d0-64197951c517.png">
@@ -40,7 +40,7 @@ coverage format with values appropriate for your repo:
 
 ```yaml
 - name: Code Coverage Annotation
-  uses: ggilder/codecoverage@v1
+  uses: sgrankin/codecoverage@main
   with:
     GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
     COVERAGE_FILE_PATH: "./coverage/lcov.info"
@@ -69,7 +69,7 @@ with:
   run: go test -v ./... -coverprofile coverage.out
 
 - name: Code Coverage Annotation
-  uses: ggilder/codecoverage@v1
+  uses: sgrankin/codecoverage@main
   with:
     GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
     COVERAGE_FILE_PATH: coverage.out
@@ -114,4 +114,4 @@ with:
 
 ## Acknowledgements
 
-This project was originally based on https://github.com/shravan097/codecoverage (which is unmaintained).
+This fork is based on [ggilder/codecoverage](https://github.com/ggilder/codecoverage), which was originally based on [shravan097/codecoverage](https://github.com/shravan097/codecoverage).
