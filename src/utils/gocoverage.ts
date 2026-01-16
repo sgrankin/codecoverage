@@ -24,8 +24,9 @@ export async function parseGoCoverage(
       if (err === null) {
         filterModulePaths(result, goModule)
         resolve(result)
+      } else {
+        reject(err)
       }
-      reject(err)
     })
   })
 }

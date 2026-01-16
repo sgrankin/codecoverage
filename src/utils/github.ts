@@ -3,8 +3,6 @@ import * as diff from './diff'
 import * as github from '@actions/github'
 import {
   CoverageFile,
-  LineRange,
-  coalesceLineNumbers,
   coalesceLineNumbersWithGaps,
   intersectLineRanges
 } from './general'
@@ -39,7 +37,9 @@ export class GithubUtil {
     const fileLines = diff.parseGitDiff(response.data as unknown as string)
     const prFiles: PullRequestFiles = {}
     for (const item of fileLines) {
-      prFiles[item.filename] = coalesceLineNumbers(item.addedLines)
+      // Store raw line numbers - coalescing happens in buildAnnotations
+      // where we have access to executable line info
+      prFiles[item.filename] = item.addedLines
     }
 
     return prFiles
@@ -115,10 +115,17 @@ export class GithubUtil {
     const annotations: Annotations[] = []
     for (const current of coverageFiles) {
       // Only annotate relevant files
-      const prFileRanges = pullRequestFiles[current.fileName]
-      if (prFileRanges) {
+      const prFileLines = pullRequestFiles[current.fileName]
+      if (prFileLines && prFileLines.length > 0) {
+        // Coalesce both coverage and PR ranges using executable line info
+        // This bridges gaps where non-executable lines (comments, braces)
+        // were either not covered or not modified
         const coverageRanges = coalesceLineNumbersWithGaps(
           current.missingLineNumbers,
+          current.executableLines
+        )
+        const prFileRanges = coalesceLineNumbersWithGaps(
+          prFileLines,
           current.executableLines
         )
         const uncoveredRanges = intersectLineRanges(
@@ -163,5 +170,5 @@ type Annotations = {
 }
 
 type PullRequestFiles = {
-  [key: string]: LineRange[]
+  [key: string]: number[]
 }

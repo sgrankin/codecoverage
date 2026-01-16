@@ -3,9 +3,10 @@ export function filterCoverageByFile(coverage: CoverageParsed): CoverageFile[] {
     const allExecutableLines = new Set(
       item?.lines?.details.map(line => line.line) || []
     )
-    const missingLineNumbers = item?.lines?.details
-      .filter(line => line.hit === 0)
-      .map(line => line.line) || []
+    const missingLineNumbers =
+      item?.lines?.details
+        .filter(line => line.hit === 0)
+        .map(line => line.line) || []
 
     return {
       fileName: item.file,

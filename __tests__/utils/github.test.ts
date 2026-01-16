@@ -42,12 +42,10 @@ test('github init to throw error', function () {
 test('build annotations', function () {
   const githubUtil = new GithubUtil('1234', 'https://api.github.com')
 
+  // Raw line numbers - will be coalesced in buildAnnotations
   const prFiles = {
-    'file1.txt': [
-      {end_line: 139, start_line: 132},
-      {end_line: 1007, start_line: 1000}
-    ],
-    'test/dir/file1.txt': [{end_line: 45, start_line: 22}]
+    'file1.txt': [132, 133, 134, 135, 136, 137, 138, 139, 1000, 1001, 1002, 1003, 1004, 1005, 1006, 1007],
+    'test/dir/file1.txt': [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45]
   }
 
   const coverageFiles = [
@@ -100,7 +98,7 @@ test('build annotations returns empty array when no matching files', function ()
   const githubUtil = new GithubUtil('1234', 'https://api.github.com')
 
   const prFiles = {
-    'other-file.txt': [{end_line: 10, start_line: 1}]
+    'other-file.txt': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
   }
 
   const coverageFiles = [
@@ -118,8 +116,9 @@ test('build annotations returns empty array when no matching files', function ()
 test('build annotations bridges gaps for non-executable lines', function () {
   const githubUtil = new GithubUtil('1234', 'https://api.github.com')
 
+  // All lines 1-20 were modified in PR
   const prFiles = {
-    'file.ts': [{start_line: 1, end_line: 20}]
+    'file.ts': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
   }
 
   // Lines 5, 6, 8, 9 are uncovered
@@ -149,8 +148,9 @@ test('build annotations bridges gaps for non-executable lines', function () {
 test('build annotations does not bridge gaps with covered lines', function () {
   const githubUtil = new GithubUtil('1234', 'https://api.github.com')
 
+  // All lines 1-20 were modified in PR
   const prFiles = {
-    'file.ts': [{start_line: 1, end_line: 20}]
+    'file.ts': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
   }
 
   // Lines 5, 6, 8, 9 are uncovered
@@ -177,6 +177,38 @@ test('build annotations does not bridge gaps with covered lines', function () {
     {
       path: 'file.ts',
       start_line: 8,
+      end_line: 9,
+      annotation_level: 'warning',
+      message: 'These lines are not covered by a test'
+    }
+  ])
+})
+
+test('build annotations bridges gaps in PR diff for non-executable lines', function () {
+  const githubUtil = new GithubUtil('1234', 'https://api.github.com')
+
+  // User modified lines 5, 6, 8, 9 but NOT line 7 (a comment they didn't touch)
+  const prFiles = {
+    'file.ts': [5, 6, 8, 9]
+  }
+
+  // All of lines 5, 6, 8, 9 are uncovered
+  // Line 7 is non-executable (comment)
+  const coverageFiles = [
+    {
+      fileName: 'file.ts',
+      missingLineNumbers: [5, 6, 8, 9],
+      executableLines: new Set([5, 6, 8, 9]) // Line 7 not included
+    }
+  ]
+
+  const annotations = githubUtil.buildAnnotations(coverageFiles, prFiles)
+
+  // Should produce single annotation - PR diff gap is bridged because line 7 is non-executable
+  expect(annotations).toEqual([
+    {
+      path: 'file.ts',
+      start_line: 5,
       end_line: 9,
       annotation_level: 'warning',
       message: 'These lines are not covered by a test'
@@ -229,8 +261,9 @@ index abcdefg..1234567 100644
 
   const result = await githubUtil.getPullRequestDiff()
 
+  // Now returns raw line numbers instead of pre-coalesced ranges
   expect(result).toEqual({
-    'src/test.ts': [{start_line: 2, end_line: 2}]
+    'src/test.ts': [2]
   })
 })
 
