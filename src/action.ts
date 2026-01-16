@@ -232,10 +232,15 @@ export async function play(): Promise<void> {
     core.setOutput('annotation_count', annotations.length)
 
     // 4. Annotate in github
-    await githubUtil.annotate({
+    const annotateResult = await githubUtil.annotate({
       referenceCommitHash: githubUtil.getPullRequestRef(),
       annotations
     })
+    if (annotateResult === -1) {
+      // Branch was deleted (PR merged), exit gracefully
+      core.info('Exiting gracefully - PR branch no longer exists')
+      return
+    }
     core.info('Annotation done')
 
     // 5. Write step summary
