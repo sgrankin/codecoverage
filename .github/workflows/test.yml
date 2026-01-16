@@ -44,8 +44,3 @@ jobs:
           COVERAGE_FORMAT: "lcov"
           DEBUG: coverage
 
-      - if: github.event_name == 'pull_request' || github.event_name == 'push'
-        uses: coverallsapp/github-action@v2
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
