@@ -1,19 +1,10 @@
-import {test, expect, vi, beforeEach, afterEach} from 'vitest'
-import {GithubUtil} from '../../src/utils/github'
+import {test, expect, vi} from 'vitest'
+import {GithubUtil, GithubClient} from '../../src/utils/github'
 import {captureStdout} from '../fixtures/capture-stdout'
 
-// Mock client for getOctokit
-const mockClient = {
-  rest: {
-    pulls: {
-      get: vi.fn()
-    }
-  }
-}
-
-// Mock @actions/github
+// Mock @actions/github - only for context, not for getOctokit
 vi.mock('@actions/github', () => ({
-  getOctokit: vi.fn(() => mockClient),
+  getOctokit: vi.fn(),
   context: {
     payload: {
       pull_request: {
@@ -32,6 +23,28 @@ vi.mock('@actions/github', () => ({
     ref: 'refs/heads/main'
   }
 }))
+
+/**
+ * Creates a fake GitHub client for testing.
+ * Returns configurable responses without mocking internals.
+ */
+function createFakeClient(options: {
+  diffResponse?: string
+  diffError?: {status: number; message: string}
+}): GithubClient {
+  return {
+    rest: {
+      pulls: {
+        get: async () => {
+          if (options.diffError) {
+            throw options.diffError
+          }
+          return {data: options.diffResponse ?? ''}
+        }
+      }
+    }
+  }
+}
 
 test('github init successfully', async function () {
   const githubUtil = new GithubUtil('1234', 'https://api.github.com')
@@ -273,18 +286,12 @@ index abcdefg..1234567 100644
  line2
  line3`
 
-  const githubUtil = new GithubUtil('1234', 'https://api.github.com')
-
-  // Mock the client's pulls.get method
-  ;(githubUtil as any).client = {
-    rest: {
-      pulls: {
-        get: vi.fn().mockResolvedValue({
-          data: mockDiff
-        })
-      }
-    }
-  }
+  const fakeClient = createFakeClient({diffResponse: mockDiff})
+  const githubUtil = new GithubUtil(
+    '1234',
+    'https://api.github.com',
+    fakeClient
+  )
 
   const result = await githubUtil.getPullRequestDiff()
 
@@ -314,15 +321,12 @@ test.each(diffTooLargeTestCases)(
   async ({error}) => {
     const capture = captureStdout()
     try {
-      const githubUtil = new GithubUtil('1234', 'https://api.github.com')
-
-      ;(githubUtil as any).client = {
-        rest: {
-          pulls: {
-            get: vi.fn().mockRejectedValue(error)
-          }
-        }
-      }
+      const fakeClient = createFakeClient({diffError: error})
+      const githubUtil = new GithubUtil(
+        '1234',
+        'https://api.github.com',
+        fakeClient
+      )
 
       const result = await githubUtil.getPullRequestDiff()
 
@@ -336,15 +340,14 @@ test.each(diffTooLargeTestCases)(
 )
 
 test('getPullRequestDiff throws for other errors', async function () {
-  const githubUtil = new GithubUtil('1234', 'https://api.github.com')
-
-  ;(githubUtil as any).client = {
-    rest: {
-      pulls: {
-        get: vi.fn().mockRejectedValue({status: 500, message: 'Server error'})
-      }
-    }
-  }
+  const fakeClient = createFakeClient({
+    diffError: {status: 500, message: 'Server error'}
+  })
+  const githubUtil = new GithubUtil(
+    '1234',
+    'https://api.github.com',
+    fakeClient
+  )
 
   await expect(githubUtil.getPullRequestDiff()).rejects.toEqual({
     status: 500,

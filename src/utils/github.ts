@@ -18,16 +18,31 @@ export type PullRequestFiles = {
   [key: string]: number[]
 }
 
-type OctokitClient = ReturnType<typeof github.getOctokit>
+/**
+ * Minimal interface for the GitHub client we need.
+ * Allows injecting a fake for testing.
+ */
+export interface GithubClient {
+  rest: {
+    pulls: {
+      get(params: {
+        owner: string
+        repo: string
+        pull_number: number
+        mediaType?: {format: string}
+      }): Promise<{data: unknown}>
+    }
+  }
+}
 
 export class GithubUtil {
-  private client: OctokitClient
+  private client: GithubClient
 
-  constructor(token: string, baseUrl: string) {
+  constructor(token: string, baseUrl: string, client?: GithubClient) {
     if (!token) {
       throw new Error('GITHUB_TOKEN is missing')
     }
-    this.client = github.getOctokit(token, {baseUrl})
+    this.client = client ?? github.getOctokit(token, {baseUrl})
   }
 
   async getPullRequestDiff(): Promise<PullRequestFiles> {
@@ -51,7 +66,7 @@ export class GithubUtil {
       }
       throw error
     }
-    const fileLines = diff.parseGitDiff(response.data as unknown as string)
+    const fileLines = diff.parseGitDiff(response.data as string)
     const prFiles: PullRequestFiles = {}
     for (const item of fileLines) {
       // Store raw line numbers - coalescing happens in buildAnnotations

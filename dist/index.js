@@ -30596,11 +30596,11 @@ function getLineInfoFromHeaderLine(line) {
 // src/utils/github.ts
 var github = __toESM(require_github(), 1);
 var GithubUtil = class {
-  constructor(token, baseUrl) {
+  constructor(token, baseUrl, client) {
     if (!token) {
       throw new Error("GITHUB_TOKEN is missing");
     }
-    this.client = github.getOctokit(token, { baseUrl });
+    this.client = client ?? github.getOctokit(token, { baseUrl });
   }
   async getPullRequestDiff() {
     const pull_number = github.context.issue.number;
