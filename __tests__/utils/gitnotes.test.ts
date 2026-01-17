@@ -220,6 +220,15 @@ describe('gitnotes', () => {
 
       expect(mergeBase).toBe(baseCommit)
     })
+
+    test('returns null for non-existent ref', async () => {
+      const mergeBase = await findMergeBase('nonexistent-branch', {
+        cwd: repoDir
+      })
+      // This will throw rather than return null for non-existent ref
+      // but for disconnected histories it would return null
+      expect(mergeBase).toBeNull()
+    })
   })
 
   describe('getHeadCommit', () => {

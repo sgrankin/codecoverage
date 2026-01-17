@@ -188,6 +188,33 @@ describe('baseline', () => {
       expect(result.baseline).toBeNull()
     })
 
+    test('handles corrupted baseline data gracefully', async () => {
+      // Store invalid JSON as baseline
+      const commit = await getHeadCommit({cwd: repoDir})
+      await gitExec(
+        [
+          'notes',
+          '--ref',
+          'refs/notes/coverage',
+          'add',
+          '-m',
+          'not valid json',
+          commit
+        ],
+        repoDir
+      )
+      await pushNotes({cwd: repoDir})
+
+      // Create feature branch
+      await gitExec(['checkout', '-b', 'feature'], repoDir)
+      await createCommit(repoDir, 'Feature commit')
+
+      const result = await loadBaseline('main', {cwd: repoDir})
+
+      expect(result.baseline).toBeNull()
+      expect(result.parseError).toBe('Invalid format')
+    })
+
     test('uses custom namespace', async () => {
       // Store baseline with custom namespace
       await storeBaseline(

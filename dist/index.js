@@ -61571,8 +61571,10 @@ async function findMergeBase(targetRef, options = {}) {
     }
     catch (error) {
         const err = error;
-        // merge-base can fail if there's no common ancestor
-        if (err.stderr?.includes('no merge base')) {
+        // merge-base can fail if there's no common ancestor or ref doesn't exist
+        if (err.stderr?.includes('no merge base') ||
+            err.stderr?.includes('Not a valid object name') ||
+            err.stderr?.includes('bad revision')) {
             return null;
         }
         throw error;
