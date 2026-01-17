@@ -53,5 +53,5 @@ outputs:
   mode:
     description: 'The operating mode used (pr-check or store-baseline)'
 runs:
-  using: 'node22'
+  using: 'node24'
   main: 'dist/index.js'
