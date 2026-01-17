@@ -13841,126 +13841,6 @@ exports.Deprecation = Deprecation;
 
 /***/ }),
 
-/***/ 1306:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-
-
-var fs = __nccwpck_require__( 9896 );
-
-var parse = {};
-
-parse.parseContent = function ( text, cb )
-{
-    var files = [];
-    var modes = text.split( "mode:" );
-
-    if( !modes.length )
-    {
-        return cb( new Error( "No coverage found" ) );
-    }
-
-    modes.forEach( function ( mode )
-    {
-        if( !mode.length )
-        {
-            return;
-        }
-
-        var lines = mode.replace( "\r\n", "\n" ).split( /[\n\r]/g );
-        lines = lines.slice( 1 ); // the first line is just the mode type
-
-        lines.forEach( function ( line )
-        {
-            var parts = line.split( ":" );
-            if( !parts.length )
-            {
-                return;
-            }
-
-            var path = parts[ 0 ];
-            var values = parts[ 1 ];
-
-            if( !path || !values )
-            {
-                return;
-            }
-
-            if( !files[ files.length - 1 ] || files[ files.length - 1 ].file !== path )
-            {
-                var name = path.split( "/" );
-                name = name[ name.length - 1 ];
-
-                files.push( {
-                    title: name,
-                    file: path,
-                    lines: {
-                        found: 0,
-                        hit: 0,
-                        details: []
-                    }
-                } );
-            }
-
-            var file = files[ files.length - 1 ];
-
-            var startLine = Number( values.split( "," )[ 0 ].split( "." )[ 0 ] );
-            var endLine = Number( values.split( "," )[ 1 ].split( "." )[ 0 ] );
-            var hit = Number( values.split( " " )[ 2 ] );
-
-            file.lines.found += endLine - startLine + 1;
-            for( var lineNumber = startLine; lineNumber <= endLine; lineNumber++ )
-            {
-                var existingLine = file.lines.details.filter( function ( ex )
-                {
-                    return ex.line === lineNumber;
-                } )[ 0 ];
-
-                if( existingLine )
-                {
-                    existingLine.hit += hit;
-                }
-                else
-                {
-                    file.lines.details.push( {
-                        line: lineNumber,
-                        hit: hit
-                    } );
-                }
-            }
-        } );
-    } );
-
-
-    files.forEach( function ( file )
-    {
-        file.lines.hit = file.lines.details.reduce( function ( acc, val )
-        {
-            return acc + ( val.hit > 0 ? 1 : 0 );
-        }, 0 );
-    } );
-
-    cb( null, files );
-};
-
-parse.parseFile = function ( file, cb )
-{
-    fs.readFile( file, "utf8", function ( err, content )
-    {
-        if( err )
-        {
-            return cb( err );
-        }
-
-        parse.parseContent( content, cb );
-    } );
-};
-
-module.exports = parse;
-
-
-/***/ }),
-
 /***/ 6638:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -46564,15 +46444,68 @@ async function parseCobertura(coberturaPath, workspacePath) {
     return result;
 }
 
-// EXTERNAL MODULE: ./node_modules/golang-cover-parse/source/index.js
-var source = __nccwpck_require__(1306);
 ;// CONCATENATED MODULE: external "readline"
 const external_readline_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("readline");
 ;// CONCATENATED MODULE: ./src/utils/gocoverage.ts
 
 
 
-
+/**
+ * Parse Go coverage file content.
+ * Inlined from golang-cover-parse to avoid its problematic mocha dependency.
+ */
+function parseGoCoverageContent(text) {
+    const files = [];
+    const modes = text.split('mode:');
+    if (!modes.length) {
+        throw new Error('No coverage found');
+    }
+    for (const mode of modes) {
+        if (!mode.length)
+            continue;
+        const lines = mode.replace('\r\n', '\n').split(/[\n\r]/g);
+        const dataLines = lines.slice(1); // first line is mode type
+        for (const line of dataLines) {
+            const parts = line.split(':');
+            if (!parts.length)
+                continue;
+            const filePath = parts[0];
+            const values = parts[1];
+            if (!filePath || !values)
+                continue;
+            // Get or create file entry
+            let file = files[files.length - 1];
+            if (!file || file.file !== filePath) {
+                const nameParts = filePath.split('/');
+                file = {
+                    title: nameParts[nameParts.length - 1],
+                    file: filePath,
+                    lines: { found: 0, hit: 0, details: [] }
+                };
+                files.push(file);
+            }
+            // Parse line range and hit count: "startLine.col,endLine.col numStatements hitCount"
+            const startLine = Number(values.split(',')[0].split('.')[0]);
+            const endLine = Number(values.split(',')[1].split('.')[0]);
+            const hit = Number(values.split(' ')[2]);
+            file.lines.found += endLine - startLine + 1;
+            for (let lineNumber = startLine; lineNumber <= endLine; lineNumber++) {
+                const existing = file.lines.details.find(d => d.line === lineNumber);
+                if (existing) {
+                    existing.hit += hit;
+                }
+                else {
+                    file.lines.details.push({ line: lineNumber, hit });
+                }
+            }
+        }
+    }
+    // Calculate hit counts
+    for (const file of files) {
+        file.lines.hit = file.lines.details.reduce((acc, val) => acc + (val.hit > 0 ? 1 : 0), 0);
+    }
+    return files;
+}
 async function parseGoCoverage(coveragePath, goModPath) {
     if (!coveragePath) {
         throw Error('No Go coverage path provided');
@@ -46582,17 +46515,9 @@ async function parseGoCoverage(coveragePath, goModPath) {
     }
     const goModule = await parseGoModFile(goModPath);
     const fileRaw = external_fs_.readFileSync(coveragePath, 'utf8');
-    return new Promise((resolve, reject) => {
-        source.parseContent(fileRaw, (err, result) => {
-            if (err === null) {
-                filterModulePaths(result, goModule);
-                resolve(result);
-            }
-            else {
-                reject(err);
-            }
-        });
-    });
+    const result = parseGoCoverageContent(fileRaw);
+    filterModulePaths(result, goModule);
+    return result;
 }
 function filterModulePaths(entries, moduleName) {
     for (const entry of entries) {
@@ -46605,8 +46530,6 @@ async function parseGoModFile(filePath) {
         input: fileStream,
         crlfDelay: Infinity
     });
-    // Note: we use the crlfDelay option to recognize all instances of CR LF
-    // ('\r\n') in input.txt as a single line break.
     for await (const line of rl) {
         if (line.startsWith('module ')) {
             return line.slice(7);

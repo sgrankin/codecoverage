@@ -1,8 +1,74 @@
 import * as fs from 'fs'
-import * as gocov from 'golang-cover-parse'
 import * as path from 'path'
 import * as readline from 'readline'
-import {CoverageParsed} from './general.js'
+import {CoverageParsed, CoverageEntry} from './general.js'
+
+/**
+ * Parse Go coverage file content.
+ * Inlined from golang-cover-parse to avoid its problematic mocha dependency.
+ */
+function parseGoCoverageContent(text: string): CoverageParsed {
+  const files: CoverageEntry[] = []
+  const modes = text.split('mode:')
+
+  if (!modes.length) {
+    throw new Error('No coverage found')
+  }
+
+  for (const mode of modes) {
+    if (!mode.length) continue
+
+    const lines = mode.replace('\r\n', '\n').split(/[\n\r]/g)
+    const dataLines = lines.slice(1) // first line is mode type
+
+    for (const line of dataLines) {
+      const parts = line.split(':')
+      if (!parts.length) continue
+
+      const filePath = parts[0]
+      const values = parts[1]
+      if (!filePath || !values) continue
+
+      // Get or create file entry
+      let file = files[files.length - 1]
+      if (!file || file.file !== filePath) {
+        const nameParts = filePath.split('/')
+        file = {
+          title: nameParts[nameParts.length - 1],
+          file: filePath,
+          lines: {found: 0, hit: 0, details: []}
+        }
+        files.push(file)
+      }
+
+      // Parse line range and hit count: "startLine.col,endLine.col numStatements hitCount"
+      const startLine = Number(values.split(',')[0].split('.')[0])
+      const endLine = Number(values.split(',')[1].split('.')[0])
+      const hit = Number(values.split(' ')[2])
+
+      file.lines.found += endLine - startLine + 1
+
+      for (let lineNumber = startLine; lineNumber <= endLine; lineNumber++) {
+        const existing = file.lines.details.find(d => d.line === lineNumber)
+        if (existing) {
+          existing.hit += hit
+        } else {
+          file.lines.details.push({line: lineNumber, hit})
+        }
+      }
+    }
+  }
+
+  // Calculate hit counts
+  for (const file of files) {
+    file.lines.hit = file.lines.details.reduce(
+      (acc, val) => acc + (val.hit > 0 ? 1 : 0),
+      0
+    )
+  }
+
+  return files
+}
 
 export async function parseGoCoverage(
   coveragePath: string,
@@ -17,18 +83,10 @@ export async function parseGoCoverage(
   }
 
   const goModule = await parseGoModFile(goModPath)
-
   const fileRaw = fs.readFileSync(coveragePath, 'utf8')
-  return new Promise((resolve, reject) => {
-    gocov.parseContent(fileRaw, (err: Error | null, result: CoverageParsed) => {
-      if (err === null) {
-        filterModulePaths(result, goModule)
-        resolve(result)
-      } else {
-        reject(err)
-      }
-    })
-  })
+  const result = parseGoCoverageContent(fileRaw)
+  filterModulePaths(result, goModule)
+  return result
 }
 
 function filterModulePaths(entries: CoverageParsed, moduleName: string): void {
@@ -43,8 +101,6 @@ async function parseGoModFile(filePath: string): Promise<string> {
     input: fileStream,
     crlfDelay: Infinity
   })
-  // Note: we use the crlfDelay option to recognize all instances of CR LF
-  // ('\r\n') in input.txt as a single line break.
 
   for await (const line of rl) {
     if (line.startsWith('module ')) {
