@@ -36,8 +36,6 @@ test('main module exports run function', async function () {
   // Import the main module - this will execute run()
   const main = await import('../src/main')
 
-  // The module should have executed and exited early
-  expect(core.info).toHaveBeenCalledWith(
-    'Pull request not detected. Exiting early.'
-  )
+  // The module should have executed in store-baseline mode (not a PR)
+  expect(core.info).toHaveBeenCalledWith('Mode: store-baseline (event: push)')
 })

@@ -13,6 +13,13 @@ import {parseCobertura} from './utils/cobertura.js'
 import {parseGoCoverage} from './utils/gocoverage.js'
 import {GithubUtil} from './utils/github.js'
 import {expandCoverageFilePaths} from './utils/files.js'
+import {detectMode, getNamespaceForBranch} from './utils/mode.js'
+import {
+  storeBaseline,
+  loadBaseline,
+  calculateDelta,
+  formatCoverageWithDelta
+} from './utils/baseline.js'
 
 const SUPPORTED_FORMATS = ['lcov', 'cobertura', 'go']
 
@@ -37,6 +44,10 @@ interface SummaryParams {
   filesAnalyzed: number
   annotationCount: number
   files: FileCoverage[]
+  /** Coverage delta string (e.g., "+2.50" or "-1.25") */
+  coverageDelta?: string
+  /** Baseline coverage percentage */
+  baselinePercentage?: string
 }
 
 /** Extract package name from file path (directory path, or '.' for root) */
@@ -83,7 +94,9 @@ export function generateSummary(params: SummaryParams): string {
     coveredLines,
     filesAnalyzed,
     annotationCount,
-    files
+    files,
+    coverageDelta,
+    baselinePercentage
   } = params
   const uncoveredLines = totalLines - coveredLines
 
@@ -92,6 +105,12 @@ export function generateSummary(params: SummaryParams): string {
     statusEmoji = '🟢'
   } else if (parseFloat(coveragePercentage) >= 60) {
     statusEmoji = '🟡'
+  }
+
+  // Format coverage display with delta if available
+  let coverageDisplay = `${coveragePercentage}%`
+  if (coverageDelta) {
+    coverageDisplay = formatCoverageWithDelta(coveragePercentage, coverageDelta)
   }
 
   // Group files by package
@@ -108,12 +127,17 @@ export function generateSummary(params: SummaryParams): string {
     })
     .join('\n')
 
+  // Build baseline row if available
+  const baselineRow = baselinePercentage
+    ? `| **Baseline** | ${baselinePercentage}% |\n`
+    : ''
+
   return `## ${statusEmoji} Code Coverage Report
 
 | Metric | Value |
 | ------ | ----: |
-| **Coverage** | ${coveragePercentage}% |
-| **Covered Lines** | ${coveredLines.toLocaleString()} |
+| **Coverage** | ${coverageDisplay} |
+${baselineRow}| **Covered Lines** | ${coveredLines.toLocaleString()} |
 | **Uncovered Lines** | ${uncoveredLines.toLocaleString()} |
 | **Total Lines** | ${totalLines.toLocaleString()} |
 | **Files Analyzed** | ${filesAnalyzed.toLocaleString()} |
@@ -128,140 +152,243 @@ ${packageRows}
 `
 }
 
+/** Parse and compute coverage data from files */
+async function parseCoverage(
+  coverageFilePath: string,
+  coverageFormat: string,
+  workspacePath: string
+): Promise<{
+  parsedCov: CoverageParsed
+  totalLines: number
+  coveredLines: number
+  coveragePercentage: string
+}> {
+  // Expand file paths (supports globs and multiple paths)
+  const coverageFiles = await expandCoverageFilePaths(coverageFilePath)
+  if (coverageFiles.length === 0) {
+    throw new Error(`No coverage files found matching: ${coverageFilePath}`)
+  }
+  core.info(`Found ${coverageFiles.length} coverage file(s)`)
+
+  // Parse all coverage files and merge results
+  let parsedCov: CoverageParsed = []
+  for (const coverageFile of coverageFiles) {
+    let fileCov: CoverageParsed
+    if (coverageFormat === 'cobertura') {
+      fileCov = await parseCobertura(coverageFile, workspacePath)
+    } else if (coverageFormat === 'go') {
+      fileCov = await parseGoCoverage(coverageFile, 'go.mod')
+    } else {
+      fileCov = await parseLCov(coverageFile, workspacePath)
+    }
+    parsedCov = parsedCov.concat(fileCov)
+  }
+
+  // Merge coverage from multiple test runs
+  parsedCov = mergeCoverageByFile(parsedCov)
+  parsedCov = correctLineTotals(parsedCov)
+
+  // Calculate totals
+  const totalLines = parsedCov.reduce(
+    (acc, entry) => acc + entry.lines.found,
+    0
+  )
+  const coveredLines = parsedCov.reduce(
+    (acc, entry) => acc + entry.lines.hit,
+    0
+  )
+  const coveragePercentage =
+    totalLines > 0 ? ((coveredLines / totalLines) * 100).toFixed(2) : '0.00'
+
+  return {parsedCov, totalLines, coveredLines, coveragePercentage}
+}
+
 /** Starting Point of the Github Action*/
 export async function play(): Promise<void> {
   try {
-    if (github.context.eventName !== 'pull_request') {
-      core.info('Pull request not detected. Exiting early.')
-      return
-    }
     core.info('Performing Code Coverage Analysis')
+
+    // Get inputs
     const GITHUB_TOKEN = core.getInput('GITHUB_TOKEN', {required: true})
     const GITHUB_BASE_URL = core.getInput('GITHUB_BASE_URL')
     const COVERAGE_FILE_PATH = core.getInput('COVERAGE_FILE_PATH', {
       required: true
     })
+    const modeOverride = core.getInput('mode') || undefined
+    const calculateDeltaInput = core.getInput('calculate_delta') !== 'false'
+    const noteNamespace = core.getInput('note_namespace') || 'coverage'
+    const deltaPrecision = parseInt(core.getInput('delta_precision') || '2', 10)
 
-    let COVERAGE_FORMAT = core.getInput('COVERAGE_FORMAT')
-    if (!COVERAGE_FORMAT) {
-      COVERAGE_FORMAT = 'lcov'
-    }
+    let COVERAGE_FORMAT = core.getInput('COVERAGE_FORMAT') || 'lcov'
     if (!SUPPORTED_FORMATS.includes(COVERAGE_FORMAT)) {
       throw new Error(
         `COVERAGE_FORMAT must be one of ${SUPPORTED_FORMATS.join(',')}`
       )
     }
 
-    // TODO perhaps make base path configurable in case coverage artifacts are
-    // not produced on the Github worker?
     const workspacePath = env.GITHUB_WORKSPACE || ''
     core.info(`Workspace: ${workspacePath}`)
 
-    // 1. Expand file paths (supports globs and multiple paths)
-    const coverageFiles = await expandCoverageFilePaths(COVERAGE_FILE_PATH)
-    if (coverageFiles.length === 0) {
-      throw new Error(`No coverage files found matching: ${COVERAGE_FILE_PATH}`)
-    }
-    core.info(`Found ${coverageFiles.length} coverage file(s)`)
+    // Detect operating mode
+    const modeContext = detectMode(modeOverride)
+    core.info(`Mode: ${modeContext.mode} (event: ${modeContext.eventName})`)
+    core.setOutput('mode', modeContext.mode)
 
-    // 2. Parse all coverage files and merge results
-    let parsedCov: CoverageParsed = []
-    for (const coverageFile of coverageFiles) {
-      let fileCov: CoverageParsed
-      if (COVERAGE_FORMAT === 'cobertura') {
-        fileCov = await parseCobertura(coverageFile, workspacePath)
-      } else if (COVERAGE_FORMAT === 'go') {
-        // Assuming that go.mod is available in working directory
-        fileCov = await parseGoCoverage(coverageFile, 'go.mod')
-      } else {
-        // lcov default
-        fileCov = await parseLCov(coverageFile, workspacePath)
-      }
-      parsedCov = parsedCov.concat(fileCov)
-    }
-    // Merge coverage from multiple test runs (same file may appear multiple times)
-    parsedCov = mergeCoverageByFile(parsedCov)
-    // Correct line totals after merge
-    parsedCov = correctLineTotals(parsedCov)
+    // Parse coverage data
+    const {parsedCov, totalLines, coveredLines, coveragePercentage} =
+      await parseCoverage(COVERAGE_FILE_PATH, COVERAGE_FORMAT, workspacePath)
 
-    // Sum up lines.found for each entry in parsedCov
-    const totalLines = parsedCov.reduce(
-      (acc, entry) => acc + entry.lines.found,
-      0
-    )
-    const coveredLines = parsedCov.reduce(
-      (acc, entry) => acc + entry.lines.hit,
-      0
-    )
-    const coveragePercentage =
-      totalLines > 0 ? ((coveredLines / totalLines) * 100).toFixed(2) : '0.00'
     core.info(
       `Parsing done. ${parsedCov.length} files parsed. Total lines: ${totalLines}. Covered lines: ${coveredLines}. Coverage: ${coveragePercentage}%`
     )
 
-    // Set outputs for coverage stats
+    // Set basic outputs
     core.setOutput('coverage_percentage', coveragePercentage)
     core.setOutput('files_analyzed', parsedCov.length)
 
-    // 2. Filter Coverage By File Name
-    const coverageByFile = filterCoverageByFile(parsedCov)
-    core.info('Filter done')
+    // Variables for delta calculation
+    let coverageDelta: string | undefined
+    let baselinePercentage: string | undefined
 
-    const githubUtil = new GithubUtil(GITHUB_TOKEN, GITHUB_BASE_URL)
+    // Handle mode-specific logic
+    if (modeContext.mode === 'store-baseline') {
+      // Store baseline mode: save coverage to git notes
+      if (modeContext.baseBranch) {
+        const namespace = getNamespaceForBranch(
+          modeContext.baseBranch,
+          noteNamespace
+        )
+        core.info(`Storing baseline with namespace: ${namespace}`)
 
-    // 3. Get current pull request files
-    const pullRequestFiles = await githubUtil.getPullRequestDiff()
+        await storeBaseline(
+          {
+            coveragePercentage,
+            totalLines,
+            coveredLines
+          },
+          {cwd: workspacePath || undefined, namespace}
+        )
+      } else {
+        core.info('Skipping baseline storage (not on main branch)')
+      }
 
-    // Debug output: scoped to files in the diff (grouped to reduce noise)
-    const prFileSet = new Set(Object.keys(pullRequestFiles))
-    core.startGroup('Debug: PR diff and coverage data')
-    for (const [file, lines] of Object.entries(pullRequestFiles)) {
-      core.info(`::debug-dump::diff::${JSON.stringify({file, lines})}`)
+      // In store-baseline mode on non-PR events, we're done (no annotations)
+      if (!modeContext.isPullRequest) {
+        // Write summary if enabled
+        const STEP_SUMMARY = core.getInput('STEP_SUMMARY')
+        if (STEP_SUMMARY !== 'false') {
+          const files: FileCoverage[] = parsedCov.map(entry => ({
+            file: entry.file,
+            totalLines: entry.lines.found,
+            coveredLines: entry.lines.hit,
+            package: entry.package
+          }))
+          const summary = generateSummary({
+            coveragePercentage,
+            totalLines,
+            coveredLines,
+            filesAnalyzed: parsedCov.length,
+            annotationCount: 0,
+            files
+          })
+          await core.summary.addRaw(summary).write()
+          core.info('Step summary written')
+        }
+        return
+      }
     }
-    for (const item of coverageByFile) {
-      if (prFileSet.has(item.fileName)) {
+
+    // PR Check mode (or store-baseline mode on PR event): calculate delta and create annotations
+    if (calculateDeltaInput && modeContext.baseBranch) {
+      const namespace = getNamespaceForBranch(
+        modeContext.baseBranch,
+        noteNamespace
+      )
+      core.info(`Loading baseline from namespace: ${namespace}`)
+
+      const baselineResult = await loadBaseline(modeContext.baseBranch, {
+        cwd: workspacePath || undefined,
+        namespace
+      })
+
+      if (baselineResult.baseline) {
+        baselinePercentage = baselineResult.baseline.coveragePercentage
+        coverageDelta = calculateDelta(
+          coveragePercentage,
+          baselinePercentage,
+          deltaPrecision
+        )
+        core.info(`Coverage delta: ${coverageDelta}`)
+        core.setOutput('coverage_delta', coverageDelta)
+        core.setOutput('baseline_percentage', baselinePercentage)
+      } else {
+        core.info('No baseline found, showing absolute coverage only')
+      }
+    }
+
+    // Only create annotations for PR events
+    let annotationCount = 0
+    if (modeContext.isPullRequest) {
+      const coverageByFile = filterCoverageByFile(parsedCov)
+      core.info('Filter done')
+
+      const githubUtil = new GithubUtil(GITHUB_TOKEN, GITHUB_BASE_URL)
+      const pullRequestFiles = await githubUtil.getPullRequestDiff()
+
+      // Debug output: scoped to files in the diff
+      const prFileSet = new Set(Object.keys(pullRequestFiles))
+      core.startGroup('Debug: PR diff and coverage data')
+      for (const [file, lines] of Object.entries(pullRequestFiles)) {
+        core.info(`::debug-dump::diff::${JSON.stringify({file, lines})}`)
+      }
+      for (const item of coverageByFile) {
+        if (prFileSet.has(item.fileName)) {
+          core.info(
+            `::debug-dump::coverage::${JSON.stringify({
+              file: item.fileName,
+              missing: item.missingLineNumbers,
+              executable: [...item.executableLines],
+              covered: item.coveredLineCount
+            })}`
+          )
+        }
+      }
+      core.endGroup()
+
+      const annotations = githubUtil.buildAnnotations(
+        coverageByFile,
+        pullRequestFiles
+      )
+      annotationCount = annotations.length
+      core.setOutput('annotation_count', annotationCount)
+
+      // Emit annotations
+      for (const annotation of annotations) {
+        core.notice(annotation.message, {
+          file: annotation.path,
+          startLine: annotation.start_line,
+          endLine: annotation.end_line
+        })
+      }
+      core.info('Annotations emitted')
+
+      // Debug output: annotations
+      core.startGroup('Debug: Generated annotations')
+      for (const annotation of annotations) {
         core.info(
-          `::debug-dump::coverage::${JSON.stringify({
-            file: item.fileName,
-            missing: item.missingLineNumbers,
-            executable: [...item.executableLines],
-            covered: item.coveredLineCount
+          `::debug-dump::annotation::${JSON.stringify({
+            file: annotation.path,
+            start: annotation.start_line,
+            end: annotation.end_line
           })}`
         )
       }
+      core.endGroup()
+    } else {
+      core.setOutput('annotation_count', 0)
     }
-    core.endGroup()
 
-    const annotations = githubUtil.buildAnnotations(
-      coverageByFile,
-      pullRequestFiles
-    )
-    core.setOutput('annotation_count', annotations.length)
-
-    // 4. Emit annotations using workflow commands
-    for (const annotation of annotations) {
-      core.notice(annotation.message, {
-        file: annotation.path,
-        startLine: annotation.start_line,
-        endLine: annotation.end_line
-      })
-    }
-    core.info('Annotations emitted')
-
-    // Debug output: annotations (grouped to reduce noise)
-    core.startGroup('Debug: Generated annotations')
-    for (const annotation of annotations) {
-      core.info(
-        `::debug-dump::annotation::${JSON.stringify({
-          file: annotation.path,
-          start: annotation.start_line,
-          end: annotation.end_line
-        })}`
-      )
-    }
-    core.endGroup()
-
-    // 5. Write step summary
+    // Write step summary
     const STEP_SUMMARY = core.getInput('STEP_SUMMARY')
     if (STEP_SUMMARY !== 'false') {
       const files: FileCoverage[] = parsedCov.map(entry => ({
@@ -275,8 +402,10 @@ export async function play(): Promise<void> {
         totalLines,
         coveredLines,
         filesAnalyzed: parsedCov.length,
-        annotationCount: annotations.length,
-        files
+        annotationCount,
+        files,
+        coverageDelta,
+        baselinePercentage
       })
       await core.summary.addRaw(summary).write()
       core.info('Step summary written')

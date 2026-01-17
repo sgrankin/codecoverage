@@ -46345,8 +46345,6 @@ var __webpack_exports__ = {};
 const external_node_process_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:process");
 // EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
 var core = __nccwpck_require__(7484);
-// EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
-var github = __nccwpck_require__(3228);
 ;// CONCATENATED MODULE: ./src/utils/general.ts
 /**
  * Merge coverage entries for the same file from multiple test runs.
@@ -46694,6 +46692,8 @@ function getLineInfoFromHeaderLine(line) {
     return { deletionStartingLineNumber: 0, additionStartingLineNumber: 0 };
 }
 
+// EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
+var github = __nccwpck_require__(3228);
 ;// CONCATENATED MODULE: ./node_modules/octokit/node_modules/universal-user-agent/index.js
 function getUserAgent() {
   if (typeof navigator === "object" && "userAgent" in navigator) {
@@ -61342,7 +61342,378 @@ async function expandCoverageFilePaths(input) {
     return files.sort();
 }
 
+;// CONCATENATED MODULE: ./src/utils/mode.ts
+
+/**
+ * Detect the operating mode based on GitHub context.
+ *
+ * Mode selection logic:
+ * - PR events → 'pr-check' (calculate delta against baseline)
+ * - Push to main/default branch → 'store-baseline' (store coverage as baseline)
+ * - Other events → 'store-baseline'
+ *
+ * @param modeOverride Optional manual override for the mode
+ * @param mainBranch The main branch name (default: 'main')
+ */
+function detectMode(modeOverride, mainBranch = 'main') {
+    const eventName = github.context.eventName;
+    const ref = github.context.ref;
+    // Handle manual override
+    if (modeOverride) {
+        const mode = modeOverride;
+        if (mode !== 'pr-check' && mode !== 'store-baseline') {
+            throw new Error(`Invalid mode override: ${modeOverride}. Must be 'pr-check' or 'store-baseline'`);
+        }
+        const isPullRequest = eventName === 'pull_request';
+        const baseBranch = isPullRequest
+            ? github.context.payload.pull_request?.base?.ref
+            : undefined;
+        return {
+            mode,
+            baseBranch,
+            isPullRequest,
+            eventName,
+            ref
+        };
+    }
+    // Auto-detect based on event type
+    if (eventName === 'pull_request') {
+        const baseBranch = github.context.payload.pull_request?.base?.ref;
+        return {
+            mode: 'pr-check',
+            baseBranch,
+            isPullRequest: true,
+            eventName,
+            ref
+        };
+    }
+    // For push events or other triggers
+    const isPushToMain = eventName === 'push' &&
+        (ref === `refs/heads/${mainBranch}` || ref === mainBranch);
+    return {
+        mode: 'store-baseline',
+        baseBranch: isPushToMain ? mainBranch : undefined,
+        isPullRequest: false,
+        eventName,
+        ref
+    };
+}
+/**
+ * Get the namespace for coverage notes based on the branch.
+ * This allows different branches (main, release-v1, etc.) to have
+ * separate baseline coverage data.
+ *
+ * @param branch The branch name
+ * @param prefix The namespace prefix (default: 'coverage')
+ */
+function getNamespaceForBranch(branch, prefix = 'coverage') {
+    // Sanitize branch name for git ref compatibility
+    const sanitized = branch.replace(/[^a-zA-Z0-9_-]/g, '-');
+    return `${prefix}/${sanitized}`;
+}
+
+;// CONCATENATED MODULE: external "node:child_process"
+const external_node_child_process_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:child_process");
+// EXTERNAL MODULE: external "node:util"
+var external_node_util_ = __nccwpck_require__(7975);
+;// CONCATENATED MODULE: ./src/utils/gitnotes.ts
+
+
+const execAsync = (0,external_node_util_.promisify)(external_node_child_process_namespaceObject.exec);
+/** Default namespace for coverage git notes */
+const DEFAULT_NOTE_NAMESPACE = 'coverage';
+/** Maximum retries for push operations */
+const MAX_PUSH_RETRIES = 3;
+/** Delay between retries in ms */
+const RETRY_DELAY_MS = 1000;
+/** Run a git command and return stdout/stderr */
+async function gitExec(args, cwd) {
+    const cmd = `git ${args.map(a => `'${a.replace(/'/g, "'\\''")}'`).join(' ')}`;
+    try {
+        const result = await execAsync(cmd, { cwd });
+        return {
+            stdout: result.stdout?.toString() ?? '',
+            stderr: result.stderr?.toString() ?? ''
+        };
+    }
+    catch (error) {
+        const execError = error;
+        const err = new Error(`Git command failed: ${cmd}\n${execError.stderr || execError.message}`);
+        err.code = execError.code;
+        err.stdout = execError.stdout;
+        err.stderr = execError.stderr;
+        throw err;
+    }
+}
+/** Get the full ref path for a notes namespace */
+function getNotesRef(namespace) {
+    return `refs/notes/${namespace}`;
+}
+/**
+ * Fetch git notes from origin.
+ * Returns true if notes were fetched successfully, false if the ref doesn't exist.
+ */
+async function fetchNotes(options = {}) {
+    const { cwd, namespace = DEFAULT_NOTE_NAMESPACE, force = false } = options;
+    const ref = getNotesRef(namespace);
+    try {
+        // Use + prefix for force fetch to handle diverged refs
+        const refspec = force ? `+${ref}:${ref}` : `${ref}:${ref}`;
+        await gitExec(['fetch', 'origin', refspec], cwd);
+        return true;
+    }
+    catch (error) {
+        const err = error;
+        // Check if the error is because the ref doesn't exist
+        if (err.stderr?.includes("couldn't find remote ref") ||
+            err.stderr?.includes('does not match any')) {
+            return false;
+        }
+        throw error;
+    }
+}
+/**
+ * Read notes for a specific commit.
+ * Returns null if no notes exist for the commit.
+ */
+async function readNotes(commit, options = {}) {
+    const { cwd, namespace = DEFAULT_NOTE_NAMESPACE } = options;
+    const ref = getNotesRef(namespace);
+    try {
+        const result = await gitExec(['notes', '--ref', ref, 'show', commit], cwd);
+        return result.stdout.trim();
+    }
+    catch (error) {
+        const err = error;
+        // Check if the error is because no notes exist
+        if (err.stderr?.includes('No note found') ||
+            err.stderr?.includes('error: no note found')) {
+            return null;
+        }
+        throw error;
+    }
+}
+/**
+ * Write notes for a specific commit.
+ * If force is true, overwrites existing notes.
+ */
+async function writeNotes(commit, content, options = {}) {
+    const { cwd, namespace = DEFAULT_NOTE_NAMESPACE, force = false } = options;
+    const ref = getNotesRef(namespace);
+    const args = ['notes', '--ref', ref];
+    if (force) {
+        args.push('add', '-f');
+    }
+    else {
+        args.push('add');
+    }
+    args.push('-m', content, commit);
+    await gitExec(args, cwd);
+}
+/**
+ * Append content to existing notes for a commit.
+ * Creates new notes if none exist.
+ */
+async function appendNotes(commit, content, options = {}) {
+    const { cwd, namespace = DEFAULT_NOTE_NAMESPACE } = options;
+    // Read existing notes
+    const existing = await readNotes(commit, { cwd, namespace });
+    // Combine existing + new content
+    const newContent = existing ? `${existing}\n${content}` : content;
+    // Write (force since we're replacing)
+    await writeNotes(commit, newContent, { cwd, namespace, force: true });
+}
+/** Sleep for specified milliseconds */
+async function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+/**
+ * Push git notes to origin with retry logic for concurrent updates.
+ * Returns true if push succeeded, false if it failed after all retries.
+ */
+async function pushNotes(options = {}) {
+    const { cwd, namespace = DEFAULT_NOTE_NAMESPACE, maxRetries = MAX_PUSH_RETRIES } = options;
+    const ref = getNotesRef(namespace);
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            await gitExec(['push', 'origin', ref], cwd);
+            return true;
+        }
+        catch (error) {
+            const err = error;
+            // Check if it's a non-fast-forward error (concurrent update)
+            const isConflict = err.stderr?.includes('non-fast-forward') ||
+                err.stderr?.includes('fetch first') ||
+                err.stderr?.includes('rejected');
+            if (isConflict && attempt < maxRetries) {
+                // Fetch latest notes (force to handle diverged refs) and retry
+                await fetchNotes({ cwd, namespace, force: true });
+                await sleep(RETRY_DELAY_MS * attempt); // Exponential backoff
+                continue;
+            }
+            if (attempt === maxRetries) {
+                // Failed after all retries
+                return false;
+            }
+            throw error;
+        }
+    }
+    return false;
+}
+/**
+ * Find the merge-base commit between HEAD and a target ref.
+ */
+async function findMergeBase(targetRef, options = {}) {
+    const { cwd } = options;
+    try {
+        const result = await gitExec(['merge-base', 'HEAD', targetRef], cwd);
+        return result.stdout.trim() || null;
+    }
+    catch (error) {
+        const err = error;
+        // merge-base can fail if there's no common ancestor
+        if (err.stderr?.includes('no merge base')) {
+            return null;
+        }
+        throw error;
+    }
+}
+/**
+ * Get the current HEAD commit SHA.
+ */
+async function getHeadCommit(options = {}) {
+    const { cwd } = options;
+    const result = await gitExec(['rev-parse', 'HEAD'], cwd);
+    return result.stdout.trim();
+}
+
+;// CONCATENATED MODULE: ./src/utils/baseline.ts
+
+
+/**
+ * Parse baseline data from JSONL content.
+ * Uses the first line for delta calculation.
+ */
+function parseBaseline(content) {
+    const firstLine = content.split('\n')[0]?.trim();
+    if (!firstLine) {
+        return null;
+    }
+    try {
+        const data = JSON.parse(firstLine);
+        // Validate required fields
+        if (typeof data.coveragePercentage !== 'string' ||
+            typeof data.totalLines !== 'number' ||
+            typeof data.coveredLines !== 'number') {
+            return null;
+        }
+        return data;
+    }
+    catch {
+        return null;
+    }
+}
+/**
+ * Format baseline data as JSONL for storage.
+ */
+function formatBaseline(data) {
+    return JSON.stringify(data);
+}
+/**
+ * Store coverage baseline for the current commit.
+ */
+async function storeBaseline(data, options = {}) {
+    const { cwd, namespace } = options;
+    try {
+        const commit = await getHeadCommit({ cwd });
+        const baseline = {
+            ...data,
+            timestamp: new Date().toISOString(),
+            commit
+        };
+        const content = formatBaseline(baseline);
+        core.info(`Storing baseline coverage: ${data.coveragePercentage}%`);
+        // Write notes for current commit
+        await writeNotes(commit, content, { cwd, namespace, force: true });
+        // Push notes to origin
+        const pushSuccess = await pushNotes({ cwd, namespace });
+        if (!pushSuccess) {
+            core.warning('Failed to push coverage baseline to origin after retries');
+            return false;
+        }
+        core.info('Coverage baseline stored successfully');
+        return true;
+    }
+    catch (error) {
+        const err = error;
+        core.warning(`Failed to store coverage baseline: ${err.message}`);
+        return false;
+    }
+}
+/**
+ * Load baseline coverage from the merge-base commit with a target branch.
+ */
+async function loadBaseline(targetBranch, options = {}) {
+    const { cwd, namespace } = options;
+    try {
+        // Fetch latest notes from origin
+        const fetched = await fetchNotes({ cwd, namespace });
+        if (!fetched) {
+            core.info('No coverage notes found in origin');
+            return { baseline: null, commit: null };
+        }
+        // Find merge-base with target branch
+        const mergeBase = await findMergeBase(`origin/${targetBranch}`, { cwd });
+        if (!mergeBase) {
+            core.info(`No merge-base found with origin/${targetBranch}`);
+            return { baseline: null, commit: null };
+        }
+        core.info(`Found merge-base: ${mergeBase.substring(0, 8)}`);
+        // Read notes from merge-base
+        const content = await readNotes(mergeBase, { cwd, namespace });
+        if (!content) {
+            core.info('No baseline coverage found for merge-base commit');
+            return { baseline: null, commit: mergeBase };
+        }
+        // Parse the baseline data
+        const baseline = parseBaseline(content);
+        if (!baseline) {
+            core.warning('Failed to parse baseline coverage data');
+            return { baseline: null, commit: mergeBase, parseError: 'Invalid format' };
+        }
+        core.info(`Loaded baseline: ${baseline.coveragePercentage}%`);
+        return { baseline, commit: mergeBase };
+    }
+    catch (error) {
+        const err = error;
+        core.warning(`Failed to load baseline: ${err.message}`);
+        return { baseline: null, commit: null };
+    }
+}
+/**
+ * Calculate coverage delta between current and baseline.
+ * Returns formatted string like "+2.50" or "-1.25"
+ */
+function calculateDelta(currentPercentage, baselinePercentage, precision = 2) {
+    const current = parseFloat(currentPercentage);
+    const baseline = parseFloat(baselinePercentage);
+    const delta = current - baseline;
+    const sign = delta >= 0 ? '+' : '';
+    return `${sign}${delta.toFixed(precision)}`;
+}
+/**
+ * Format coverage with delta for display.
+ * Returns string like "85.5% (↑2.1%)" or "83.2% (↓1.8%)"
+ */
+function formatCoverageWithDelta(currentPercentage, delta) {
+    const deltaNum = parseFloat(delta);
+    const arrow = deltaNum >= 0 ? '↑' : '↓';
+    const absDelta = Math.abs(deltaNum).toFixed(2);
+    return `${currentPercentage}% (${arrow}${absDelta}%)`;
+}
+
 ;// CONCATENATED MODULE: ./src/action.ts
+
 
 
 
@@ -61386,7 +61757,7 @@ function groupByPackage(files) {
     return packages.sort((a, b) => a.package.localeCompare(b.package));
 }
 function generateSummary(params) {
-    const { coveragePercentage, totalLines, coveredLines, filesAnalyzed, annotationCount, files } = params;
+    const { coveragePercentage, totalLines, coveredLines, filesAnalyzed, annotationCount, files, coverageDelta, baselinePercentage } = params;
     const uncoveredLines = totalLines - coveredLines;
     let statusEmoji = '🔴';
     if (parseFloat(coveragePercentage) >= 80) {
@@ -61394,6 +61765,11 @@ function generateSummary(params) {
     }
     else if (parseFloat(coveragePercentage) >= 60) {
         statusEmoji = '🟡';
+    }
+    // Format coverage display with delta if available
+    let coverageDisplay = `${coveragePercentage}%`;
+    if (coverageDelta) {
+        coverageDisplay = formatCoverageWithDelta(coveragePercentage, coverageDelta);
     }
     // Group files by package
     const packages = groupByPackage(files);
@@ -61406,12 +61782,16 @@ function generateSummary(params) {
         return `| ${pkg.package} | ${pkg.files.length} | ${pkg.totalLines.toLocaleString()} | ${pkg.coveredLines.toLocaleString()} | ${pct}% |`;
     })
         .join('\n');
+    // Build baseline row if available
+    const baselineRow = baselinePercentage
+        ? `| **Baseline** | ${baselinePercentage}% |\n`
+        : '';
     return `## ${statusEmoji} Code Coverage Report
 
 | Metric | Value |
 | ------ | ----: |
-| **Coverage** | ${coveragePercentage}% |
-| **Covered Lines** | ${coveredLines.toLocaleString()} |
+| **Coverage** | ${coverageDisplay} |
+${baselineRow}| **Covered Lines** | ${coveredLines.toLocaleString()} |
 | **Uncovered Lines** | ${uncoveredLines.toLocaleString()} |
 | **Total Lines** | ${totalLines.toLocaleString()} |
 | **Files Analyzed** | ${filesAnalyzed.toLocaleString()} |
@@ -61425,110 +61805,181 @@ ${annotationCount > 0 ? `⚠️ **${annotationCount} annotation${annotationCount
 ${packageRows}
 `;
 }
+/** Parse and compute coverage data from files */
+async function parseCoverage(coverageFilePath, coverageFormat, workspacePath) {
+    // Expand file paths (supports globs and multiple paths)
+    const coverageFiles = await expandCoverageFilePaths(coverageFilePath);
+    if (coverageFiles.length === 0) {
+        throw new Error(`No coverage files found matching: ${coverageFilePath}`);
+    }
+    core.info(`Found ${coverageFiles.length} coverage file(s)`);
+    // Parse all coverage files and merge results
+    let parsedCov = [];
+    for (const coverageFile of coverageFiles) {
+        let fileCov;
+        if (coverageFormat === 'cobertura') {
+            fileCov = await parseCobertura(coverageFile, workspacePath);
+        }
+        else if (coverageFormat === 'go') {
+            fileCov = await parseGoCoverage(coverageFile, 'go.mod');
+        }
+        else {
+            fileCov = await parseLCov(coverageFile, workspacePath);
+        }
+        parsedCov = parsedCov.concat(fileCov);
+    }
+    // Merge coverage from multiple test runs
+    parsedCov = mergeCoverageByFile(parsedCov);
+    parsedCov = correctLineTotals(parsedCov);
+    // Calculate totals
+    const totalLines = parsedCov.reduce((acc, entry) => acc + entry.lines.found, 0);
+    const coveredLines = parsedCov.reduce((acc, entry) => acc + entry.lines.hit, 0);
+    const coveragePercentage = totalLines > 0 ? ((coveredLines / totalLines) * 100).toFixed(2) : '0.00';
+    return { parsedCov, totalLines, coveredLines, coveragePercentage };
+}
 /** Starting Point of the Github Action*/
 async function play() {
     try {
-        if (github.context.eventName !== 'pull_request') {
-            core.info('Pull request not detected. Exiting early.');
-            return;
-        }
         core.info('Performing Code Coverage Analysis');
+        // Get inputs
         const GITHUB_TOKEN = core.getInput('GITHUB_TOKEN', { required: true });
         const GITHUB_BASE_URL = core.getInput('GITHUB_BASE_URL');
         const COVERAGE_FILE_PATH = core.getInput('COVERAGE_FILE_PATH', {
             required: true
         });
-        let COVERAGE_FORMAT = core.getInput('COVERAGE_FORMAT');
-        if (!COVERAGE_FORMAT) {
-            COVERAGE_FORMAT = 'lcov';
-        }
+        const modeOverride = core.getInput('mode') || undefined;
+        const calculateDeltaInput = core.getInput('calculate_delta') !== 'false';
+        const noteNamespace = core.getInput('note_namespace') || 'coverage';
+        const deltaPrecision = parseInt(core.getInput('delta_precision') || '2', 10);
+        let COVERAGE_FORMAT = core.getInput('COVERAGE_FORMAT') || 'lcov';
         if (!SUPPORTED_FORMATS.includes(COVERAGE_FORMAT)) {
             throw new Error(`COVERAGE_FORMAT must be one of ${SUPPORTED_FORMATS.join(',')}`);
         }
-        // TODO perhaps make base path configurable in case coverage artifacts are
-        // not produced on the Github worker?
         const workspacePath = external_node_process_namespaceObject.env.GITHUB_WORKSPACE || '';
         core.info(`Workspace: ${workspacePath}`);
-        // 1. Expand file paths (supports globs and multiple paths)
-        const coverageFiles = await expandCoverageFilePaths(COVERAGE_FILE_PATH);
-        if (coverageFiles.length === 0) {
-            throw new Error(`No coverage files found matching: ${COVERAGE_FILE_PATH}`);
-        }
-        core.info(`Found ${coverageFiles.length} coverage file(s)`);
-        // 2. Parse all coverage files and merge results
-        let parsedCov = [];
-        for (const coverageFile of coverageFiles) {
-            let fileCov;
-            if (COVERAGE_FORMAT === 'cobertura') {
-                fileCov = await parseCobertura(coverageFile, workspacePath);
-            }
-            else if (COVERAGE_FORMAT === 'go') {
-                // Assuming that go.mod is available in working directory
-                fileCov = await parseGoCoverage(coverageFile, 'go.mod');
-            }
-            else {
-                // lcov default
-                fileCov = await parseLCov(coverageFile, workspacePath);
-            }
-            parsedCov = parsedCov.concat(fileCov);
-        }
-        // Merge coverage from multiple test runs (same file may appear multiple times)
-        parsedCov = mergeCoverageByFile(parsedCov);
-        // Correct line totals after merge
-        parsedCov = correctLineTotals(parsedCov);
-        // Sum up lines.found for each entry in parsedCov
-        const totalLines = parsedCov.reduce((acc, entry) => acc + entry.lines.found, 0);
-        const coveredLines = parsedCov.reduce((acc, entry) => acc + entry.lines.hit, 0);
-        const coveragePercentage = totalLines > 0 ? ((coveredLines / totalLines) * 100).toFixed(2) : '0.00';
+        // Detect operating mode
+        const modeContext = detectMode(modeOverride);
+        core.info(`Mode: ${modeContext.mode} (event: ${modeContext.eventName})`);
+        core.setOutput('mode', modeContext.mode);
+        // Parse coverage data
+        const { parsedCov, totalLines, coveredLines, coveragePercentage } = await parseCoverage(COVERAGE_FILE_PATH, COVERAGE_FORMAT, workspacePath);
         core.info(`Parsing done. ${parsedCov.length} files parsed. Total lines: ${totalLines}. Covered lines: ${coveredLines}. Coverage: ${coveragePercentage}%`);
-        // Set outputs for coverage stats
+        // Set basic outputs
         core.setOutput('coverage_percentage', coveragePercentage);
         core.setOutput('files_analyzed', parsedCov.length);
-        // 2. Filter Coverage By File Name
-        const coverageByFile = filterCoverageByFile(parsedCov);
-        core.info('Filter done');
-        const githubUtil = new GithubUtil(GITHUB_TOKEN, GITHUB_BASE_URL);
-        // 3. Get current pull request files
-        const pullRequestFiles = await githubUtil.getPullRequestDiff();
-        // Debug output: scoped to files in the diff (grouped to reduce noise)
-        const prFileSet = new Set(Object.keys(pullRequestFiles));
-        core.startGroup('Debug: PR diff and coverage data');
-        for (const [file, lines] of Object.entries(pullRequestFiles)) {
-            core.info(`::debug-dump::diff::${JSON.stringify({ file, lines })}`);
-        }
-        for (const item of coverageByFile) {
-            if (prFileSet.has(item.fileName)) {
-                core.info(`::debug-dump::coverage::${JSON.stringify({
-                    file: item.fileName,
-                    missing: item.missingLineNumbers,
-                    executable: [...item.executableLines],
-                    covered: item.coveredLineCount
-                })}`);
+        // Variables for delta calculation
+        let coverageDelta;
+        let baselinePercentage;
+        // Handle mode-specific logic
+        if (modeContext.mode === 'store-baseline') {
+            // Store baseline mode: save coverage to git notes
+            if (modeContext.baseBranch) {
+                const namespace = getNamespaceForBranch(modeContext.baseBranch, noteNamespace);
+                core.info(`Storing baseline with namespace: ${namespace}`);
+                await storeBaseline({
+                    coveragePercentage,
+                    totalLines,
+                    coveredLines
+                }, { cwd: workspacePath || undefined, namespace });
+            }
+            else {
+                core.info('Skipping baseline storage (not on main branch)');
+            }
+            // In store-baseline mode on non-PR events, we're done (no annotations)
+            if (!modeContext.isPullRequest) {
+                // Write summary if enabled
+                const STEP_SUMMARY = core.getInput('STEP_SUMMARY');
+                if (STEP_SUMMARY !== 'false') {
+                    const files = parsedCov.map(entry => ({
+                        file: entry.file,
+                        totalLines: entry.lines.found,
+                        coveredLines: entry.lines.hit,
+                        package: entry.package
+                    }));
+                    const summary = generateSummary({
+                        coveragePercentage,
+                        totalLines,
+                        coveredLines,
+                        filesAnalyzed: parsedCov.length,
+                        annotationCount: 0,
+                        files
+                    });
+                    await core.summary.addRaw(summary).write();
+                    core.info('Step summary written');
+                }
+                return;
             }
         }
-        core.endGroup();
-        const annotations = githubUtil.buildAnnotations(coverageByFile, pullRequestFiles);
-        core.setOutput('annotation_count', annotations.length);
-        // 4. Emit annotations using workflow commands
-        for (const annotation of annotations) {
-            core.notice(annotation.message, {
-                file: annotation.path,
-                startLine: annotation.start_line,
-                endLine: annotation.end_line
+        // PR Check mode (or store-baseline mode on PR event): calculate delta and create annotations
+        if (calculateDeltaInput && modeContext.baseBranch) {
+            const namespace = getNamespaceForBranch(modeContext.baseBranch, noteNamespace);
+            core.info(`Loading baseline from namespace: ${namespace}`);
+            const baselineResult = await loadBaseline(modeContext.baseBranch, {
+                cwd: workspacePath || undefined,
+                namespace
             });
+            if (baselineResult.baseline) {
+                baselinePercentage = baselineResult.baseline.coveragePercentage;
+                coverageDelta = calculateDelta(coveragePercentage, baselinePercentage, deltaPrecision);
+                core.info(`Coverage delta: ${coverageDelta}`);
+                core.setOutput('coverage_delta', coverageDelta);
+                core.setOutput('baseline_percentage', baselinePercentage);
+            }
+            else {
+                core.info('No baseline found, showing absolute coverage only');
+            }
         }
-        core.info('Annotations emitted');
-        // Debug output: annotations (grouped to reduce noise)
-        core.startGroup('Debug: Generated annotations');
-        for (const annotation of annotations) {
-            core.info(`::debug-dump::annotation::${JSON.stringify({
-                file: annotation.path,
-                start: annotation.start_line,
-                end: annotation.end_line
-            })}`);
+        // Only create annotations for PR events
+        let annotationCount = 0;
+        if (modeContext.isPullRequest) {
+            const coverageByFile = filterCoverageByFile(parsedCov);
+            core.info('Filter done');
+            const githubUtil = new GithubUtil(GITHUB_TOKEN, GITHUB_BASE_URL);
+            const pullRequestFiles = await githubUtil.getPullRequestDiff();
+            // Debug output: scoped to files in the diff
+            const prFileSet = new Set(Object.keys(pullRequestFiles));
+            core.startGroup('Debug: PR diff and coverage data');
+            for (const [file, lines] of Object.entries(pullRequestFiles)) {
+                core.info(`::debug-dump::diff::${JSON.stringify({ file, lines })}`);
+            }
+            for (const item of coverageByFile) {
+                if (prFileSet.has(item.fileName)) {
+                    core.info(`::debug-dump::coverage::${JSON.stringify({
+                        file: item.fileName,
+                        missing: item.missingLineNumbers,
+                        executable: [...item.executableLines],
+                        covered: item.coveredLineCount
+                    })}`);
+                }
+            }
+            core.endGroup();
+            const annotations = githubUtil.buildAnnotations(coverageByFile, pullRequestFiles);
+            annotationCount = annotations.length;
+            core.setOutput('annotation_count', annotationCount);
+            // Emit annotations
+            for (const annotation of annotations) {
+                core.notice(annotation.message, {
+                    file: annotation.path,
+                    startLine: annotation.start_line,
+                    endLine: annotation.end_line
+                });
+            }
+            core.info('Annotations emitted');
+            // Debug output: annotations
+            core.startGroup('Debug: Generated annotations');
+            for (const annotation of annotations) {
+                core.info(`::debug-dump::annotation::${JSON.stringify({
+                    file: annotation.path,
+                    start: annotation.start_line,
+                    end: annotation.end_line
+                })}`);
+            }
+            core.endGroup();
         }
-        core.endGroup();
-        // 5. Write step summary
+        else {
+            core.setOutput('annotation_count', 0);
+        }
+        // Write step summary
         const STEP_SUMMARY = core.getInput('STEP_SUMMARY');
         if (STEP_SUMMARY !== 'false') {
             const files = parsedCov.map(entry => ({
@@ -61542,8 +61993,10 @@ async function play() {
                 totalLines,
                 coveredLines,
                 filesAnalyzed: parsedCov.length,
-                annotationCount: annotations.length,
-                files
+                annotationCount,
+                files,
+                coverageDelta,
+                baselinePercentage
             });
             await core.summary.addRaw(summary).write();
             core.info('Step summary written');

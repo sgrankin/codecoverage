@@ -73,16 +73,14 @@ beforeEach(() => {
   vi.clearAllMocks()
 })
 
-test('exits early when not a pull request', async function () {
+test('runs in store-baseline mode when not a pull request', async function () {
   const capture = captureStdout()
   const originalEventName = github.context.eventName
   ;(github.context as any).eventName = 'push'
 
   try {
     await play()
-    expect(capture.output()).toContain(
-      'Pull request not detected. Exiting early.'
-    )
+    expect(capture.output()).toContain('Mode: store-baseline (event: push)')
   } finally {
     capture.restore()
     ;(github.context as any).eventName = originalEventName
@@ -451,6 +449,70 @@ const generateSummaryTestCases = [
 | ------- | ----: | ----------: | ------: | -------: |
 | com.example.bar | 1 | 100 | 70 | 70.0% |
 | com.example.foo | 1 | 100 | 80 | 80.0% |
+`
+  },
+  {
+    name: 'coverage with positive delta',
+    input: {
+      coveragePercentage: '85.50',
+      totalLines: 1000,
+      coveredLines: 855,
+      filesAnalyzed: 1,
+      annotationCount: 0,
+      files: [{file: 'src/main.ts', totalLines: 1000, coveredLines: 855}],
+      coverageDelta: '+2.50',
+      baselinePercentage: '83.00'
+    },
+    expected: `## 🟢 Code Coverage Report
+
+| Metric | Value |
+| ------ | ----: |
+| **Coverage** | 85.50% (↑2.50%) |
+| **Baseline** | 83.00% |
+| **Covered Lines** | 855 |
+| **Uncovered Lines** | 145 |
+| **Total Lines** | 1,000 |
+| **Files Analyzed** | 1 |
+
+✅ No new uncovered lines detected in this PR.
+
+### Coverage by Package
+
+| Package | Files | Total Lines | Covered | Coverage |
+| ------- | ----: | ----------: | ------: | -------: |
+| src | 1 | 1,000 | 855 | 85.5% |
+`
+  },
+  {
+    name: 'coverage with negative delta',
+    input: {
+      coveragePercentage: '78.00',
+      totalLines: 1000,
+      coveredLines: 780,
+      filesAnalyzed: 1,
+      annotationCount: 3,
+      files: [{file: 'src/main.ts', totalLines: 1000, coveredLines: 780}],
+      coverageDelta: '-2.00',
+      baselinePercentage: '80.00'
+    },
+    expected: `## 🟡 Code Coverage Report
+
+| Metric | Value |
+| ------ | ----: |
+| **Coverage** | 78.00% (↓2.00%) |
+| **Baseline** | 80.00% |
+| **Covered Lines** | 780 |
+| **Uncovered Lines** | 220 |
+| **Total Lines** | 1,000 |
+| **Files Analyzed** | 1 |
+
+⚠️ **3 annotations** added for uncovered lines in this PR.
+
+### Coverage by Package
+
+| Package | Files | Total Lines | Covered | Coverage |
+| ------- | ----: | ----------: | ------: | -------: |
+| src | 1 | 1,000 | 780 | 78.0% |
 `
   }
 ]
