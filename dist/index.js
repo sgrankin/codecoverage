@@ -61409,7 +61409,7 @@ function generateSummary(params) {
     return `## ${statusEmoji} Code Coverage Report
 
 | Metric | Value |
-| ------ | ----- |
+| ------ | ----: |
 | **Coverage** | ${coveragePercentage}% |
 | **Covered Lines** | ${coveredLines.toLocaleString()} |
 | **Uncovered Lines** | ${uncoveredLines.toLocaleString()} |
@@ -61421,7 +61421,7 @@ ${annotationCount > 0 ? `⚠️ **${annotationCount} annotation${annotationCount
 ### Coverage by Package
 
 | Package | Files | Total Lines | Covered | Coverage |
-| ------- | ----- | ----------- | ------- | -------- |
+| ------- | ----: | ----------: | ------: | -------: |
 ${packageRows}
 `;
 }

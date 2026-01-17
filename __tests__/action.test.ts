@@ -301,7 +301,7 @@ const generateSummaryTestCases = [
     expected: `## 🟢 Code Coverage Report
 
 | Metric | Value |
-| ------ | ----- |
+| ------ | ----: |
 | **Coverage** | 85.50% |
 | **Covered Lines** | 855 |
 | **Uncovered Lines** | 145 |
@@ -313,7 +313,7 @@ const generateSummaryTestCases = [
 ### Coverage by Package
 
 | Package | Files | Total Lines | Covered | Coverage |
-| ------- | ----- | ----------- | ------- | -------- |
+| ------- | ----: | ----------: | ------: | -------: |
 | src | 2 | 1,000 | 855 | 85.5% |
 `
   },
@@ -330,7 +330,7 @@ const generateSummaryTestCases = [
     expected: `## 🟡 Code Coverage Report
 
 | Metric | Value |
-| ------ | ----- |
+| ------ | ----: |
 | **Coverage** | 65.00% |
 | **Covered Lines** | 65 |
 | **Uncovered Lines** | 35 |
@@ -342,7 +342,7 @@ const generateSummaryTestCases = [
 ### Coverage by Package
 
 | Package | Files | Total Lines | Covered | Coverage |
-| ------- | ----- | ----------- | ------- | -------- |
+| ------- | ----: | ----------: | ------: | -------: |
 | src | 1 | 100 | 65 | 65.0% |
 `
   },
@@ -359,7 +359,7 @@ const generateSummaryTestCases = [
     expected: `## 🔴 Code Coverage Report
 
 | Metric | Value |
-| ------ | ----- |
+| ------ | ----: |
 | **Coverage** | 45.00% |
 | **Covered Lines** | 45 |
 | **Uncovered Lines** | 55 |
@@ -371,7 +371,7 @@ const generateSummaryTestCases = [
 ### Coverage by Package
 
 | Package | Files | Total Lines | Covered | Coverage |
-| ------- | ----- | ----------- | ------- | -------- |
+| ------- | ----: | ----------: | ------: | -------: |
 | src | 1 | 100 | 45 | 45.0% |
 `
   },
@@ -392,7 +392,7 @@ const generateSummaryTestCases = [
     expected: `## 🟢 Code Coverage Report
 
 | Metric | Value |
-| ------ | ----- |
+| ------ | ----: |
 | **Coverage** | 80.00% |
 | **Covered Lines** | 240 |
 | **Uncovered Lines** | 60 |
@@ -404,7 +404,7 @@ const generateSummaryTestCases = [
 ### Coverage by Package
 
 | Package | Files | Total Lines | Covered | Coverage |
-| ------- | ----- | ----------- | ------- | -------- |
+| ------- | ----: | ----------: | ------: | -------: |
 | lib | 1 | 100 | 80 | 80.0% |
 | src | 1 | 100 | 80 | 80.0% |
 | src/utils | 1 | 100 | 80 | 80.0% |
@@ -436,7 +436,7 @@ const generateSummaryTestCases = [
     expected: `## 🟡 Code Coverage Report
 
 | Metric | Value |
-| ------ | ----- |
+| ------ | ----: |
 | **Coverage** | 75.00% |
 | **Covered Lines** | 150 |
 | **Uncovered Lines** | 50 |
@@ -448,7 +448,7 @@ const generateSummaryTestCases = [
 ### Coverage by Package
 
 | Package | Files | Total Lines | Covered | Coverage |
-| ------- | ----- | ----------- | ------- | -------- |
+| ------- | ----: | ----------: | ------: | -------: |
 | com.example.bar | 1 | 100 | 70 | 70.0% |
 | com.example.foo | 1 | 100 | 80 | 80.0% |
 `
