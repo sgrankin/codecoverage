@@ -17,6 +17,21 @@ Use `jj` (Jujutsu) for version control. Key workflow:
 - Run `npm run test:cov` to run tests with coverage report
 - **Prefer table-driven tests** using `test.each()` for better readability and easier extension
 
+### Fakes, Not Mocks
+
+Prefer **fakes** (simplified working implementations) over **mocks** (programmed expectations):
+
+- **Mocks**: Verify specific calls were made with specific arguments. Tightly coupled to implementation.
+- **Fakes**: Actual lightweight implementations (e.g., in-memory store). Test behavior, not implementation.
+
+Benefits of fakes:
+- Tests are less brittle—refactoring doesn't break them
+- Tests verify outcomes, not how you got there
+- Fakes can be reused across tests
+- Encourages better interface/abstraction design
+
+Example: Instead of mocking `fs.readFile` to return specific data, use a fake filesystem that stores files in memory.
+
 ## Commands
 
 - `npm test` - Run tests in watch mode
