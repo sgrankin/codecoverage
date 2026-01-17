@@ -13841,139 +13841,6 @@ exports.Deprecation = Deprecation;
 
 /***/ }),
 
-/***/ 6638:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-/*
-Copyright (c) 2012, Yahoo! Inc. All rights reserved.
-Code licensed under the BSD License:
-http://yuilibrary.com/license/
-*/
-
-var fs = __nccwpck_require__(9896),
-    path = __nccwpck_require__(6928);
-
-/* istanbul ignore next */
-var exists = fs.exists || path.exists;
-
-var walkFile = function(str, cb) {
-    var data = [], item;
-
-    [ 'end_of_record' ].concat(str.split('\n')).forEach(function(line) {
-        line = line.trim();
-        var allparts = line.split(':'),
-            parts = [allparts.shift(), allparts.join(':')],
-            lines, fn;
-
-        switch (parts[0].toUpperCase()) {
-            case 'TN':
-                item.title = parts[1].trim();
-                break;
-            case 'SF':
-                item.file = parts.slice(1).join(':').trim();
-                break;
-            case 'FNF':
-                item.functions.found = Number(parts[1].trim());
-                break;
-            case 'FNH':
-                item.functions.hit = Number(parts[1].trim());
-                break;
-            case 'LF':
-                item.lines.found = Number(parts[1].trim());
-                break;
-            case 'LH':
-                item.lines.hit = Number(parts[1].trim());
-                break;
-            case 'DA':
-                lines = parts[1].split(',');
-                item.lines.details.push({
-                    line: Number(lines[0]),
-                    hit: Number(lines[1])
-                });
-                break;
-            case 'FN':
-                fn = parts[1].split(',');
-                item.functions.details.push({
-                    name: fn[1],
-                    line: Number(fn[0])
-                });
-                break;
-            case 'FNDA':
-                fn = parts[1].split(',');
-                item.functions.details.some(function(i, k) {
-                    if (i.name === fn[1] && i.hit === undefined) {
-                        item.functions.details[k].hit = Number(fn[0]);
-                        return true;
-                    }
-                });
-                break;
-            case 'BRDA':
-                fn = parts[1].split(',');
-                item.branches.details.push({
-                    line: Number(fn[0]),
-                    block: Number(fn[1]),
-                    branch: Number(fn[2]),
-                    taken: ((fn[3] === '-') ? 0 : Number(fn[3]))
-                });
-                break;
-            case 'BRF':
-                item.branches.found = Number(parts[1]);
-                break;
-            case 'BRH':
-                item.branches.hit = Number(parts[1]);
-                break;
-        }
-
-        if (line.indexOf('end_of_record') > -1) {
-            data.push(item);
-            item = {
-              lines: {
-                  found: 0,
-                  hit: 0,
-                  details: []
-              },
-              functions: {
-                  hit: 0,
-                  found: 0,
-                  details: []
-              },
-              branches: {
-                hit: 0,
-                found: 0,
-                details: []
-              }
-            };
-        }
-    });
-
-    data.shift();
-
-    if (data.length) {
-        cb(null, data);
-    } else {
-        cb('Failed to parse string');
-    }
-};
-
-var parse = function(file, cb) {
-    exists(file, function(x) {
-        if (!x) {
-            return walkFile(file, cb);
-        }
-        fs.readFile(file, 'utf8', function(err, str) {
-            walkFile(str, cb);
-        });
-    });
-
-};
-
-
-module.exports = parse;
-module.exports.source = walkFile;
-
-
-/***/ }),
-
 /***/ 3772:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -46185,35 +46052,6 @@ __webpack_unused_export__ = defaultContentType
 /******/ }
 /******/ 
 /************************************************************************/
-/******/ /* webpack/runtime/compat get default export */
-/******/ (() => {
-/******/ 	// getDefaultExport function for compatibility with non-harmony modules
-/******/ 	__nccwpck_require__.n = (module) => {
-/******/ 		var getter = module && module.__esModule ?
-/******/ 			() => (module['default']) :
-/******/ 			() => (module);
-/******/ 		__nccwpck_require__.d(getter, { a: getter });
-/******/ 		return getter;
-/******/ 	};
-/******/ })();
-/******/ 
-/******/ /* webpack/runtime/define property getters */
-/******/ (() => {
-/******/ 	// define getter functions for harmony exports
-/******/ 	__nccwpck_require__.d = (exports, definition) => {
-/******/ 		for(var key in definition) {
-/******/ 			if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
-/******/ 				Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
-/******/ 			}
-/******/ 		}
-/******/ 	};
-/******/ })();
-/******/ 
-/******/ /* webpack/runtime/hasOwnProperty shorthand */
-/******/ (() => {
-/******/ 	__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
-/******/ })();
-/******/ 
 /******/ /* webpack/runtime/compat */
 /******/ 
 /******/ if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = new URL('.', import.meta.url).pathname.slice(import.meta.url.match(/^file:\/\/\/\w:/) ? 1 : 0, -1) + "/";
@@ -46375,33 +46213,80 @@ function correctLineTotals(coverage) {
     }));
 }
 
-// EXTERNAL MODULE: external "util"
-var external_util_ = __nccwpck_require__(9023);
 // EXTERNAL MODULE: external "fs"
 var external_fs_ = __nccwpck_require__(9896);
 // EXTERNAL MODULE: external "path"
 var external_path_ = __nccwpck_require__(6928);
-// EXTERNAL MODULE: ./node_modules/lcov-parse/lib/index.js
-var lib = __nccwpck_require__(6638);
-var lib_default = /*#__PURE__*/__nccwpck_require__.n(lib);
 ;// CONCATENATED MODULE: ./src/utils/lcov.ts
 
 
-
-
+/**
+ * Parse LCOV format coverage data.
+ * Inlined from lcov-parse to reduce dependencies.
+ */
+function parseLcovContent(str) {
+    const data = [];
+    let item = makeEmptyEntry();
+    for (const line of ['end_of_record', ...str.split('\n')]) {
+        const trimmed = line.trim();
+        const allparts = trimmed.split(':');
+        const key = allparts.shift()?.toUpperCase() ?? '';
+        const value = allparts.join(':');
+        switch (key) {
+            case 'TN':
+                item.title = value.trim();
+                break;
+            case 'SF':
+                item.file = value.trim();
+                break;
+            case 'LF':
+                item.lines.found = Number(value.trim());
+                break;
+            case 'LH':
+                item.lines.hit = Number(value.trim());
+                break;
+            case 'DA': {
+                const [lineNum, hitCount] = value.split(',');
+                item.lines.details.push({
+                    line: Number(lineNum),
+                    hit: Number(hitCount)
+                });
+                break;
+            }
+        }
+        if (trimmed.includes('end_of_record')) {
+            data.push(item);
+            item = makeEmptyEntry();
+        }
+    }
+    // Remove the first empty entry (from prepended end_of_record)
+    data.shift();
+    if (!data.length) {
+        throw new Error('Failed to parse lcov string');
+    }
+    return data;
+}
+function makeEmptyEntry() {
+    return {
+        title: '',
+        file: '',
+        lines: { found: 0, hit: 0, details: [] }
+    };
+}
 async function parseLCov(lcovPath, workspacePath) {
     if (!lcovPath) {
         throw Error('No LCov path provided');
     }
-    const parserPromise = external_util_.promisify((lib_default()));
     const fileRaw = external_fs_.readFileSync(lcovPath, 'utf8');
-    const parsed = (await parserPromise(fileRaw));
+    const parsed = parseLcovContent(fileRaw);
     for (const entry of parsed) {
         entry.file = external_path_.relative(workspacePath, entry.file);
     }
     return parsed;
 }
 
+// EXTERNAL MODULE: external "util"
+var external_util_ = __nccwpck_require__(9023);
 // EXTERNAL MODULE: ./node_modules/xml2js/lib/xml2js.js
 var xml2js = __nccwpck_require__(758);
 ;// CONCATENATED MODULE: ./src/utils/cobertura.ts
