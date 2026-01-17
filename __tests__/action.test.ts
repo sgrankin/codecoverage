@@ -9,10 +9,18 @@ import {captureStdout} from './fixtures/capture-stdout'
 // We need to mock getInput since it reads from env vars
 // and setOutput/setFailed since they write to special files
 // Use vi.hoisted to avoid hoisting issues
-const {mockGetInput, mockSetOutput, mockSetFailed} = vi.hoisted(() => ({
+const {
+  mockGetInput,
+  mockSetOutput,
+  mockSetFailed,
+  mockStoreBaseline,
+  mockLoadBaseline
+} = vi.hoisted(() => ({
   mockGetInput: vi.fn(),
   mockSetOutput: vi.fn(),
-  mockSetFailed: vi.fn()
+  mockSetFailed: vi.fn(),
+  mockStoreBaseline: vi.fn(),
+  mockLoadBaseline: vi.fn()
 }))
 
 vi.mock('@actions/core', async () => {
@@ -60,6 +68,16 @@ vi.mock('../src/utils/github', () => ({
   })
 }))
 
+// Mock baseline module
+vi.mock('../src/utils/baseline', async () => {
+  const actual = await vi.importActual('../src/utils/baseline')
+  return {
+    ...actual,
+    storeBaseline: mockStoreBaseline,
+    loadBaseline: mockLoadBaseline
+  }
+})
+
 // Set up env vars for tests
 beforeEach(() => {
   process.env.GITHUB_WORKSPACE = '/workspace'
@@ -76,7 +94,9 @@ beforeEach(() => {
 test('runs in store-baseline mode when not a pull request', async function () {
   const capture = captureStdout()
   const originalEventName = github.context.eventName
+  const originalRef = github.context.ref
   ;(github.context as any).eventName = 'push'
+  ;(github.context as any).ref = 'refs/heads/main'
 
   try {
     await play()
@@ -84,6 +104,104 @@ test('runs in store-baseline mode when not a pull request', async function () {
   } finally {
     capture.restore()
     ;(github.context as any).eventName = originalEventName
+    ;(github.context as any).ref = originalRef
+  }
+})
+
+test('stores baseline on push to main branch', async function () {
+  const lcovPath = getFixturePath('lcov.info')
+  const originalEventName = github.context.eventName
+  const originalRef = github.context.ref
+  ;(github.context as any).eventName = 'push'
+  ;(github.context as any).ref = 'refs/heads/main'
+
+  mockGetInput.mockImplementation((name: string) => {
+    if (name === 'GITHUB_TOKEN') return 'test-token'
+    if (name === 'COVERAGE_FILE_PATH') return lcovPath
+    if (name === 'COVERAGE_FORMAT') return 'lcov'
+    return ''
+  })
+  mockStoreBaseline.mockResolvedValue(true)
+
+  const capture = captureStdout()
+  try {
+    await play()
+    expect(mockStoreBaseline).toHaveBeenCalled()
+    expect(capture.output()).toContain('Storing baseline with namespace')
+  } finally {
+    capture.restore()
+    ;(github.context as any).eventName = originalEventName
+    ;(github.context as any).ref = originalRef
+  }
+})
+
+test('calculates delta when baseline exists in PR mode', async function () {
+  const lcovPath = getFixturePath('lcov.info')
+  ;(github.context as any).payload = {
+    pull_request: {
+      head: {ref: 'feature-branch'},
+      base: {ref: 'main'}
+    }
+  }
+
+  mockGetInput.mockImplementation((name: string) => {
+    if (name === 'GITHUB_TOKEN') return 'test-token'
+    if (name === 'COVERAGE_FILE_PATH') return lcovPath
+    if (name === 'COVERAGE_FORMAT') return 'lcov'
+    if (name === 'calculate_delta') return 'true'
+    return ''
+  })
+  mockLoadBaseline.mockResolvedValue({
+    baseline: {
+      coveragePercentage: '80.00',
+      totalLines: 100,
+      coveredLines: 80,
+      timestamp: '2024-01-01T00:00:00Z',
+      commit: 'abc123'
+    },
+    commit: 'abc123'
+  })
+
+  const capture = captureStdout()
+  try {
+    await play()
+    expect(mockLoadBaseline).toHaveBeenCalled()
+    expect(capture.output()).toContain('Coverage delta:')
+    expect(mockSetOutput).toHaveBeenCalledWith(
+      'coverage_delta',
+      expect.any(String)
+    )
+    expect(mockSetOutput).toHaveBeenCalledWith('baseline_percentage', '80.00')
+  } finally {
+    capture.restore()
+  }
+})
+
+test('shows absolute coverage when no baseline exists', async function () {
+  const lcovPath = getFixturePath('lcov.info')
+  ;(github.context as any).payload = {
+    pull_request: {
+      head: {ref: 'feature-branch'},
+      base: {ref: 'main'}
+    }
+  }
+
+  mockGetInput.mockImplementation((name: string) => {
+    if (name === 'GITHUB_TOKEN') return 'test-token'
+    if (name === 'COVERAGE_FILE_PATH') return lcovPath
+    if (name === 'COVERAGE_FORMAT') return 'lcov'
+    if (name === 'calculate_delta') return 'true'
+    return ''
+  })
+  mockLoadBaseline.mockResolvedValue({baseline: null, commit: null})
+
+  const capture = captureStdout()
+  try {
+    await play()
+    expect(mockLoadBaseline).toHaveBeenCalled()
+    expect(capture.output()).toContain('No baseline found')
+  } finally {
+    capture.restore()
   }
 })
 
