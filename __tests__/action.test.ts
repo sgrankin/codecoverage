@@ -5,22 +5,17 @@ import * as os from 'node:os'
 import * as path from 'node:path'
 import {getFixturePath} from './fixtures/util'
 import {captureStdout} from './fixtures/capture-stdout'
+import type {ActionDependencies, GithubOperations} from '../src/action'
+import type {PullRequestFiles, Annotation} from '../src/utils/github'
+import type {BaselineData} from '../src/utils/baseline'
+import type {CoverageFile} from '../src/utils/general'
 
 // We need to mock getInput since it reads from env vars
 // and setOutput/setFailed since they write to special files
-// Use vi.hoisted to avoid hoisting issues
-const {
-  mockGetInput,
-  mockSetOutput,
-  mockSetFailed,
-  mockStoreBaseline,
-  mockLoadBaseline
-} = vi.hoisted(() => ({
+const {mockGetInput, mockSetOutput, mockSetFailed} = vi.hoisted(() => ({
   mockGetInput: vi.fn(),
   mockSetOutput: vi.fn(),
-  mockSetFailed: vi.fn(),
-  mockStoreBaseline: vi.fn(),
-  mockLoadBaseline: vi.fn()
+  mockSetFailed: vi.fn()
 }))
 
 vi.mock('@actions/core', async () => {
@@ -33,61 +28,66 @@ vi.mock('@actions/core', async () => {
   }
 })
 
-// Mock @actions/github
+// Mock @actions/github context (used by detectMode internally)
 vi.mock('@actions/github', () => ({
   context: {
     eventName: 'pull_request',
     payload: {
       pull_request: {
-        head: {
-          ref: 'feature-branch'
-        }
+        head: {ref: 'feature-branch'},
+        base: {ref: 'main'}
       }
     },
-    issue: {
-      number: 123
-    },
-    repo: {
-      owner: 'test-owner',
-      repo: 'test-repo'
-    },
+    issue: {number: 123},
+    repo: {owner: 'test-owner', repo: 'test-repo'},
     ref: 'refs/heads/main'
   }
 }))
 
-// Mock GithubUtil
-const mockGetPullRequestDiff = vi.fn().mockResolvedValue({})
-const mockBuildAnnotations = vi.fn().mockReturnValue([])
+// Import after mocks are set up
+import {play, generateSummary} from '../src/action'
 
-vi.mock('../src/utils/github', () => ({
-  GithubUtil: vi.fn(function () {
-    return {
-      getPullRequestDiff: mockGetPullRequestDiff,
-      buildAnnotations: mockBuildAnnotations
-    }
-  })
-}))
-
-// Mock baseline module
-vi.mock('../src/utils/baseline', async () => {
-  const actual = await vi.importActual('../src/utils/baseline')
+/**
+ * Creates fake dependencies for testing.
+ * Uses simple objects instead of mocks - "fakes, not mocks".
+ */
+function createFakeDeps(
+  options: {
+    diffResponse?: PullRequestFiles
+    annotations?: Annotation[]
+    baselineData?: BaselineData | null
+    storeResult?: boolean
+    /** Track calls to baseline.store */
+    onStore?: (data: unknown, opts: unknown) => void
+    /** Track calls to baseline.load */
+    onLoad?: (branch: string, opts: unknown) => void
+  } = {}
+): ActionDependencies {
   return {
-    ...actual,
-    storeBaseline: mockStoreBaseline,
-    loadBaseline: mockLoadBaseline
+    createGithubUtil: (): GithubOperations => ({
+      getPullRequestDiff: async () => options.diffResponse ?? {},
+      buildAnnotations: () => options.annotations ?? []
+    }),
+    baseline: {
+      store: async (data, opts) => {
+        options.onStore?.(data, opts)
+        return options.storeResult ?? true
+      },
+      load: async (branch, opts) => {
+        options.onLoad?.(branch, opts)
+        return {
+          baseline: options.baselineData ?? null,
+          commit: options.baselineData ? 'abc123' : null
+        }
+      }
+    }
   }
-})
+}
 
 // Set up env vars for tests
 beforeEach(() => {
   process.env.GITHUB_WORKSPACE = '/workspace'
   delete process.env.GITHUB_STEP_SUMMARY
-})
-
-// Import after mocks are set up
-import {play, generateSummary} from '../src/action'
-
-beforeEach(() => {
   vi.clearAllMocks()
 })
 
@@ -99,7 +99,7 @@ test('runs in store-baseline mode when not a pull request', async function () {
   ;(github.context as any).ref = 'refs/heads/main'
 
   try {
-    await play()
+    await play(createFakeDeps())
     expect(capture.output()).toContain('Mode: store-baseline (event: push)')
   } finally {
     capture.restore()
@@ -121,12 +121,18 @@ test('stores baseline on push to main branch', async function () {
     if (name === 'COVERAGE_FORMAT') return 'lcov'
     return ''
   })
-  mockStoreBaseline.mockResolvedValue(true)
+
+  let storeCalled = false
+  const fakeDeps = createFakeDeps({
+    onStore: () => {
+      storeCalled = true
+    }
+  })
 
   const capture = captureStdout()
   try {
-    await play()
-    expect(mockStoreBaseline).toHaveBeenCalled()
+    await play(fakeDeps)
+    expect(storeCalled).toBe(true)
     expect(capture.output()).toContain('Storing baseline with namespace')
   } finally {
     capture.restore()
@@ -151,21 +157,25 @@ test('calculates delta when baseline exists in PR mode', async function () {
     if (name === 'calculate_delta') return 'true'
     return ''
   })
-  mockLoadBaseline.mockResolvedValue({
-    baseline: {
+
+  let loadCalled = false
+  const fakeDeps = createFakeDeps({
+    baselineData: {
       coveragePercentage: '80.00',
       totalLines: 100,
       coveredLines: 80,
       timestamp: '2024-01-01T00:00:00Z',
       commit: 'abc123'
     },
-    commit: 'abc123'
+    onLoad: () => {
+      loadCalled = true
+    }
   })
 
   const capture = captureStdout()
   try {
-    await play()
-    expect(mockLoadBaseline).toHaveBeenCalled()
+    await play(fakeDeps)
+    expect(loadCalled).toBe(true)
     expect(capture.output()).toContain('Coverage delta:')
     expect(mockSetOutput).toHaveBeenCalledWith(
       'coverage_delta',
@@ -193,12 +203,19 @@ test('shows absolute coverage when no baseline exists', async function () {
     if (name === 'calculate_delta') return 'true'
     return ''
   })
-  mockLoadBaseline.mockResolvedValue({baseline: null, commit: null})
+
+  let loadCalled = false
+  const fakeDeps = createFakeDeps({
+    baselineData: null,
+    onLoad: () => {
+      loadCalled = true
+    }
+  })
 
   const capture = captureStdout()
   try {
-    await play()
-    expect(mockLoadBaseline).toHaveBeenCalled()
+    await play(fakeDeps)
+    expect(loadCalled).toBe(true)
     expect(capture.output()).toContain('No baseline found')
   } finally {
     capture.restore()
@@ -213,7 +230,7 @@ test('throws error for unsupported coverage format', async function () {
     return ''
   })
 
-  await play()
+  await play(createFakeDeps())
 
   expect(mockSetFailed).toHaveBeenCalledWith(
     'COVERAGE_FORMAT must be one of lcov,cobertura,go'
@@ -234,14 +251,12 @@ test('processes lcov coverage file successfully', async function () {
 
   const capture = captureStdout()
   try {
-    await play()
+    await play(createFakeDeps())
     const output = capture.output()
     expect(output).toContain('Performing Code Coverage Analysis')
     expect(output).toContain('Workspace: /workspace')
     expect(output).toContain('Filter done')
     expect(output).toContain('Annotations emitted')
-    expect(mockGetPullRequestDiff).toHaveBeenCalled()
-    expect(mockBuildAnnotations).toHaveBeenCalled()
   } finally {
     capture.restore()
   }
@@ -261,7 +276,7 @@ test('processes cobertura coverage file successfully', async function () {
 
   const capture = captureStdout()
   try {
-    await play()
+    await play(createFakeDeps())
     const output = capture.output()
     expect(output).toContain('Performing Code Coverage Analysis')
     expect(output).toContain('Filter done')
@@ -287,7 +302,7 @@ test('processes go coverage file successfully', async function () {
   try {
     // The go parser looks for go.mod in cwd, so we need to handle this
     // For now, we expect it to fail since go.mod isn't in workspace root
-    await play()
+    await play(createFakeDeps())
     // It will fail because go.mod isn't found, but the format is accepted
     expect(capture.output()).toContain('Performing Code Coverage Analysis')
   } finally {
@@ -309,7 +324,7 @@ test('defaults to lcov format when not specified', async function () {
 
   const capture = captureStdout()
   try {
-    await play()
+    await play(createFakeDeps())
     // Should not fail - lcov is the default
     expect(mockSetFailed).not.toHaveBeenCalled()
     expect(capture.output()).toContain('Annotations emitted')
@@ -321,10 +336,6 @@ test('defaults to lcov format when not specified', async function () {
 test('outputs diagnostic dump for files in PR diff', async function () {
   const lcovPath = getFixturePath('lcov.info')
 
-  // File path after path.relative('', './src/utils/general.ts') = 'src/utils/general.ts'
-  mockGetPullRequestDiff.mockResolvedValue({
-    'src/utils/general.ts': [2, 3, 4]
-  })
   mockGetInput.mockImplementation((name: string) => {
     if (name === 'GITHUB_TOKEN') return 'test-token'
     if (name === 'COVERAGE_FILE_PATH') return lcovPath
@@ -338,9 +349,13 @@ test('outputs diagnostic dump for files in PR diff', async function () {
   const oldWorkspace = process.env.GITHUB_WORKSPACE
   process.env.GITHUB_WORKSPACE = ''
 
+  const fakeDeps = createFakeDeps({
+    diffResponse: {'src/utils/general.ts': [2, 3, 4]}
+  })
+
   const capture = captureStdout()
   try {
-    await play()
+    await play(fakeDeps)
     const output = capture.output()
     // Should output debug-dump lines for diff and matching coverage
     expect(output).toContain('::debug-dump::diff::')
@@ -366,18 +381,20 @@ test('sets output values for coverage stats', async function () {
     return ''
   })
 
-  mockBuildAnnotations.mockReturnValue([
-    {
-      path: 'test.ts',
-      start_line: 1,
-      end_line: 1,
-      message: 'test'
-    }
-  ])
+  const fakeDeps = createFakeDeps({
+    annotations: [
+      {
+        path: 'test.ts',
+        start_line: 1,
+        end_line: 1,
+        message: 'test'
+      }
+    ]
+  })
 
   const capture = captureStdout()
   try {
-    await play()
+    await play(fakeDeps)
     expect(mockSetOutput).toHaveBeenCalledWith('coverage_percentage', '34.78')
     expect(mockSetOutput).toHaveBeenCalledWith('files_analyzed', 3)
     expect(mockSetOutput).toHaveBeenCalledWith('annotation_count', 1)
@@ -394,7 +411,7 @@ test('handles error gracefully', async function () {
     return ''
   })
 
-  await play()
+  await play(createFakeDeps())
 
   // Should call setFailed with the error message
   expect(mockSetFailed).toHaveBeenCalled()
@@ -663,7 +680,7 @@ test('writes step summary to temp file', async function () {
 
   const capture = captureStdout()
   try {
-    await play()
+    await play(createFakeDeps())
     expect(capture.output()).toContain('Step summary written')
 
     // Check the file was written
@@ -694,7 +711,7 @@ test('does not write step summary when STEP_SUMMARY is false', async function ()
 
   const capture = captureStdout()
   try {
-    await play()
+    await play(createFakeDeps())
     expect(capture.output()).not.toContain('Step summary written')
   } finally {
     capture.restore()

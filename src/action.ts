@@ -1,7 +1,6 @@
 import {env} from 'node:process'
 
 import * as core from '@actions/core'
-import * as github from '@actions/github'
 import {
   correctLineTotals,
   mergeCoverageByFile,
@@ -11,14 +10,20 @@ import {
 import {parseLCov} from './utils/lcov.js'
 import {parseCobertura} from './utils/cobertura.js'
 import {parseGoCoverage} from './utils/gocoverage.js'
-import {GithubUtil} from './utils/github.js'
+import {
+  GithubUtil,
+  GithubClient,
+  PullRequestFiles,
+  Annotation
+} from './utils/github.js'
 import {expandCoverageFilePaths} from './utils/files.js'
 import {detectMode, getNamespaceForBranch} from './utils/mode.js'
 import {
   storeBaseline,
   loadBaseline,
   calculateDelta,
-  formatCoverageWithDelta
+  formatCoverageWithDelta,
+  BaselineData
 } from './utils/baseline.js'
 
 const SUPPORTED_FORMATS = ['lcov', 'cobertura', 'go']
@@ -35,6 +40,59 @@ interface PackageCoverage {
   totalLines: number
   coveredLines: number
   files: FileCoverage[]
+}
+
+/**
+ * Interface for GithubUtil operations.
+ * Allows injecting a fake for testing.
+ */
+export interface GithubOperations {
+  getPullRequestDiff(): Promise<PullRequestFiles>
+  buildAnnotations(
+    coverageFiles: ReturnType<typeof filterCoverageByFile>,
+    pullRequestFiles: PullRequestFiles
+  ): Annotation[]
+}
+
+/**
+ * Interface for baseline operations.
+ * Allows injecting fakes for testing.
+ */
+export interface BaselineOperations {
+  store(
+    data: {
+      coveragePercentage: string
+      totalLines: number
+      coveredLines: number
+    },
+    options: {cwd?: string; namespace: string}
+  ): Promise<boolean>
+  load(
+    baseBranch: string,
+    options: {cwd?: string; namespace: string}
+  ): Promise<{baseline: BaselineData | null; commit: string | null}>
+}
+
+/**
+ * Dependencies that can be injected for testing.
+ * Production code uses real implementations; tests can provide fakes.
+ */
+export interface ActionDependencies {
+  /** Factory to create GithubOperations instance */
+  createGithubUtil: (token: string, baseUrl: string) => GithubOperations
+  /** Baseline storage/retrieval operations */
+  baseline: BaselineOperations
+}
+
+/** Default dependencies using real implementations */
+function createDefaultDependencies(): ActionDependencies {
+  return {
+    createGithubUtil: (token, baseUrl) => new GithubUtil(token, baseUrl),
+    baseline: {
+      store: storeBaseline,
+      load: loadBaseline
+    }
+  }
 }
 
 interface SummaryParams {
@@ -204,7 +262,9 @@ async function parseCoverage(
 }
 
 /** Starting Point of the Github Action*/
-export async function play(): Promise<void> {
+export async function play(
+  deps: ActionDependencies = createDefaultDependencies()
+): Promise<void> {
   try {
     core.info('Performing Code Coverage Analysis')
 
@@ -260,7 +320,7 @@ export async function play(): Promise<void> {
         )
         core.info(`Storing baseline with namespace: ${namespace}`)
 
-        await storeBaseline(
+        await deps.baseline.store(
           {
             coveragePercentage,
             totalLines,
@@ -306,7 +366,7 @@ export async function play(): Promise<void> {
       )
       core.info(`Loading baseline from namespace: ${namespace}`)
 
-      const baselineResult = await loadBaseline(modeContext.baseBranch, {
+      const baselineResult = await deps.baseline.load(modeContext.baseBranch, {
         cwd: workspacePath || undefined,
         namespace
       })
@@ -332,7 +392,7 @@ export async function play(): Promise<void> {
       const coverageByFile = filterCoverageByFile(parsedCov)
       core.info('Filter done')
 
-      const githubUtil = new GithubUtil(GITHUB_TOKEN, GITHUB_BASE_URL)
+      const githubUtil = deps.createGithubUtil(GITHUB_TOKEN, GITHUB_BASE_URL)
       const pullRequestFiles = await githubUtil.getPullRequestDiff()
 
       // Debug output: scoped to files in the diff

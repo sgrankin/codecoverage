@@ -30959,6 +30959,15 @@ function formatCoverageWithDelta(currentPercentage, delta) {
 
 // src/action.ts
 var SUPPORTED_FORMATS = ["lcov", "cobertura", "go"];
+function createDefaultDependencies() {
+  return {
+    createGithubUtil: (token, baseUrl) => new GithubUtil(token, baseUrl),
+    baseline: {
+      store: storeBaseline,
+      load: loadBaseline
+    }
+  };
+}
 function getPackageFromPath(filePath) {
   const lastSlash = filePath.lastIndexOf("/");
   if (lastSlash > 0) {
@@ -31067,7 +31076,7 @@ async function parseCoverage(coverageFilePath, coverageFormat, workspacePath) {
   const coveragePercentage = totalLines > 0 ? (coveredLines / totalLines * 100).toFixed(2) : "0.00";
   return { parsedCov, totalLines, coveredLines, coveragePercentage };
 }
-async function play() {
+async function play(deps = createDefaultDependencies()) {
   try {
     core3.info("Performing Code Coverage Analysis");
     const GITHUB_TOKEN = core3.getInput("GITHUB_TOKEN", { required: true });
@@ -31105,7 +31114,7 @@ async function play() {
           noteNamespace
         );
         core3.info(`Storing baseline with namespace: ${namespace}`);
-        await storeBaseline(
+        await deps.baseline.store(
           {
             coveragePercentage,
             totalLines,
@@ -31145,7 +31154,7 @@ async function play() {
         noteNamespace
       );
       core3.info(`Loading baseline from namespace: ${namespace}`);
-      const baselineResult = await loadBaseline(modeContext.baseBranch, {
+      const baselineResult = await deps.baseline.load(modeContext.baseBranch, {
         cwd: workspacePath || void 0,
         namespace
       });
@@ -31167,7 +31176,7 @@ async function play() {
     if (modeContext.isPullRequest) {
       const coverageByFile = filterCoverageByFile(parsedCov);
       core3.info("Filter done");
-      const githubUtil = new GithubUtil(GITHUB_TOKEN, GITHUB_BASE_URL);
+      const githubUtil = deps.createGithubUtil(GITHUB_TOKEN, GITHUB_BASE_URL);
       const pullRequestFiles = await githubUtil.getPullRequestDiff();
       const prFileSet = new Set(Object.keys(pullRequestFiles));
       core3.startGroup("Debug: PR diff and coverage data");
