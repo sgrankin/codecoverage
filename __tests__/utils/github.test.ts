@@ -1,5 +1,5 @@
 import {test, expect, vi} from 'vitest'
-import {GithubUtil, GithubClient} from '../../src/utils/github'
+import {GithubUtil, FetchPullDiff} from '../../src/utils/github'
 import {captureStdout} from '../fixtures/capture-stdout'
 
 // Mock @actions/github - only for context, not for getOctokit
@@ -25,24 +25,18 @@ vi.mock('@actions/github', () => ({
 }))
 
 /**
- * Creates a fake GitHub client for testing.
+ * Creates a fake fetchDiff function for testing.
  * Returns configurable responses without mocking internals.
  */
-function createFakeClient(options: {
+function createFakeFetchDiff(options: {
   diffResponse?: string
   diffError?: {status: number; message: string}
-}): GithubClient {
-  return {
-    rest: {
-      pulls: {
-        get: async () => {
-          if (options.diffError) {
-            throw options.diffError
-          }
-          return {data: options.diffResponse ?? ''}
-        }
-      }
+}): FetchPullDiff {
+  return async () => {
+    if (options.diffError) {
+      throw options.diffError
     }
+    return options.diffResponse ?? ''
   }
 }
 
@@ -286,11 +280,11 @@ index abcdefg..1234567 100644
  line2
  line3`
 
-  const fakeClient = createFakeClient({diffResponse: mockDiff})
+  const fakeFetchDiff = createFakeFetchDiff({diffResponse: mockDiff})
   const githubUtil = new GithubUtil(
     '1234',
     'https://api.github.com',
-    fakeClient
+    fakeFetchDiff
   )
 
   const result = await githubUtil.getPullRequestDiff()
@@ -321,11 +315,11 @@ test.each(diffTooLargeTestCases)(
   async ({error}) => {
     const capture = captureStdout()
     try {
-      const fakeClient = createFakeClient({diffError: error})
+      const fakeFetchDiff = createFakeFetchDiff({diffError: error})
       const githubUtil = new GithubUtil(
         '1234',
         'https://api.github.com',
-        fakeClient
+        fakeFetchDiff
       )
 
       const result = await githubUtil.getPullRequestDiff()
@@ -340,13 +334,13 @@ test.each(diffTooLargeTestCases)(
 )
 
 test('getPullRequestDiff throws for other errors', async function () {
-  const fakeClient = createFakeClient({
+  const fakeFetchDiff = createFakeFetchDiff({
     diffError: {status: 500, message: 'Server error'}
   })
   const githubUtil = new GithubUtil(
     '1234',
     'https://api.github.com',
-    fakeClient
+    fakeFetchDiff
   )
 
   await expect(githubUtil.getPullRequestDiff()).rejects.toEqual({

@@ -19,43 +19,35 @@ export type PullRequestFiles = {
 }
 
 /**
- * Minimal interface for the GitHub client we need.
- * Allows injecting a fake for testing.
+ * Function type for fetching PR diff from GitHub API.
+ * Returns the raw diff string, or throws an error.
  */
-export interface GithubClient {
-  rest: {
-    pulls: {
-      get(params: {
-        owner: string
-        repo: string
-        pull_number: number
-        mediaType?: {format: string}
-      }): Promise<{data: unknown}>
-    }
-  }
-}
+export type FetchPullDiff = () => Promise<string>
 
 export class GithubUtil {
-  private client: GithubClient
+  private fetchDiff: FetchPullDiff
 
-  constructor(token: string, baseUrl: string, client?: GithubClient) {
+  constructor(token: string, baseUrl: string, fetchDiff?: FetchPullDiff) {
     if (!token) {
       throw new Error('GITHUB_TOKEN is missing')
     }
-    this.client = client ?? github.getOctokit(token, {baseUrl})
+    this.fetchDiff =
+      fetchDiff ??
+      (async () => {
+        const client = github.getOctokit(token, {baseUrl})
+        const response = await client.rest.pulls.get({
+          ...github.context.repo,
+          pull_number: github.context.issue.number,
+          mediaType: {format: 'diff'}
+        })
+        return response.data as unknown as string
+      })
   }
 
   async getPullRequestDiff(): Promise<PullRequestFiles> {
-    const pull_number = github.context.issue.number
-    let response
+    let diffText: string
     try {
-      response = await this.client.rest.pulls.get({
-        ...github.context.repo,
-        pull_number,
-        mediaType: {
-          format: 'diff'
-        }
-      })
+      diffText = await this.fetchDiff()
     } catch (error) {
       if (isDiffTooLargeError(error)) {
         core.warning(
@@ -66,7 +58,7 @@ export class GithubUtil {
       }
       throw error
     }
-    const fileLines = diff.parseGitDiff(response.data as string)
+    const fileLines = diff.parseGitDiff(diffText)
     const prFiles: PullRequestFiles = {}
     for (const item of fileLines) {
       // Store raw line numbers - coalescing happens in buildAnnotations

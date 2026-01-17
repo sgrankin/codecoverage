@@ -10,12 +10,7 @@ import {
 import {parseLCov} from './utils/lcov.js'
 import {parseCobertura} from './utils/cobertura.js'
 import {parseGoCoverage} from './utils/gocoverage.js'
-import {
-  GithubUtil,
-  GithubClient,
-  PullRequestFiles,
-  Annotation
-} from './utils/github.js'
+import {GithubUtil, PullRequestFiles, Annotation} from './utils/github.js'
 import {expandCoverageFilePaths} from './utils/files.js'
 import {detectMode, getNamespaceForBranch} from './utils/mode.js'
 import {

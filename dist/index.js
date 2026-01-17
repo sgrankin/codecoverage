@@ -30596,23 +30596,24 @@ function getLineInfoFromHeaderLine(line) {
 // src/utils/github.ts
 var github = __toESM(require_github(), 1);
 var GithubUtil = class {
-  constructor(token, baseUrl, client) {
+  constructor(token, baseUrl, fetchDiff) {
     if (!token) {
       throw new Error("GITHUB_TOKEN is missing");
     }
-    this.client = client ?? github.getOctokit(token, { baseUrl });
+    this.fetchDiff = fetchDiff ?? (async () => {
+      const client = github.getOctokit(token, { baseUrl });
+      const response = await client.rest.pulls.get({
+        ...github.context.repo,
+        pull_number: github.context.issue.number,
+        mediaType: { format: "diff" }
+      });
+      return response.data;
+    });
   }
   async getPullRequestDiff() {
-    const pull_number = github.context.issue.number;
-    let response;
+    let diffText;
     try {
-      response = await this.client.rest.pulls.get({
-        ...github.context.repo,
-        pull_number,
-        mediaType: {
-          format: "diff"
-        }
-      });
+      diffText = await this.fetchDiff();
     } catch (error) {
       if (isDiffTooLargeError(error)) {
         core.warning(
@@ -30622,7 +30623,7 @@ var GithubUtil = class {
       }
       throw error;
     }
-    const fileLines = parseGitDiff(response.data);
+    const fileLines = parseGitDiff(diffText);
     const prFiles = {};
     for (const item of fileLines) {
       prFiles[item.filename] = item.addedLines;
