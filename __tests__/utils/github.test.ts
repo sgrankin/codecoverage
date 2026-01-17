@@ -2,8 +2,18 @@ import {test, expect, vi, beforeEach, afterEach} from 'vitest'
 import {GithubUtil} from '../../src/utils/github'
 import {captureStdout} from '../fixtures/capture-stdout'
 
-// Mock @actions/github (still needed for context)
+// Mock client for getOctokit
+const mockClient = {
+  rest: {
+    pulls: {
+      get: vi.fn()
+    }
+  }
+}
+
+// Mock @actions/github
 vi.mock('@actions/github', () => ({
+  getOctokit: vi.fn(() => mockClient),
   context: {
     payload: {
       pull_request: {

@@ -6,7 +6,6 @@ import {
   coalesceLineNumbersWithGaps,
   intersectLineRanges
 } from './general'
-import {Octokit} from 'octokit'
 
 export type Annotation = {
   path: string
@@ -19,14 +18,16 @@ export type PullRequestFiles = {
   [key: string]: number[]
 }
 
+type OctokitClient = ReturnType<typeof github.getOctokit>
+
 export class GithubUtil {
-  private client: Octokit
+  private client: OctokitClient
 
   constructor(token: string, baseUrl: string) {
     if (!token) {
       throw new Error('GITHUB_TOKEN is missing')
     }
-    this.client = new Octokit({auth: token, baseUrl})
+    this.client = github.getOctokit(token, {baseUrl})
   }
 
   async getPullRequestDiff(): Promise<PullRequestFiles> {
