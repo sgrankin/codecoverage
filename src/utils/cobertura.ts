@@ -1,37 +1,35 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import * as util from 'util'
+import {XMLParser} from 'fast-xml-parser'
 import {CoverageParsed, CoverageEntry} from './general.js'
-import {parseString} from 'xml2js'
 
 interface CoberturaLine {
-  $: {
-    number: string
-    hits: string
-  }
+  '@_number': string
+  '@_hits': string
 }
 
 interface CoberturaClass {
-  $: {
-    name: string
-    filename: string
-    'line-rate': string
-  }
-  lines?: {line?: CoberturaLine[]}[]
+  '@_name': string
+  '@_filename': string
+  '@_line-rate': string
+  lines?: {line?: CoberturaLine | CoberturaLine[]}
 }
 
 interface CoberturaPackage {
-  $: {
-    name: string
-    'line-rate': string
-  }
-  classes?: {class?: CoberturaClass[]}[]
+  '@_name': string
+  '@_line-rate': string
+  classes?: {class?: CoberturaClass | CoberturaClass[]}
 }
 
 interface CoberturaXml {
   coverage: {
-    packages?: {package?: CoberturaPackage[]}[]
+    packages?: {package?: CoberturaPackage | CoberturaPackage[]}
   }
+}
+
+function toArray<T>(val: T | T[] | undefined): T[] {
+  if (!val) return []
+  return Array.isArray(val) ? val : [val]
 }
 
 export async function parseCobertura(
@@ -43,27 +41,27 @@ export async function parseCobertura(
   }
 
   const fileRaw = fs.readFileSync(coberturaPath, 'utf8')
-  const parseXml = util.promisify(parseString)
-  const parsed = (await parseXml(fileRaw)) as CoberturaXml
+  const parser = new XMLParser({ignoreAttributes: false})
+  const parsed = parser.parse(fileRaw) as CoberturaXml
 
   const result: CoverageParsed = []
 
-  const packages = parsed.coverage.packages?.[0]?.package || []
+  const packages = toArray(parsed.coverage.packages?.package)
   for (const pkg of packages) {
-    const packageName = pkg.$.name
-    const classes = pkg.classes?.[0]?.class || []
+    const packageName = pkg['@_name']
+    const classes = toArray(pkg.classes?.class)
 
     for (const cls of classes) {
-      const filename = cls.$.filename
-      const lines = cls.lines?.[0]?.line || []
+      const filename = cls['@_filename']
+      const lines = toArray(cls.lines?.line)
 
       const details = lines.map(line => ({
-        line: parseInt(line.$.number, 10),
-        hit: parseInt(line.$.hits, 10)
+        line: parseInt(line['@_number'], 10),
+        hit: parseInt(line['@_hits'], 10)
       }))
 
       const entry: CoverageEntry = {
-        title: cls.$.name,
+        title: cls['@_name'],
         file: path.relative(workspacePath, filename),
         package: packageName,
         lines: {
