@@ -14,7 +14,11 @@ codecoverage/
 │       ├── gocoverage.ts # Go coverage parser
 │       ├── general.ts    # Shared types and utilities
 │       ├── github.ts     # GitHub API interactions
-│       └── diff.ts       # PR diff parsing
+│       ├── diff.ts       # PR diff parsing
+│       ├── gitnotes.ts   # Git notes operations
+│       ├── mode.ts       # Mode detection (pr-check/store-baseline)
+│       ├── baseline.ts   # Baseline storage and delta calculation
+│       └── files.ts      # File path expansion (globs)
 ├── __tests__/            # Test files (mirrors src/)
 │   └── fixtures/         # Test data files
 ├── dist/                 # Compiled output (committed)
@@ -41,19 +45,19 @@ codecoverage/
 │ CoverageParsed  │  (normalized internal format)
 └────────┬────────┘
         │
-        ├─────────────────────┐
-        │                     │
-        ▼                     ▼
-┌─────────────────┐   ┌─────────────────┐
-│ PR Diff         │   │ Step Summary    │
-│ (GitHub API)    │   │ (grouped by pkg)│
-└────────┬────────┘   └─────────────────┘
-        │
-        ▼
-┌─────────────────┐
-│ Intersection    │
-│ (diff ∩ uncovered)│
-└────────┬────────┘
+        ├─────────────────────────────────────┐
+        │                     │                     │
+        ▼                     ▼                     ▼
+┌─────────────────┐   ┌─────────────────┐   ┌─────────────────┐
+│ PR Diff         │   │ Step Summary    │   │ Git Notes       │
+│ (GitHub API)    │   │ (grouped by pkg)│   │ (baseline)      │
+└────────┬────────┘   └─────────────────┘   └────────┬────────┘
+        │                                       │
+        ▼                                       ▼
+┌─────────────────┐                   ┌─────────────────┐
+│ Intersection    │                   │ Delta Calc      │
+│ (diff ∩ uncovered)│                   │ (current-base)  │
+└────────┬────────┘                   └─────────────────┘
         │
         ▼
 ┌─────────────────┐
@@ -65,7 +69,7 @@ codecoverage/
 ┌─────────────────┐
 │ Workflow        │
 │ Commands        │
-│ (::warning::)   │
+│ (::notice::)    │
 └─────────────────┘
 ```
 
@@ -120,3 +124,6 @@ sgrankin/codecoverage (this fork)
 - Removed Clover support (ESM compatibility issues)
 - Upgraded to Node.js 20 runtime
 - Replaced Check Runs API with workflow commands for simpler annotations
+- Added coverage delta tracking via git notes
+- Added mode detection (pr-check vs store-baseline)
+- Added branch-specific baseline namespaces
