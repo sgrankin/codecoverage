@@ -44,3 +44,24 @@ The `specs/` directory contains design documentation. When making significant ch
 - **Update existing specs** if modifying related functionality
 - **Create new specs** for major features or architectural decisions
 - Keep specs as living documentation that explains *why* decisions were made
+
+## Versioning and Releases
+
+This action uses semantic versioning with floating major version tags:
+
+- **Patch releases**: `v1.3.1`, `v1.3.2`, etc. for bug fixes and minor changes
+- **Floating tag**: `v1` always points to the latest `v1.x.x` release
+
+When releasing a new version:
+
+```bash
+# Tag the specific version
+git tag v1.3.2
+git push origin v1.3.2
+
+# Update the floating v1 tag
+git tag -f v1
+git push -f origin v1
+```
+
+Users can reference `@v1` to always get the latest v1.x release.
