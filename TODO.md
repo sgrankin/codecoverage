@@ -2,22 +2,18 @@
 
 Future improvements for the codecoverage action.
 
-## ~~Graceful handling of large diffs~~ ✅
+## Code Quality
 
-Done. The action now catches 403/406/422 errors from the diff API and warns gracefully instead of failing.
+- [ ] Improve test coverage in baseline.ts
+- [ ] Review tests for opportunities to use "fakes, not mocks"
+- [ ] Use @actions/github instead of direct octokit where possible
 
-## ~~Use notice instead of warning~~ ✅
+## Features
 
-Done. Switched to `core.notice()` for annotations.
-
-## ~~Handle completely uncovered files~~ ✅
-
-Done. Files with zero coverage now get a single "This file has no test coverage" notice on line 1 instead of annotating every uncovered line.
-
-## ~~Use @actions/glob for file globbing~~ ✅
-
-Done. Replaced `glob` package with `@actions/glob` from the GitHub Actions toolkit.
-
-## ~~Use @actions/core.summary for step summaries~~ ✅
-
-Done. Replaced direct file writes with `core.summary.addRaw().write()`.
+- [ ] Support 'master' branch for mode detection (wherever 'main' is supported)
+- [ ] Limit annotations to 10 per run (GitHub's reported limit)
+- [ ] Add switch to disable debug output
+- [ ] Suppress debug output for large diffs (action isn't relevant for large merges)
+- [ ] Optionally post summary as PR comment
+  - Update existing comment on future runs
+  - Handle PR being closed while action is running
