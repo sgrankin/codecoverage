@@ -18,6 +18,19 @@ export interface ModeContext {
 }
 
 /**
+ * Minimal GitHub context interface for mode detection.
+ * Allows injecting a fake for testing.
+ */
+export interface GithubContext {
+  eventName: string
+  ref: string
+  payload: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    pull_request?: any
+  }
+}
+
+/**
  * Detect the operating mode based on GitHub context.
  *
  * Mode selection logic:
@@ -27,13 +40,15 @@ export interface ModeContext {
  *
  * @param modeOverride Optional manual override for the mode
  * @param mainBranch The main branch name (default: 'main')
+ * @param ctx Optional GitHub context (defaults to github.context, injectable for testing)
  */
 export function detectMode(
   modeOverride?: string,
-  mainBranch = 'main'
+  mainBranch = 'main',
+  ctx: GithubContext = github.context
 ): ModeContext {
-  const eventName = github.context.eventName
-  const ref = github.context.ref
+  const eventName = ctx.eventName
+  const ref = ctx.ref
 
   // Handle manual override
   if (modeOverride) {
@@ -46,7 +61,7 @@ export function detectMode(
 
     const isPullRequest = eventName === 'pull_request'
     const baseBranch = isPullRequest
-      ? (github.context.payload.pull_request?.base?.ref as string | undefined)
+      ? ctx.payload.pull_request?.base?.ref
       : undefined
 
     return {
@@ -60,9 +75,7 @@ export function detectMode(
 
   // Auto-detect based on event type
   if (eventName === 'pull_request') {
-    const baseBranch = github.context.payload.pull_request?.base?.ref as
-      | string
-      | undefined
+    const baseBranch = ctx.payload.pull_request?.base?.ref
 
     return {
       mode: 'pr-check',

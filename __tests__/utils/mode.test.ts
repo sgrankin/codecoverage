@@ -1,35 +1,38 @@
-import {test, expect, vi, beforeEach, afterEach, describe} from 'vitest'
-import * as github from '@actions/github'
-import {detectMode, getNamespaceForBranch} from '../../src/utils/mode'
+import {test, expect, describe} from 'vitest'
+import {
+  detectMode,
+  getNamespaceForBranch,
+  GithubContext
+} from '../../src/utils/mode'
 
-// Mock @actions/github
-vi.mock('@actions/github', () => ({
-  context: {
-    eventName: 'push',
-    ref: 'refs/heads/main',
-    payload: {}
+/**
+ * Creates a fake GitHub context for testing.
+ * No mocking required - just pass data.
+ */
+function createFakeContext(options: {
+  eventName: string
+  ref: string
+  pullRequestBaseRef?: string
+}): GithubContext {
+  return {
+    eventName: options.eventName,
+    ref: options.ref,
+    payload: options.pullRequestBaseRef
+      ? {pull_request: {base: {ref: options.pullRequestBaseRef}}}
+      : {}
   }
-}))
+}
 
 describe('mode detection', () => {
-  beforeEach(() => {
-    // Reset mock to default values
-    vi.mocked(github.context).eventName = 'push'
-    vi.mocked(github.context).ref = 'refs/heads/main'
-    vi.mocked(github.context).payload = {}
-  })
-
   describe('detectMode', () => {
     const testCases = [
       {
         name: 'pull_request event returns pr-check mode',
-        setup: () => {
-          vi.mocked(github.context).eventName = 'pull_request'
-          vi.mocked(github.context).ref = 'refs/pull/123/merge'
-          vi.mocked(github.context).payload = {
-            pull_request: {base: {ref: 'main'}}
-          }
-        },
+        ctx: createFakeContext({
+          eventName: 'pull_request',
+          ref: 'refs/pull/123/merge',
+          pullRequestBaseRef: 'main'
+        }),
         expected: {
           mode: 'pr-check',
           baseBranch: 'main',
@@ -39,11 +42,10 @@ describe('mode detection', () => {
       },
       {
         name: 'push to main returns store-baseline mode',
-        setup: () => {
-          vi.mocked(github.context).eventName = 'push'
-          vi.mocked(github.context).ref = 'refs/heads/main'
-          vi.mocked(github.context).payload = {}
-        },
+        ctx: createFakeContext({
+          eventName: 'push',
+          ref: 'refs/heads/main'
+        }),
         expected: {
           mode: 'store-baseline',
           baseBranch: 'main',
@@ -53,11 +55,10 @@ describe('mode detection', () => {
       },
       {
         name: 'push to feature branch returns store-baseline mode without baseBranch',
-        setup: () => {
-          vi.mocked(github.context).eventName = 'push'
-          vi.mocked(github.context).ref = 'refs/heads/feature/test'
-          vi.mocked(github.context).payload = {}
-        },
+        ctx: createFakeContext({
+          eventName: 'push',
+          ref: 'refs/heads/feature/test'
+        }),
         expected: {
           mode: 'store-baseline',
           baseBranch: undefined,
@@ -67,11 +68,10 @@ describe('mode detection', () => {
       },
       {
         name: 'workflow_dispatch returns store-baseline mode (no baseBranch)',
-        setup: () => {
-          vi.mocked(github.context).eventName = 'workflow_dispatch'
-          vi.mocked(github.context).ref = 'refs/heads/main'
-          vi.mocked(github.context).payload = {}
-        },
+        ctx: createFakeContext({
+          eventName: 'workflow_dispatch',
+          ref: 'refs/heads/main'
+        }),
         expected: {
           mode: 'store-baseline',
           baseBranch: undefined, // only push events set baseBranch
@@ -81,11 +81,10 @@ describe('mode detection', () => {
       },
       {
         name: 'schedule event returns store-baseline mode (no baseBranch)',
-        setup: () => {
-          vi.mocked(github.context).eventName = 'schedule'
-          vi.mocked(github.context).ref = 'refs/heads/main'
-          vi.mocked(github.context).payload = {}
-        },
+        ctx: createFakeContext({
+          eventName: 'schedule',
+          ref: 'refs/heads/main'
+        }),
         expected: {
           mode: 'store-baseline',
           baseBranch: undefined, // only push events set baseBranch
@@ -95,9 +94,8 @@ describe('mode detection', () => {
       }
     ]
 
-    test.each(testCases)('$name', ({setup, expected}) => {
-      setup()
-      const result = detectMode()
+    test.each(testCases)('$name', ({ctx, expected}) => {
+      const result = detectMode(undefined, 'main', ctx)
       expect(result.mode).toBe(expected.mode)
       expect(result.baseBranch).toBe(expected.baseBranch)
       expect(result.isPullRequest).toBe(expected.isPullRequest)
@@ -105,41 +103,47 @@ describe('mode detection', () => {
     })
 
     test('respects custom main branch name', () => {
-      vi.mocked(github.context).eventName = 'push'
-      vi.mocked(github.context).ref = 'refs/heads/develop'
-      vi.mocked(github.context).payload = {}
+      const ctx = createFakeContext({
+        eventName: 'push',
+        ref: 'refs/heads/develop'
+      })
 
-      const result = detectMode(undefined, 'develop')
+      const result = detectMode(undefined, 'develop', ctx)
       expect(result.mode).toBe('store-baseline')
       expect(result.baseBranch).toBe('develop')
     })
 
     describe('manual override', () => {
       test('pr-check override forces pr-check mode', () => {
-        vi.mocked(github.context).eventName = 'push'
-        vi.mocked(github.context).ref = 'refs/heads/main'
-        vi.mocked(github.context).payload = {}
+        const ctx = createFakeContext({
+          eventName: 'push',
+          ref: 'refs/heads/main'
+        })
 
-        const result = detectMode('pr-check')
+        const result = detectMode('pr-check', 'main', ctx)
         expect(result.mode).toBe('pr-check')
         expect(result.isPullRequest).toBe(false) // Still reflects actual event
       })
 
       test('store-baseline override forces store-baseline mode', () => {
-        vi.mocked(github.context).eventName = 'pull_request'
-        vi.mocked(github.context).ref = 'refs/pull/123/merge'
-        vi.mocked(github.context).payload = {
-          pull_request: {base: {ref: 'main'}}
-        }
+        const ctx = createFakeContext({
+          eventName: 'pull_request',
+          ref: 'refs/pull/123/merge',
+          pullRequestBaseRef: 'main'
+        })
 
-        const result = detectMode('store-baseline')
+        const result = detectMode('store-baseline', 'main', ctx)
         expect(result.mode).toBe('store-baseline')
         expect(result.isPullRequest).toBe(true) // Still reflects actual event
         expect(result.baseBranch).toBe('main') // Still available from payload
       })
 
       test('invalid override throws error', () => {
-        expect(() => detectMode('invalid-mode')).toThrow(
+        const ctx = createFakeContext({
+          eventName: 'push',
+          ref: 'refs/heads/main'
+        })
+        expect(() => detectMode('invalid-mode', 'main', ctx)).toThrow(
           "Invalid mode override: invalid-mode. Must be 'pr-check' or 'store-baseline'"
         )
       })

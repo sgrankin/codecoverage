@@ -30699,9 +30699,9 @@ async function expandCoverageFilePaths(input) {
 
 // src/utils/mode.ts
 var github2 = __toESM(require_github(), 1);
-function detectMode(modeOverride, mainBranch = "main") {
-  const eventName = github2.context.eventName;
-  const ref = github2.context.ref;
+function detectMode(modeOverride, mainBranch = "main", ctx = github2.context) {
+  const eventName = ctx.eventName;
+  const ref = ctx.ref;
   if (modeOverride) {
     const mode = modeOverride;
     if (mode !== "pr-check" && mode !== "store-baseline") {
@@ -30710,7 +30710,7 @@ function detectMode(modeOverride, mainBranch = "main") {
       );
     }
     const isPullRequest = eventName === "pull_request";
-    const baseBranch = isPullRequest ? github2.context.payload.pull_request?.base?.ref : void 0;
+    const baseBranch = isPullRequest ? ctx.payload.pull_request?.base?.ref : void 0;
     return {
       mode,
       baseBranch,
@@ -30720,7 +30720,7 @@ function detectMode(modeOverride, mainBranch = "main") {
     };
   }
   if (eventName === "pull_request") {
-    const baseBranch = github2.context.payload.pull_request?.base?.ref;
+    const baseBranch = ctx.payload.pull_request?.base?.ref;
     return {
       mode: "pr-check",
       baseBranch,
