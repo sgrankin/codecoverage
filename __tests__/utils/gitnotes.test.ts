@@ -255,6 +255,12 @@ describe('gitnotes', () => {
       await gitExec(['clone', bareRepoDir, clone1])
       await gitExec(['clone', bareRepoDir, clone2])
 
+      // Configure git user for clones (required for notes operations)
+      await gitExec(['config', 'user.email', 'test@test.com'], clone1)
+      await gitExec(['config', 'user.name', 'Test User'], clone1)
+      await gitExec(['config', 'user.email', 'test@test.com'], clone2)
+      await gitExec(['config', 'user.name', 'Test User'], clone2)
+
       // Fetch notes in both
       await fetchNotes({cwd: clone1})
       await fetchNotes({cwd: clone2})
