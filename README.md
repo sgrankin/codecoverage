@@ -22,8 +22,11 @@ All processing is done within Github Actions, no data is sent to an external ser
 | `GITHUB_BASE_URL`    | **no**   | `https://api.github.com` | Base URL for GitHub API. Required for GitHub Enterprise Server or Cloud.                              |
 | `COVERAGE_FILE_PATH` | **yes**  | -                        | Path to coverage file(s). Supports glob patterns (including `**`) and multiple paths separated by newlines. |
 | `COVERAGE_FORMAT`    | **no**   | `lcov`                   | Format of coverage file. May be `lcov`, `cobertura`, or `go`                                          |
-| `DEBUG`              | **no**   | -                        | Log debugging information. Comma-separated list of possible values `coverage`, `pr_lines_added`       |
 | `STEP_SUMMARY`       | **no**   | `true`                   | Write a summary to the GitHub Actions step summary. Set to `false` to disable.                        |
+| `mode`               | **no**   | auto-detected            | Operating mode: `pr-check` or `store-baseline`. See [Coverage Delta](#coverage-delta) for details.    |
+| `calculate_delta`    | **no**   | `true`                   | Enable coverage delta calculation. Set to `false` to disable.                                         |
+| `note_namespace`     | **no**   | `coverage`               | Custom namespace for git notes storage.                                                               |
+| `delta_precision`    | **no**   | `2`                      | Number of decimal places for delta display.                                                           |
 
 ## Outputs
 
@@ -32,6 +35,80 @@ All processing is done within Github Actions, no data is sent to an external ser
 | `coverage_percentage` | Overall code coverage percentage (e.g., `85.50`)               |
 | `files_analyzed`      | Number of files with coverage data                             |
 | `annotation_count`    | Number of annotations created for uncovered lines in the PR    |
+| `coverage_delta`      | Change in coverage compared to baseline (e.g., `+2.50` or `-1.25`) |
+| `baseline_percentage` | Baseline coverage percentage from git notes                    |
+| `mode`                | The operating mode used (`pr-check` or `store-baseline`)       |
+
+## Coverage Delta
+
+This action can track coverage changes over time by storing baseline coverage data in git notes. When a pull request is opened, the action compares the current coverage against the baseline to show whether coverage has increased or decreased.
+
+### How It Works
+
+1. **On push to main**: The action runs in `store-baseline` mode, storing coverage data as a git note attached to the commit.
+2. **On pull requests**: The action runs in `pr-check` mode, loading the baseline from the merge-base commit and calculating the delta.
+
+### Workflow Configuration
+
+To enable coverage deltas, you need to:
+
+1. **Add `contents: write` permission** to push git notes
+2. **Run the action on both PRs and pushes to main**
+
+```yaml
+name: Tests
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Required for git notes
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for merge-base detection
+
+      - name: Run tests with coverage
+        run: npm test -- --coverage
+
+      - name: Code Coverage
+        uses: sgrankin/codecoverage@main
+        with:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          COVERAGE_FILE_PATH: coverage/lcov.info
+```
+
+### Summary Output
+
+When a baseline is available, the summary shows the delta:
+
+| Metric | Value |
+| ------ | ----: |
+| **Coverage** | 85.50% (↑2.50%) |
+| **Baseline** | 83.00% |
+
+### Mode Override
+
+You can manually control the mode:
+
+```yaml
+# Force pr-check mode (useful for debugging)
+- uses: sgrankin/codecoverage@main
+  with:
+    mode: pr-check
+    # ...
+
+# Force store-baseline mode (useful for scheduled runs)
+- uses: sgrankin/codecoverage@main
+  with:
+    mode: store-baseline
+    # ...
+```
 
 ## Usage
 
