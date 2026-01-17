@@ -2,6 +2,14 @@
 
 This is a GitHub Action for annotating PRs with lines missing test coverage.
 
+## Version Control (jj)
+
+Use `jj` (Jujutsu) for version control. Key workflow:
+
+1. **Start**: `jj describe -m "WIP: task"` then make changes
+2. **Finish**: `jj describe -m "final message"` then `jj new` to leave empty change on top
+3. **Always** leave tree with empty, undescribed change on top when done
+
 ## Testing Requirements
 
 - **All tests must pass** before completing a commit
