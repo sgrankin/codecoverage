@@ -4,7 +4,7 @@ Future improvements for the codecoverage action.
 
 ## Code Quality
 
-- [ ] Improve test coverage in baseline.ts
+- [x] Improve test coverage in baseline.ts
 - [ ] Review tests for opportunities to use "fakes, not mocks"
 - [ ] Use @actions/github instead of direct octokit where possible
 

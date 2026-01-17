@@ -217,13 +217,15 @@ export async function findMergeBase(
     const result = await gitExec(['merge-base', 'HEAD', targetRef], cwd)
     return result.stdout.trim() || null
   } catch (error) {
-    const err = error as Error & {stderr?: string}
+    const err = error as Error & {stderr?: string; stdout?: string}
     // merge-base can fail if there's no common ancestor or ref doesn't exist
-    if (
+    // Empty output with non-zero exit also indicates no common ancestor (orphan branches)
+    const noMergeBase =
       err.stderr?.includes('no merge base') ||
       err.stderr?.includes('Not a valid object name') ||
-      err.stderr?.includes('bad revision')
-    ) {
+      err.stderr?.includes('bad revision') ||
+      (!err.stderr?.trim() && !err.stdout?.trim())
+    if (noMergeBase) {
       return null
     }
     throw error

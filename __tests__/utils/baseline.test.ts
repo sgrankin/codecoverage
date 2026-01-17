@@ -244,5 +244,125 @@ describe('baseline', () => {
       })
       expect(customResult.baseline?.coveragePercentage).toBe('90.00')
     })
+
+    test('returns null when merge-base exists but has no notes', async () => {
+      // Store baseline on initial commit
+      await storeBaseline(
+        {
+          coveragePercentage: '85.00',
+          totalLines: 1000,
+          coveredLines: 850
+        },
+        {cwd: repoDir}
+      )
+
+      // Create another commit on main (this commit has no notes)
+      await createCommit(repoDir, 'Second main commit')
+      await gitExec(['push', 'origin', 'main'], repoDir)
+
+      // Create feature branch from the second commit
+      await gitExec(['checkout', '-b', 'feature'], repoDir)
+      await createCommit(repoDir, 'Feature commit')
+
+      // Load baseline - merge-base is the second main commit which has no notes
+      const result = await loadBaseline('main', {cwd: repoDir})
+
+      // Should find merge-base but no baseline data for it
+      expect(result.baseline).toBeNull()
+      expect(result.commit).not.toBeNull()
+      expect(result.parseError).toBeUndefined()
+    })
+
+    test('storeBaseline returns false when cwd is invalid', async () => {
+      const result = await storeBaseline(
+        {
+          coveragePercentage: '85.00',
+          totalLines: 1000,
+          coveredLines: 850
+        },
+        {cwd: '/nonexistent/path'}
+      )
+
+      expect(result).toBe(false)
+    })
+
+    test('loadBaseline handles errors gracefully', async () => {
+      // Try to load baseline with invalid cwd
+      const result = await loadBaseline('main', {cwd: '/nonexistent/path'})
+
+      expect(result.baseline).toBeNull()
+      expect(result.commit).toBeNull()
+    })
+
+    test('loadBaseline returns null when no merge-base exists', async () => {
+      // Store baseline on main so notes exist
+      await storeBaseline(
+        {
+          coveragePercentage: '85.00',
+          totalLines: 1000,
+          coveredLines: 850
+        },
+        {cwd: repoDir}
+      )
+
+      // Create an orphan branch (no common ancestor with main)
+      await gitExec(['checkout', '--orphan', 'orphan-branch'], repoDir)
+      // Clear the staging area from the previous branch's files
+      await gitExec(['rm', '-rf', '--cached', 'README.md'], repoDir)
+      await writeFile(join(repoDir, 'orphan.txt'), 'orphan content')
+      await gitExec(['add', 'orphan.txt'], repoDir)
+      await gitExec(['commit', '-m', 'Orphan commit'], repoDir)
+
+      // Load baseline - should find no merge-base with main
+      const result = await loadBaseline('main', {cwd: repoDir})
+
+      expect(result.baseline).toBeNull()
+      expect(result.commit).toBeNull()
+    })
+  })
+
+  describe('storeBaseline with mocked pushNotes', () => {
+    let tempDir: string
+    let repoDir: string
+    let bareRepoDir: string
+
+    beforeEach(async () => {
+      tempDir = await mkdtemp(join(tmpdir(), 'baseline-mock-test-'))
+      bareRepoDir = join(tempDir, 'origin.git')
+      await gitExec(['init', '--bare', '--initial-branch=main', bareRepoDir])
+      repoDir = join(tempDir, 'repo')
+      await gitExec(['clone', bareRepoDir, repoDir])
+      await gitExec(['config', 'user.email', 'test@test.com'], repoDir)
+      await gitExec(['config', 'user.name', 'Test User'], repoDir)
+      await gitExec(['checkout', '-B', 'main'], repoDir)
+      await writeFile(join(repoDir, 'README.md'), 'initial')
+      await gitExec(['add', 'README.md'], repoDir)
+      await gitExec(['commit', '-m', 'Initial commit'], repoDir)
+      await gitExec(['push', '-u', 'origin', 'main'], repoDir)
+    })
+
+    afterEach(async () => {
+      vi.restoreAllMocks()
+      await rm(tempDir, {recursive: true, force: true})
+    })
+
+    test('returns false when pushNotes fails', async () => {
+      // Mock pushNotes to return false
+      vi.spyOn(
+        await import('../../src/utils/gitnotes'),
+        'pushNotes'
+      ).mockResolvedValue(false)
+
+      const result = await storeBaseline(
+        {
+          coveragePercentage: '85.00',
+          totalLines: 1000,
+          coveredLines: 850
+        },
+        {cwd: repoDir}
+      )
+
+      expect(result).toBe(false)
+    })
   })
 })

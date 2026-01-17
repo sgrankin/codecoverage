@@ -30854,7 +30854,8 @@ async function findMergeBase(targetRef, options = {}) {
     return result.stdout.trim() || null;
   } catch (error) {
     const err = error;
-    if (err.stderr?.includes("no merge base") || err.stderr?.includes("Not a valid object name") || err.stderr?.includes("bad revision")) {
+    const noMergeBase = err.stderr?.includes("no merge base") || err.stderr?.includes("Not a valid object name") || err.stderr?.includes("bad revision") || !err.stderr?.trim() && !err.stdout?.trim();
+    if (noMergeBase) {
       return null;
     }
     throw error;
