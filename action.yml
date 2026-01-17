@@ -24,6 +24,21 @@ inputs:
     required: false
     description: "Write a summary to the GitHub Actions step summary. Set to 'false' to disable."
     default: 'true'
+  mode:
+    required: false
+    description: "Operating mode: 'pr-check' (calculate delta against baseline) or 'store-baseline' (store coverage as baseline). Auto-detected if not specified."
+  calculate_delta:
+    required: false
+    description: "Enable coverage delta calculation. Set to 'false' to disable."
+    default: 'true'
+  note_namespace:
+    required: false
+    description: "Custom namespace for git notes storage."
+    default: 'coverage'
+  delta_precision:
+    required: false
+    description: "Number of decimal places for delta display."
+    default: '2'
 outputs:
   coverage_percentage:
     description: 'Overall code coverage percentage'
@@ -31,6 +46,12 @@ outputs:
     description: 'Number of files with coverage data'
   annotation_count:
     description: 'Number of annotations created for uncovered lines in the PR'
+  coverage_delta:
+    description: 'Change in coverage percentage compared to baseline (e.g., "+2.5" or "-1.2")'
+  baseline_percentage:
+    description: 'Baseline coverage percentage (from git notes)'
+  mode:
+    description: 'The operating mode used (pr-check or store-baseline)'
 runs:
   using: 'node20'
   main: 'dist/index.js'
