@@ -132,9 +132,9 @@ describe('baseline', () => {
       // Create temp directory for test repos
       tempDir = await mkdtemp(join(tmpdir(), 'baseline-test-'))
 
-      // Create bare repo to act as "origin"
+      // Create bare repo to act as "origin" with main as default branch
       bareRepoDir = join(tempDir, 'origin.git')
-      await gitExec(['init', '--bare', bareRepoDir])
+      await gitExec(['init', '--bare', '--initial-branch=main', bareRepoDir])
 
       // Create working repo
       repoDir = join(tempDir, 'repo')
@@ -144,9 +144,12 @@ describe('baseline', () => {
       await gitExec(['config', 'user.email', 'test@test.com'], repoDir)
       await gitExec(['config', 'user.name', 'Test User'], repoDir)
 
+      // Ensure we're on main branch (in case git defaults to something else)
+      await gitExec(['checkout', '-B', 'main'], repoDir)
+
       // Create initial commit on main
       await createCommit(repoDir, 'Initial commit', 'README.md')
-      await gitExec(['push', 'origin', 'main'], repoDir)
+      await gitExec(['push', '-u', 'origin', 'main'], repoDir)
     })
 
     afterEach(async () => {
