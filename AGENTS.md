@@ -10,6 +10,11 @@ Use `jj` (Jujutsu) for version control. Key workflow:
 2. **Finish**: `jj describe -m "final message"` then `jj new` to leave empty change on top
 3. **Always** leave tree with empty, undescribed change on top when done
 
+## Code Style
+
+- **Inject functions, not single-method interfaces** - If a dependency only has one method called on it, inject a function instead of a class/interface. Simpler to test, simpler to understand.
+- **Prefer pure functions** - Keep side effects at the edges; core logic should be pure and easy to test.
+
 ## Testing Requirements
 
 - **All tests must pass** before completing a commit
