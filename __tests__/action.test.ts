@@ -2,7 +2,7 @@ import * as fs from 'node:fs'
 import * as os from 'node:os'
 import * as path from 'node:path'
 import * as github from '@actions/github'
-import {beforeEach, expect, test, vi} from 'vitest'
+import {afterEach, beforeEach, expect, test, vi} from 'vitest'
 import type {Dependencies, GitHubOps} from '../src/action'
 import type * as baseline from '../src/utils/baseline'
 import {captureStdout} from './fixtures/capture-stdout'
@@ -85,34 +85,45 @@ function createFakeDeps(
   }
 }
 
-// Set up env vars for tests
+// Saved context values for restoration
+let savedContext: {
+  eventName: string
+  ref: string
+  payload: typeof github.context.payload
+}
+
 beforeEach(() => {
   process.env.GITHUB_WORKSPACE = '/workspace'
   delete process.env.GITHUB_STEP_SUMMARY
   vi.clearAllMocks()
+
+  // Save context
+  savedContext = {
+    eventName: github.context.eventName,
+    ref: github.context.ref,
+    payload: github.context.payload
+  }
+})
+
+afterEach(() => {
+  // Restore context
+  ;(github.context as any).eventName = savedContext.eventName
+  ;(github.context as any).ref = savedContext.ref
+  ;(github.context as any).payload = savedContext.payload
 })
 
 test('runs in store-baseline mode when not a pull request', async () => {
   const capture = captureStdout()
-  const originalEventName = github.context.eventName
-  const originalRef = github.context.ref
   ;(github.context as any).eventName = 'push'
   ;(github.context as any).ref = 'refs/heads/main'
 
-  try {
-    await play(createFakeDeps())
-    expect(capture.output()).toContain('Mode: store-baseline (event: push)')
-  } finally {
-    capture.restore()
-    ;(github.context as any).eventName = originalEventName
-    ;(github.context as any).ref = originalRef
-  }
+  await play(createFakeDeps())
+  expect(capture.output()).toContain('Mode: store-baseline (event: push)')
 })
 
 test('stores baseline on push to main branch', async () => {
+  const capture = captureStdout()
   const lcovPath = getFixturePath('lcov.info')
-  const originalEventName = github.context.eventName
-  const originalRef = github.context.ref
   ;(github.context as any).eventName = 'push'
   ;(github.context as any).ref = 'refs/heads/main'
 
@@ -129,19 +140,13 @@ test('stores baseline on push to main branch', async () => {
     }
   })
 
-  const capture = captureStdout()
-  try {
-    await play(fakeDeps)
-    expect(storeCalled).toBe(true)
-    expect(capture.output()).toContain('Storing baseline with namespace')
-  } finally {
-    capture.restore()
-    ;(github.context as any).eventName = originalEventName
-    ;(github.context as any).ref = originalRef
-  }
+  await play(fakeDeps)
+  expect(storeCalled).toBe(true)
+  expect(capture.output()).toContain('Storing baseline with namespace')
 })
 
 test('calculates delta when baseline exists in PR mode', async () => {
+  const capture = captureStdout()
   const lcovPath = getFixturePath('lcov.info')
   ;(github.context as any).payload = {
     pull_request: {
@@ -171,19 +176,15 @@ test('calculates delta when baseline exists in PR mode', async () => {
     }
   })
 
-  const capture = captureStdout()
-  try {
-    await play(fakeDeps)
-    expect(loadCalled).toBe(true)
-    expect(capture.output()).toContain('Coverage delta:')
-    expect(mockSetOutput).toHaveBeenCalledWith('coverage_delta', expect.any(String))
-    expect(mockSetOutput).toHaveBeenCalledWith('baseline_percentage', '80.00')
-  } finally {
-    capture.restore()
-  }
+  await play(fakeDeps)
+  expect(loadCalled).toBe(true)
+  expect(capture.output()).toContain('Coverage delta:')
+  expect(mockSetOutput).toHaveBeenCalledWith('coverage_delta', expect.any(String))
+  expect(mockSetOutput).toHaveBeenCalledWith('baseline_percentage', '80.00')
 })
 
 test('shows absolute coverage when no baseline exists', async () => {
+  const capture = captureStdout()
   const lcovPath = getFixturePath('lcov.info')
   ;(github.context as any).payload = {
     pull_request: {
@@ -207,14 +208,9 @@ test('shows absolute coverage when no baseline exists', async () => {
     }
   })
 
-  const capture = captureStdout()
-  try {
-    await play(fakeDeps)
-    expect(loadCalled).toBe(true)
-    expect(capture.output()).toContain('No baseline found')
-  } finally {
-    capture.restore()
-  }
+  await play(fakeDeps)
+  expect(loadCalled).toBe(true)
+  expect(capture.output()).toContain('No baseline found')
 })
 
 test('throws error for unsupported coverage format', async () => {
@@ -230,6 +226,7 @@ test('throws error for unsupported coverage format', async () => {
 })
 
 test('processes lcov coverage file successfully', async () => {
+  const capture = captureStdout()
   const lcovPath = getFixturePath('lcov.info')
 
   setInputs({
@@ -240,20 +237,16 @@ test('processes lcov coverage file successfully', async () => {
     step_summary: 'false'
   })
 
-  const capture = captureStdout()
-  try {
-    await play(createFakeDeps())
-    const output = capture.output()
-    expect(output).toContain('Performing Code Coverage Analysis')
-    expect(output).toContain('Workspace: /workspace')
-    expect(output).toContain('Filter done')
-    expect(output).toContain('Annotations emitted')
-  } finally {
-    capture.restore()
-  }
+  await play(createFakeDeps())
+  const output = capture.output()
+  expect(output).toContain('Performing Code Coverage Analysis')
+  expect(output).toContain('Workspace: /workspace')
+  expect(output).toContain('Filter done')
+  expect(output).toContain('Annotations emitted')
 })
 
 test('processes cobertura coverage file successfully', async () => {
+  const capture = captureStdout()
   const coberturaPath = getFixturePath('cobertura.xml')
 
   setInputs({
@@ -264,19 +257,15 @@ test('processes cobertura coverage file successfully', async () => {
     step_summary: 'false'
   })
 
-  const capture = captureStdout()
-  try {
-    await play(createFakeDeps())
-    const output = capture.output()
-    expect(output).toContain('Performing Code Coverage Analysis')
-    expect(output).toContain('Filter done')
-    expect(output).toContain('Annotations emitted')
-  } finally {
-    capture.restore()
-  }
+  await play(createFakeDeps())
+  const output = capture.output()
+  expect(output).toContain('Performing Code Coverage Analysis')
+  expect(output).toContain('Filter done')
+  expect(output).toContain('Annotations emitted')
 })
 
 test('processes go coverage file successfully', async () => {
+  const capture = captureStdout()
   const gocovPath = getFixturePath('gocoverage.out')
 
   setInputs({
@@ -287,19 +276,15 @@ test('processes go coverage file successfully', async () => {
     step_summary: 'false'
   })
 
-  const capture = captureStdout()
-  try {
-    // The go parser looks for go.mod in cwd, so we need to handle this
-    // For now, we expect it to fail since go.mod isn't in workspace root
-    await play(createFakeDeps())
-    // It will fail because go.mod isn't found, but the format is accepted
-    expect(capture.output()).toContain('Performing Code Coverage Analysis')
-  } finally {
-    capture.restore()
-  }
+  // The go parser looks for go.mod in cwd, so we need to handle this
+  // For now, we expect it to fail since go.mod isn't in workspace root
+  await play(createFakeDeps())
+  // It will fail because go.mod isn't found, but the format is accepted
+  expect(capture.output()).toContain('Performing Code Coverage Analysis')
 })
 
 test('defaults to lcov format when not specified', async () => {
+  const capture = captureStdout()
   const lcovPath = getFixturePath('lcov.info')
 
   setInputs({
@@ -310,18 +295,14 @@ test('defaults to lcov format when not specified', async () => {
     step_summary: 'false'
   })
 
-  const capture = captureStdout()
-  try {
-    await play(createFakeDeps())
-    // Should not fail - lcov is the default
-    expect(mockSetFailed).not.toHaveBeenCalled()
-    expect(capture.output()).toContain('Annotations emitted')
-  } finally {
-    capture.restore()
-  }
+  await play(createFakeDeps())
+  // Should not fail - lcov is the default
+  expect(mockSetFailed).not.toHaveBeenCalled()
+  expect(capture.output()).toContain('Annotations emitted')
 })
 
 test('outputs diagnostic dump for files in PR diff', async () => {
+  const capture = captureStdout()
   const lcovPath = getFixturePath('lcov.info')
 
   setInputs({
@@ -333,30 +314,24 @@ test('outputs diagnostic dump for files in PR diff', async () => {
   })
 
   // Set empty workspace so file paths stay as-is
-  const oldWorkspace = process.env.GITHUB_WORKSPACE
   process.env.GITHUB_WORKSPACE = ''
 
   const fakeDeps = createFakeDeps({
     diffResponse: {'src/utils/general.ts': [2, 3, 4]}
   })
 
-  const capture = captureStdout()
-  try {
-    await play(fakeDeps)
-    const output = capture.output()
-    // Should output combined debug line with file, diff, and missing coverage
-    expect(output).toContain('file: src/utils/general.ts')
-    expect(output).toContain('diff: 2-4')
-    expect(output).toContain('missing:')
-    // Should NOT output files not in diff
-    expect(output).not.toContain('src/utils/github.ts')
-  } finally {
-    capture.restore()
-    process.env.GITHUB_WORKSPACE = oldWorkspace
-  }
+  await play(fakeDeps)
+  const output = capture.output()
+  // Should output combined debug line with file, diff, and missing coverage
+  expect(output).toContain('file: src/utils/general.ts')
+  expect(output).toContain('diff: 2-4')
+  expect(output).toContain('missing:')
+  // Should NOT output files not in diff
+  expect(output).not.toContain('src/utils/github.ts')
 })
 
 test('debug_output=false suppresses diagnostic dump', async () => {
+  const capture = captureStdout()
   const lcovPath = getFixturePath('lcov.info')
 
   setInputs({
@@ -368,26 +343,20 @@ test('debug_output=false suppresses diagnostic dump', async () => {
     debug_output: 'false'
   })
 
-  const oldWorkspace = process.env.GITHUB_WORKSPACE
   process.env.GITHUB_WORKSPACE = ''
 
   const fakeDeps = createFakeDeps({
     diffResponse: {'src/utils/general.ts': [2, 3, 4]}
   })
 
-  const capture = captureStdout()
-  try {
-    await play(fakeDeps)
-    const output = capture.output()
-    // Should NOT output debug lines when debug_output is false
-    expect(output).not.toContain('file: src/utils/general.ts')
-  } finally {
-    capture.restore()
-    process.env.GITHUB_WORKSPACE = oldWorkspace
-  }
+  await play(fakeDeps)
+  const output = capture.output()
+  // Should NOT output debug lines when debug_output is false
+  expect(output).not.toContain('file: src/utils/general.ts')
 })
 
 test('debug output limits to 10 files and shows count of remaining', async () => {
+  const capture = captureStdout()
   const lcovPath = getFixturePath('lcov.info')
 
   setInputs({
@@ -398,7 +367,6 @@ test('debug output limits to 10 files and shows count of remaining', async () =>
     step_summary: 'false'
   })
 
-  const oldWorkspace = process.env.GITHUB_WORKSPACE
   process.env.GITHUB_WORKSPACE = ''
 
   // Create 15 files in the diff that also exist in coverage
@@ -413,20 +381,15 @@ test('debug output limits to 10 files and shows count of remaining', async () =>
 
   const fakeDeps = createFakeDeps({diffResponse})
 
-  const capture = captureStdout()
-  try {
-    await play(fakeDeps)
-    const output = capture.output()
-    // Should use compact range format
-    expect(output).toContain('diff: 1-5')
-    expect(output).toContain('diff: 10-12')
-  } finally {
-    capture.restore()
-    process.env.GITHUB_WORKSPACE = oldWorkspace
-  }
+  await play(fakeDeps)
+  const output = capture.output()
+  // Should use compact range format
+  expect(output).toContain('diff: 1-5')
+  expect(output).toContain('diff: 10-12')
 })
 
 test('sets output values for coverage stats', async () => {
+  const capture = captureStdout()
   const lcovPath = getFixturePath('lcov.info')
 
   setInputs({
@@ -448,15 +411,12 @@ test('sets output values for coverage stats', async () => {
     ]
   })
 
-  const capture = captureStdout()
-  try {
-    await play(fakeDeps)
-    expect(mockSetOutput).toHaveBeenCalledWith('coverage_percentage', '34.78')
-    expect(mockSetOutput).toHaveBeenCalledWith('files_analyzed', 3)
-    expect(mockSetOutput).toHaveBeenCalledWith('annotation_count', 1)
-  } finally {
-    capture.restore()
-  }
+  await play(fakeDeps)
+  expect(mockSetOutput).toHaveBeenCalledWith('coverage_percentage', '34.78')
+  expect(mockSetOutput).toHaveBeenCalledWith('files_analyzed', 3)
+  expect(mockSetOutput).toHaveBeenCalledWith('annotation_count', 1)
+  // Suppress unused capture warning - stdout capture needed to prevent test output pollution
+  void capture
 })
 
 test('handles error gracefully', async () => {
@@ -473,6 +433,7 @@ test('handles error gracefully', async () => {
 })
 
 test('writes step summary to temp file', async () => {
+  const capture = captureStdout()
   const lcovPath = getFixturePath('lcov.info')
   const summaryFile = path.join(os.tmpdir(), `test-summary-${Date.now()}.md`)
 
@@ -490,26 +451,22 @@ test('writes step summary to temp file', async () => {
     step_summary: 'true'
   })
 
-  const capture = captureStdout()
-  try {
-    await play(createFakeDeps())
-    expect(capture.output()).toContain('Step summary written')
+  await play(createFakeDeps())
+  expect(capture.output()).toContain('Step summary written')
 
-    // Check the file was written
-    const content = fs.readFileSync(summaryFile, 'utf8')
-    expect(content).toContain('Code Coverage Report')
-    expect(content).toContain('### Coverage by Package')
-  } finally {
-    capture.restore()
-    delete process.env.GITHUB_STEP_SUMMARY
-    // Clean up temp file
-    if (fs.existsSync(summaryFile)) {
-      fs.unlinkSync(summaryFile)
-    }
+  // Check the file was written
+  const content = fs.readFileSync(summaryFile, 'utf8')
+  expect(content).toContain('Code Coverage Report')
+  expect(content).toContain('### Coverage by Package')
+
+  // Clean up temp file
+  if (fs.existsSync(summaryFile)) {
+    fs.unlinkSync(summaryFile)
   }
 })
 
 test('does not write step summary when step_summary is false', async () => {
+  const capture = captureStdout()
   const lcovPath = getFixturePath('lcov.info')
 
   setInputs({
@@ -520,16 +477,12 @@ test('does not write step summary when step_summary is false', async () => {
     step_summary: 'false'
   })
 
-  const capture = captureStdout()
-  try {
-    await play(createFakeDeps())
-    expect(capture.output()).not.toContain('Step summary written')
-  } finally {
-    capture.restore()
-  }
+  await play(createFakeDeps())
+  expect(capture.output()).not.toContain('Step summary written')
 })
 
 test('limits annotations to max_annotations setting', async () => {
+  const capture = captureStdout()
   const lcovPath = getFixturePath('lcov.info')
 
   setInputs({
@@ -551,20 +504,16 @@ test('limits annotations to max_annotations setting', async () => {
     ]
   })
 
-  const capture = captureStdout()
-  try {
-    await play(fakeDeps)
-    const output = capture.output()
-    // Should report total count but limit emission
-    expect(mockSetOutput).toHaveBeenCalledWith('annotation_count', 4)
-    expect(output).toContain('Showing 2 of 4 annotations')
-    expect(output).toContain('limited by max_annotations')
-  } finally {
-    capture.restore()
-  }
+  await play(fakeDeps)
+  const output = capture.output()
+  // Should report total count but limit emission
+  expect(mockSetOutput).toHaveBeenCalledWith('annotation_count', 4)
+  expect(output).toContain('Showing 2 of 4 annotations')
+  expect(output).toContain('limited by max_annotations')
 })
 
 test('does not show limit message when annotations are within limit', async () => {
+  const capture = captureStdout()
   const lcovPath = getFixturePath('lcov.info')
 
   setInputs({
@@ -584,13 +533,8 @@ test('does not show limit message when annotations are within limit', async () =
     ]
   })
 
-  const capture = captureStdout()
-  try {
-    await play(fakeDeps)
-    const output = capture.output()
-    expect(mockSetOutput).toHaveBeenCalledWith('annotation_count', 2)
-    expect(output).not.toContain('limited by max_annotations')
-  } finally {
-    capture.restore()
-  }
+  await play(fakeDeps)
+  const output = capture.output()
+  expect(mockSetOutput).toHaveBeenCalledWith('annotation_count', 2)
+  expect(output).not.toContain('limited by max_annotations')
 })

@@ -252,15 +252,11 @@ test.each(buildAnnotationsTestCases)('buildAnnotations: $name', ({
   expected
 }) => {
   const capture = captureStdout()
-  try {
-    const client = new github.Client('1234', 'https://api.github.com')
-    const annotations = client.buildAnnotations(coverageFiles, prFiles)
-    expect(annotations).toEqual(expected)
-    // Verify it logged annotation count
-    expect(capture.output()).toContain(`Annotation count: ${expected.length}`)
-  } finally {
-    capture.restore()
-  }
+  const client = new github.Client('1234', 'https://api.github.com')
+  const annotations = client.buildAnnotations(coverageFiles, prFiles)
+  expect(annotations).toEqual(expected)
+  // Verify it logged annotation count
+  expect(capture.output()).toContain(`Annotation count: ${expected.length}`)
 })
 
 test('getPullRequestDiff parses diff response', async () => {
@@ -304,18 +300,14 @@ test.each(diffTooLargeTestCases)('getPullRequestDiff handles large diff error: $
   error
 }) => {
   const capture = captureStdout()
-  try {
-    const fakeFetchDiff = createFakeFetchDiff({diffError: error})
-    const client = new github.Client('1234', 'https://api.github.com', fakeFetchDiff)
+  const fakeFetchDiff = createFakeFetchDiff({diffError: error})
+  const client = new github.Client('1234', 'https://api.github.com', fakeFetchDiff)
 
-    const result = await client.getPullRequestDiff()
+  const result = await client.getPullRequestDiff()
 
-    expect(result).toEqual({})
-    // Check that warning was emitted to stdout
-    expect(capture.output()).toContain('::warning::PR diff is too large')
-  } finally {
-    capture.restore()
-  }
+  expect(result).toEqual({})
+  // Check that warning was emitted to stdout
+  expect(capture.output()).toContain('::warning::PR diff is too large')
 })
 
 test('getPullRequestDiff throws for other errors', async () => {

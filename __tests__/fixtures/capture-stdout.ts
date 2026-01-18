@@ -1,11 +1,14 @@
-/**
- * Capture stdout during test execution.
- * @actions/core writes workflow commands to stdout.
- */
-export function captureStdout(): {
+import {onTestFinished} from 'vitest'
+
+// StdoutCapture captures stdout and auto-restores after the test.
+export interface StdoutCapture {
+  // output returns all captured stdout as a string.
   output: () => string
-  restore: () => void
-} {
+}
+
+// captureStdout captures stdout for the current test.
+// Automatically restores stdout when the test finishes.
+export function captureStdout(): StdoutCapture {
   const chunks: string[] = []
   const originalWrite = process.stdout.write.bind(process.stdout)
 
@@ -14,10 +17,11 @@ export function captureStdout(): {
     return true
   }
 
+  onTestFinished(() => {
+    process.stdout.write = originalWrite
+  })
+
   return {
-    output: () => chunks.join(''),
-    restore: () => {
-      process.stdout.write = originalWrite
-    }
+    output: () => chunks.join('')
   }
 }
