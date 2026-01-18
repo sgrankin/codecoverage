@@ -41,6 +41,10 @@ inputs:
     required: false
     description: "Maximum number of annotations to emit. GitHub limits annotations to 10 per run."
     default: '10'
+  debug_output:
+    required: false
+    description: "Enable debug output showing PR diff and coverage data."
+    default: 'true'
 outputs:
   coverage_percentage:
     description: 'Overall code coverage percentage'

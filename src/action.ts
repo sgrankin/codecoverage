@@ -13,6 +13,36 @@ import * as mode from './utils/mode.js'
 import * as summary from './utils/summary.js'
 
 const SUPPORTED_FORMATS = ['lcov', 'cobertura', 'go']
+const DEBUG_MAX_FILES = 10
+const DEBUG_MAX_LINE_LENGTH = 1024
+
+// linesToRanges converts an array of line numbers to a compact range string.
+// Example: [1,2,3,5,7,8,9] => "1-3,5,7-9"
+function linesToRanges(lines: number[]): string {
+  if (lines.length === 0) return ''
+  const sorted = [...lines].sort((a, b) => a - b)
+  const ranges: string[] = []
+  let start = sorted[0]!
+  let end = start
+  for (let i = 1; i < sorted.length; i++) {
+    const n = sorted[i]!
+    if (n === end + 1) {
+      end = n
+    } else {
+      ranges.push(start === end ? `${start}` : `${start}-${end}`)
+      start = n
+      end = n
+    }
+  }
+  ranges.push(start === end ? `${start}` : `${start}-${end}`)
+  return ranges.join(',')
+}
+
+// truncate limits a string to maxLen, appending "..." if truncated.
+function truncate(s: string, maxLen: number): string {
+  if (s.length <= maxLen) return s
+  return s.slice(0, maxLen - 3) + '...'
+}
 
 // GitHubOps defines the GitHub API operations needed by the action.
 export interface GitHubOps {
@@ -119,6 +149,7 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
     const noteNamespace = core.getInput('note_namespace') || 'coverage'
     const deltaPrecision = parseInt(core.getInput('delta_precision') || '2', 10)
     const maxAnnotations = parseInt(core.getInput('max_annotations') || '10', 10)
+    const debugOutput = core.getInput('debug_output') !== 'false'
 
     const coverageFormat = core.getInput('coverage_format') || 'lcov'
     if (!SUPPORTED_FORMATS.includes(coverageFormat)) {
@@ -225,29 +256,46 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
       const gh = deps.createGitHub(githubToken, githubBaseURL)
       const pullRequestFiles = await gh.getPullRequestDiff()
 
-      // Debug output: scoped to files in the diff
-      const prFileSet = new Set(Object.keys(pullRequestFiles))
-      core.startGroup('Debug: PR diff and coverage data')
-      for (const [file, lines] of Object.entries(pullRequestFiles)) {
-        core.info(`::debug-dump::diff::${JSON.stringify({file, lines})}`)
-      }
-      for (const item of coverageByFile) {
-        if (prFileSet.has(item.fileName)) {
-          core.info(
-            `::debug-dump::coverage::${JSON.stringify({
-              file: item.fileName,
-              missing: item.missingLineNumbers,
-              executable: [...item.executableLines],
-              covered: item.coveredLineCount
-            })}`
-          )
-        }
-      }
-      core.endGroup()
-
       const annotations = gh.buildAnnotations(coverageByFile, pullRequestFiles)
       annotationCount = annotations.length
       core.setOutput('annotation_count', annotationCount)
+
+      // Debug output: combined per-file dump (diff + coverage + annotations)
+      if (debugOutput) {
+        // Build coverage lookup by file
+        const coverageByFileName = new Map(coverageByFile.map(item => [item.fileName, item]))
+        // Build annotations lookup by file
+        const annotationsByFile = new Map<string, github.Annotation[]>()
+        for (const ann of annotations) {
+          const list = annotationsByFile.get(ann.path) || []
+          list.push(ann)
+          annotationsByFile.set(ann.path, list)
+        }
+
+        // Find files that are in both diff and coverage
+        const filesInBoth = Object.keys(pullRequestFiles).filter(f => coverageByFileName.has(f))
+        const filesToShow = filesInBoth.slice(0, DEBUG_MAX_FILES)
+        const skippedCount = filesInBoth.length - filesToShow.length
+
+        core.startGroup('Debug: PR files with coverage data')
+        for (const file of filesToShow) {
+          const diffLines = pullRequestFiles[file] ?? []
+          const cov = coverageByFileName.get(file)!
+          const fileAnnotations = annotationsByFile.get(file) || []
+          const annotationRanges = fileAnnotations.map(a =>
+            a.start_line === a.end_line ? `${a.start_line}` : `${a.start_line}-${a.end_line}`
+          )
+          const line = truncate(
+            `file: ${file}, diff: ${linesToRanges(diffLines)}, missing: ${linesToRanges(cov.missingLineNumbers)}, annotations: ${annotationRanges.join(',')}`,
+            DEBUG_MAX_LINE_LENGTH
+          )
+          core.info(line)
+        }
+        if (skippedCount > 0) {
+          core.info(`... and ${skippedCount} more files`)
+        }
+        core.endGroup()
+      }
 
       // Emit annotations (limited to maxAnnotations)
       const annotationsToEmit = annotations.slice(0, maxAnnotations)
@@ -264,19 +312,6 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
         )
       }
       core.info('Annotations emitted')
-
-      // Debug output: annotations
-      core.startGroup('Debug: Generated annotations')
-      for (const annotation of annotations) {
-        core.info(
-          `::debug-dump::annotation::${JSON.stringify({
-            file: annotation.path,
-            start: annotation.start_line,
-            end: annotation.end_line
-          })}`
-        )
-      }
-      core.endGroup()
     } else {
       core.setOutput('annotation_count', 0)
     }
