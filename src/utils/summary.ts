@@ -46,10 +46,12 @@ function groupByPackage(files: FileCoverage[]): PackageCoverage[] {
   for (const file of files) {
     // Use explicit package if available, otherwise derive from path
     const pkg = file.package ?? getPackageFromPath(file.file)
-    if (!packageMap.has(pkg)) {
-      packageMap.set(pkg, [])
+    let pkgFiles = packageMap.get(pkg)
+    if (!pkgFiles) {
+      pkgFiles = []
+      packageMap.set(pkg, pkgFiles)
     }
-    packageMap.get(pkg)!.push(file)
+    pkgFiles.push(file)
   }
 
   const packages: PackageCoverage[] = []
