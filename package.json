@@ -6,7 +6,7 @@
   "description": "GitHub Action to annotate PRs with lines that are missing test coverage",
   "main": "src/main.ts",
   "scripts": {
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsgo --noEmit",
     "check": "biome check --write",
     "package": "esbuild src/main.ts --bundle --platform=node --target=node24 --format=cjs --minify --outfile=dist/index.cjs --sourcemap --legal-comments=linked",
     "test": "NO_COLOR=1 vitest",
@@ -17,7 +17,11 @@
     "type": "git",
     "url": "git+https://github.com/sgrankin/codecoverage.git"
   },
-  "keywords": ["actions", "coverage", "testing"],
+  "keywords": [
+    "actions",
+    "coverage",
+    "testing"
+  ],
   "author": "Gabriel Gilder, Shravan Dhakal",
   "license": "MIT",
   "dependencies": {
@@ -29,6 +33,7 @@
   "devDependencies": {
     "@biomejs/biome": "2.3.11",
     "@types/node": "^22.19.7",
+    "@typescript/native-preview": "^7.0.0-dev.20260117.1",
     "@vitest/coverage-v8": "^4.0.17",
     "esbuild": "^0.27.2",
     "typescript": "^5.9.3",
