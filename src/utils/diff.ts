@@ -10,79 +10,63 @@ export function parse(diffOutput: string): FileDiff[] {
   const fileDiffs: FileDiff[] = []
   const lines = diffOutput.split('\n')
 
-  let currentFileDiff: FileDiff | undefined
-  let currentAddedLines: number[] = []
-  let currentDeletedLines: number[] = []
+  let currentFile = ''
+  let addedLines: number[] = []
+  let deletedLines: number[] = []
   let seenHeaderLine = false
-  let deletionCurrentLineNumber = 0
-  let additionCurrentLineNumber = 0
+  let deletionLineNum = 0
+  let additionLineNum = 0
 
-  for (const line of lines) {
-    if (line.startsWith('diff --git')) {
-      // New file diff starts
-      if (currentFileDiff) {
-        currentFileDiff.addedLines = currentAddedLines
-        currentFileDiff.deletedLines = currentDeletedLines
-        fileDiffs.push(currentFileDiff)
-      }
-
-      currentFileDiff = {
-        filename: getFilenameFromDiffHeader(line),
-        addedLines: [],
-        deletedLines: []
-      }
-      currentAddedLines = []
-      currentDeletedLines = []
-      seenHeaderLine = false
-    } else if (line.startsWith('@@')) {
-      // Header line
-      seenHeaderLine = true
-      const lineInfo = getLineInfoFromHeaderLine(line)
-      deletionCurrentLineNumber = lineInfo.deletionStartingLineNumber
-      additionCurrentLineNumber = lineInfo.additionStartingLineNumber
-    } else if (line.startsWith('+') && seenHeaderLine) {
-      // Added line
-      currentAddedLines.push(additionCurrentLineNumber)
-      additionCurrentLineNumber++
-    } else if (line.startsWith('-') && seenHeaderLine) {
-      // Deleted line
-      currentDeletedLines.push(deletionCurrentLineNumber)
-      deletionCurrentLineNumber++
-    } else if (seenHeaderLine) {
-      // Context line
-      deletionCurrentLineNumber++
-      additionCurrentLineNumber++
+  const pushCurrent = (): void => {
+    if (currentFile) {
+      fileDiffs.push({filename: currentFile, addedLines, deletedLines})
     }
   }
 
-  // Add the last file diff
-  if (currentFileDiff) {
-    currentFileDiff.addedLines = currentAddedLines
-    currentFileDiff.deletedLines = currentDeletedLines
-    fileDiffs.push(currentFileDiff)
+  for (const line of lines) {
+    if (line.startsWith('diff --git')) {
+      pushCurrent()
+      currentFile = getFilenameFromDiffHeader(line)
+      addedLines = []
+      deletedLines = []
+      seenHeaderLine = false
+    } else if (line.startsWith('@@')) {
+      seenHeaderLine = true
+      const info = getLineInfoFromHeaderLine(line)
+      deletionLineNum = info.deletionStartingLineNumber
+      additionLineNum = info.additionStartingLineNumber
+    } else if (line.startsWith('+') && seenHeaderLine) {
+      addedLines.push(additionLineNum)
+      additionLineNum++
+    } else if (line.startsWith('-') && seenHeaderLine) {
+      deletedLines.push(deletionLineNum)
+      deletionLineNum++
+    } else if (seenHeaderLine) {
+      deletionLineNum++
+      additionLineNum++
+    }
   }
 
+  pushCurrent()
   return fileDiffs
 }
 
 function getFilenameFromDiffHeader(header: string): string {
-  // Extract the filename from the diff header
   const startIndex = header.indexOf(' a/') + 3
   const endIndex = header.indexOf(' b/', startIndex)
-  const filename = header.substring(startIndex, endIndex)
-  return filename
+  return header.substring(startIndex, endIndex)
 }
 
 function getLineInfoFromHeaderLine(line: string): {
   deletionStartingLineNumber: number
   additionStartingLineNumber: number
 } {
-  // Extract the starting line numbers for each side of the diff
   const matches = line.match(/-(\d+),?(\d+)? \+(\d+),?(\d+)? @@/)
   if (matches && matches.length === 5) {
-    const deletionStartingLineNumber = parseInt(matches[1]!, 10)
-    const additionStartingLineNumber = parseInt(matches[3]!, 10)
-    return {deletionStartingLineNumber, additionStartingLineNumber}
+    return {
+      deletionStartingLineNumber: parseInt(matches[1]!, 10),
+      additionStartingLineNumber: parseInt(matches[3]!, 10)
+    }
   }
   return {deletionStartingLineNumber: 0, additionStartingLineNumber: 0}
 }

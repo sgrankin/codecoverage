@@ -8,7 +8,7 @@ export interface Context {
   // mode is the mode the action is running in.
   mode: Mode
   // baseBranch is the target branch for PR mode (e.g., 'main').
-  baseBranch?: string | undefined
+  baseBranch?: string
   // isPullRequest indicates whether this is a pull request event.
   isPullRequest: boolean
   // eventName is the event name that triggered the action.
@@ -58,7 +58,7 @@ export function detect(
 
     return {
       mode,
-      baseBranch,
+      ...(baseBranch && {baseBranch}),
       isPullRequest,
       eventName,
       ref
@@ -71,7 +71,7 @@ export function detect(
 
     return {
       mode: 'pr-check',
-      baseBranch,
+      ...(baseBranch && {baseBranch}),
       isPullRequest: true,
       eventName,
       ref
@@ -84,7 +84,7 @@ export function detect(
 
   return {
     mode: 'store-baseline',
-    baseBranch: isPushToMain ? mainBranch : undefined,
+    ...(isPushToMain && {baseBranch: mainBranch}),
     isPullRequest: false,
     eventName,
     ref

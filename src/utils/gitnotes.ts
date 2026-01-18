@@ -36,20 +36,13 @@ export async function exec(args: string[], cwd?: string): Promise<ExecResult> {
       stderr: result.stderr?.toString() ?? ''
     }
   } catch (error) {
-    const execError = error as ExecException & {
-      stdout?: string
-      stderr?: string
-    }
+    const execError = error as ExecException & {stdout?: string; stderr?: string}
     const err = new Error(
       `Git command failed: ${cmd}\n${execError.stderr || execError.message}`
-    ) as Error & {
-      code?: number | undefined
-      stdout?: string | undefined
-      stderr?: string | undefined
-    }
-    err.code = execError.code
-    err.stdout = execError.stdout
-    err.stderr = execError.stderr
+    ) as Error & {code?: number; stdout?: string; stderr?: string}
+    if (execError.code !== undefined) err.code = execError.code
+    if (execError.stdout) err.stdout = execError.stdout
+    if (execError.stderr) err.stderr = execError.stderr
     throw err
   }
 }
