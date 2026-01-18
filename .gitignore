@@ -97,3 +97,4 @@ Thumbs.db
 __tests__/runner/*
 lib/
 stats.json
+meta.json
