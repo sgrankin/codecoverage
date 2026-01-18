@@ -45,7 +45,7 @@ test('Client init successfully', async function () {
 
 test('Client init to throw error', function () {
   expect(() => new github.Client('', 'https://api.github.com')).toThrowError(
-    'GITHUB_TOKEN is missing'
+    'github_token is missing'
   )
 })
 

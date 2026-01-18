@@ -109,9 +109,9 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
     core.info('Performing Code Coverage Analysis')
 
     // Get inputs
-    const GITHUB_TOKEN = core.getInput('GITHUB_TOKEN', {required: true})
-    const GITHUB_BASE_URL = core.getInput('GITHUB_BASE_URL')
-    const COVERAGE_FILE_PATH = core.getInput('COVERAGE_FILE_PATH', {
+    const githubToken = core.getInput('github_token', {required: true})
+    const githubBaseURL = core.getInput('github_base_url')
+    const coverageFilePath = core.getInput('coverage_file_path', {
       required: true
     })
     const modeOverride = core.getInput('mode')
@@ -119,9 +119,9 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
     const noteNamespace = core.getInput('note_namespace') || 'coverage'
     const deltaPrecision = parseInt(core.getInput('delta_precision') || '2', 10)
 
-    let COVERAGE_FORMAT = core.getInput('COVERAGE_FORMAT') || 'lcov'
-    if (!SUPPORTED_FORMATS.includes(COVERAGE_FORMAT)) {
-      throw new Error(`COVERAGE_FORMAT must be one of ${SUPPORTED_FORMATS.join(',')}`)
+    let coverageFormat = core.getInput('coverage_format') || 'lcov'
+    if (!SUPPORTED_FORMATS.includes(coverageFormat)) {
+      throw new Error(`coverage_format must be one of ${SUPPORTED_FORMATS.join(',')}`)
     }
 
     const workspacePath = env.GITHUB_WORKSPACE ?? ''
@@ -134,8 +134,8 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
 
     // Parse coverage data
     const {parsedCov, totalLines, coveredLines, coveragePercentage} = await parseCoverageFiles(
-      COVERAGE_FILE_PATH,
-      COVERAGE_FORMAT,
+      coverageFilePath,
+      coverageFormat,
       workspacePath
     )
 
@@ -169,8 +169,8 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
       // In store-baseline mode on non-PR events, we're done (no annotations)
       if (!ctx.isPullRequest) {
         // Write summary if enabled
-        const STEP_SUMMARY = core.getInput('STEP_SUMMARY')
-        if (STEP_SUMMARY !== 'false') {
+        const stepSummary = core.getInput('step_summary')
+        if (stepSummary !== 'false') {
           const fileStats: summary.FileCoverage[] = parsedCov.map(entry => ({
             file: entry.file,
             totalLines: entry.lines.found,
@@ -221,7 +221,7 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
       const coverageByFile = coverage.filterByFile(parsedCov)
       core.info('Filter done')
 
-      const gh = deps.createGitHub(GITHUB_TOKEN, GITHUB_BASE_URL)
+      const gh = deps.createGitHub(githubToken, githubBaseURL)
       const pullRequestFiles = await gh.getPullRequestDiff()
 
       // Debug output: scoped to files in the diff
@@ -275,8 +275,8 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
     }
 
     // Write step summary
-    const STEP_SUMMARY = core.getInput('STEP_SUMMARY')
-    if (STEP_SUMMARY !== 'false') {
+    const stepSummary = core.getInput('step_summary')
+    if (stepSummary !== 'false') {
       const fileStats: summary.FileCoverage[] = parsedCov.map(entry => ({
         file: entry.file,
         totalLines: entry.lines.found,

@@ -24,7 +24,7 @@ export class Client {
 
   constructor(token: string, baseURL: string, fetchDiff?: FetchDiff) {
     if (!token) {
-      throw new Error('GITHUB_TOKEN is missing')
+      throw new Error('github_token is missing')
     }
     this.fetchDiff =
       fetchDiff ??
