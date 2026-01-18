@@ -13,8 +13,7 @@
     "package": "esbuild src/main.ts --bundle --platform=node --target=node24 --format=esm --minify --outfile=dist/index.js --sourcemap --legal-comments=linked && echo '{\"type\":\"module\"}' > dist/package.json",
     "test": "NO_COLOR=1 vitest",
     "test:cov": "NO_COLOR=1 vitest run --coverage",
-    "all": "npm run build && npm run format && npm run lint && npm run package && npm run test:cov",
-    "lcov": "lcov-parse ./coverage/lcov.info"
+    "all": "npm run build && npm run format && npm run lint && npm run package && npm run test:cov"
   },
   "repository": {
     "type": "git",
@@ -22,8 +21,8 @@
   },
   "keywords": [
     "actions",
-    "node",
-    "setup"
+    "coverage",
+    "testing"
   ],
   "author": "Gabriel Gilder, Shravan Dhakal",
   "license": "MIT",
@@ -34,8 +33,6 @@
     "fast-xml-parser": "^5.3.3"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3.3.3",
-    "@eslint/js": "^9.25.1",
     "@types/node": "^22.19.7",
     "@typescript-eslint/eslint-plugin": "^8.31.0",
     "@typescript-eslint/parser": "^8.31.0",

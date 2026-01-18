@@ -78,15 +78,13 @@ codecoverage/
 ### Runtime
 - `@actions/core` - GitHub Actions toolkit (inputs, outputs, logging)
 - `@actions/github` - GitHub context (repo, PR info)
-- `octokit` - GitHub REST API client
-- `lcov-parse` - LCOV format parser
-- `golang-cover-parse` - Go coverage parser
-- `xml2js` - XML parsing for Cobertura
+- `@actions/glob` - File path expansion
+- `fast-xml-parser` - XML parsing for Cobertura
 
 ### Development
 - `typescript` - Type checking and compilation
 - `vitest` - Test runner
-- `@vercel/ncc` - Bundle into single file for dist/
+- `esbuild` - Bundle into single file for dist/
 - `eslint` + `prettier` - Linting and formatting
 
 ## Build Process
@@ -122,7 +120,7 @@ sgrankin/codecoverage (this fork)
 - Added action outputs (coverage_percentage, files_analyzed, annotation_count)
 - Improved annotation coalescing to bridge non-executable gaps
 - Removed Clover support (ESM compatibility issues)
-- Upgraded to Node.js 20 runtime
+- Upgraded to Node.js 24 runtime
 - Replaced Check Runs API with workflow commands for simpler annotations
 - Added coverage delta tracking via git notes
 - Added mode detection (pr-check vs store-baseline)

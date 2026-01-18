@@ -7,13 +7,13 @@ The action supports three coverage file formats:
 ### 1. LCOV (default)
 
 - File extension: typically `.info` or `lcov.info`
-- Parser: `lcov-parse` npm package
+- Parser: Custom (inlined from `lcov-parse` to reduce dependencies)
 - Common with: JavaScript/TypeScript (Jest, Vitest), C/C++ (gcov)
 
 ### 2. Cobertura XML
 
 - File extension: `.xml`
-- Parser: Custom XML parsing with `xml2js`
+- Parser: Custom XML parsing with `fast-xml-parser`
 - Common with: Java, Python (coverage.py), .NET
 
 **Package extraction**: Cobertura XML has native package support via `<package name="...">` elements. We extract this and preserve it in the coverage data.
