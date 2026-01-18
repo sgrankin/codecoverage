@@ -3,10 +3,8 @@ import * as path from 'path'
 import * as readline from 'readline'
 import {CoverageParsed, CoverageEntry} from './general.js'
 
-/**
- * Parse Go coverage file content.
- * Inlined from golang-cover-parse to avoid its problematic mocha dependency.
- */
+// parseGoCoverageContent parses Go coverage file content.
+// Inlined from golang-cover-parse to avoid its problematic mocha dependency.
 function parseGoCoverageContent(text: string): CoverageParsed {
   const files: CoverageEntry[] = []
   const modes = text.split('mode:')

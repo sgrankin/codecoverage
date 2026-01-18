@@ -14,10 +14,8 @@ export type PullRequestFiles = {
   [key: string]: number[]
 }
 
-/**
- * Function type for fetching PR diff from GitHub API.
- * Returns the raw diff string, or throws an error.
- */
+// FetchPullDiff fetches the PR diff from the GitHub API.
+// Returns the raw diff string, or throws an error.
 export type FetchPullDiff = () => Promise<string>
 
 export class GithubUtil {
@@ -121,10 +119,8 @@ export class GithubUtil {
   }
 }
 
-/**
- * Check if an error indicates the PR diff is too large.
- * GitHub API returns 403 or 422 with messages about diff size limits.
- */
+// isDiffTooLargeError checks if an error indicates the PR diff is too large.
+// GitHub API returns 403 or 422 with messages about diff size limits.
 function isDiffTooLargeError(error: unknown): boolean {
   if (error && typeof error === 'object' && 'status' in error) {
     const apiError = error as {status: number; message?: string}

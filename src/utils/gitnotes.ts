@@ -3,28 +3,30 @@ import {promisify} from 'node:util'
 
 const execAsync = promisify(exec)
 
-/** Default namespace for coverage git notes */
+// DEFAULT_NOTE_NAMESPACE is the default namespace for coverage git notes.
 export const DEFAULT_NOTE_NAMESPACE = 'coverage'
 
-/** Maximum retries for push operations */
+// MAX_PUSH_RETRIES is the maximum number of retries for push operations.
 const MAX_PUSH_RETRIES = 3
 
-/** Delay between retries in ms */
+// RETRY_DELAY_MS is the delay between retries in milliseconds.
 const RETRY_DELAY_MS = 1000
 
+// GitNotesOptions configures git notes operations.
 export interface GitNotesOptions {
-  /** Git working directory */
+  // cwd is the git working directory.
   cwd?: string
-  /** Notes namespace (default: 'coverage') */
+  // namespace is the notes namespace (default: 'coverage').
   namespace?: string
 }
 
+// GitExecResult is the result of a git command execution.
 export interface GitExecResult {
   stdout: string
   stderr: string
 }
 
-/** Run a git command and return stdout/stderr */
+// gitExec runs a git command and returns stdout/stderr.
 export async function gitExec(args: string[], cwd?: string): Promise<GitExecResult> {
   const cmd = `git ${args.map(a => `'${a.replace(/'/g, "'\\''")}'`).join(' ')}`
   try {
@@ -48,15 +50,13 @@ export async function gitExec(args: string[], cwd?: string): Promise<GitExecResu
   }
 }
 
-/** Get the full ref path for a notes namespace */
+// getNotesRef returns the full ref path for a notes namespace.
 export function getNotesRef(namespace: string): string {
   return `refs/notes/${namespace}`
 }
 
-/**
- * Fetch git notes from origin.
- * Returns true if notes were fetched successfully, false if the ref doesn't exist.
- */
+// fetchNotes fetches git notes from origin.
+// Returns true if notes were fetched successfully, false if the ref doesn't exist.
 export async function fetchNotes(
   options: GitNotesOptions & {force?: boolean} = {}
 ): Promise<boolean> {
@@ -81,10 +81,8 @@ export async function fetchNotes(
   }
 }
 
-/**
- * Read notes for a specific commit.
- * Returns null if no notes exist for the commit.
- */
+// readNotes reads notes for a specific commit.
+// Returns null if no notes exist for the commit.
 export async function readNotes(
   commit: string,
   options: GitNotesOptions = {}
@@ -105,10 +103,8 @@ export async function readNotes(
   }
 }
 
-/**
- * Write notes for a specific commit.
- * If force is true, overwrites existing notes.
- */
+// writeNotes writes notes for a specific commit.
+// If force is true, overwrites existing notes.
 export async function writeNotes(
   commit: string,
   content: string,
@@ -128,10 +124,8 @@ export async function writeNotes(
   await gitExec(args, cwd)
 }
 
-/**
- * Append content to existing notes for a commit.
- * Creates new notes if none exist.
- */
+// appendNotes appends content to existing notes for a commit.
+// Creates new notes if none exist.
 export async function appendNotes(
   commit: string,
   content: string,
@@ -149,15 +143,13 @@ export async function appendNotes(
   await writeNotes(commit, newContent, {cwd, namespace, force: true})
 }
 
-/** Sleep for specified milliseconds */
+// sleep pauses execution for the specified milliseconds.
 async function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-/**
- * Push git notes to origin with retry logic for concurrent updates.
- * Returns true if push succeeded, false if it failed after all retries.
- */
+// pushNotes pushes git notes to origin with retry logic for concurrent updates.
+// Returns true if push succeeded, false if it failed after all retries.
 export async function pushNotes(
   options: GitNotesOptions & {maxRetries?: number} = {}
 ): Promise<boolean> {
@@ -194,9 +186,7 @@ export async function pushNotes(
   return false
 }
 
-/**
- * Find the merge-base commit between HEAD and a target ref.
- */
+// findMergeBase finds the merge-base commit between HEAD and a target ref.
 export async function findMergeBase(
   targetRef: string,
   options: {cwd?: string} = {}
@@ -222,9 +212,7 @@ export async function findMergeBase(
   }
 }
 
-/**
- * Get the current HEAD commit SHA.
- */
+// getHeadCommit returns the current HEAD commit SHA.
 export async function getHeadCommit(options: {cwd?: string} = {}): Promise<string> {
   const {cwd} = options
   const result = await gitExec(['rev-parse', 'HEAD'], cwd)

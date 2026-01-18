@@ -9,7 +9,7 @@ import {
   GitNotesOptions
 } from './gitnotes.js'
 
-/** Coverage baseline data stored in git notes */
+// BaselineData is the coverage baseline stored in git notes.
 export interface BaselineData {
   /** ISO timestamp when baseline was recorded */
   timestamp: string
@@ -23,7 +23,7 @@ export interface BaselineData {
   commit: string
 }
 
-/** Result of loading baseline data */
+// BaselineResult is the result of loading baseline data.
 export interface BaselineResult {
   /** The baseline data, or null if not found */
   baseline: BaselineData | null
@@ -33,10 +33,7 @@ export interface BaselineResult {
   parseError?: string
 }
 
-/**
- * Parse baseline data from JSONL content.
- * Uses the first line for delta calculation.
- */
+// parseBaseline parses baseline data from JSONL content, using the first line.
 export function parseBaseline(content: string): BaselineData | null {
   const firstLine = content.split('\n')[0]?.trim()
   if (!firstLine) {
@@ -59,16 +56,12 @@ export function parseBaseline(content: string): BaselineData | null {
   }
 }
 
-/**
- * Format baseline data as JSONL for storage.
- */
+// formatBaseline formats baseline data as JSONL for storage.
 export function formatBaseline(data: BaselineData): string {
   return JSON.stringify(data)
 }
 
-/**
- * Store coverage baseline for the current commit.
- */
+// storeBaseline stores coverage baseline for the current commit.
 export async function storeBaseline(
   data: Omit<BaselineData, 'timestamp' | 'commit'>,
   options: GitNotesOptions = {}
@@ -106,9 +99,7 @@ export async function storeBaseline(
   }
 }
 
-/**
- * Load baseline coverage from the merge-base commit with a target branch.
- */
+// loadBaseline loads baseline coverage from the merge-base commit with a target branch.
 export async function loadBaseline(
   targetBranch: string,
   options: GitNotesOptions = {}
@@ -155,10 +146,8 @@ export async function loadBaseline(
   }
 }
 
-/**
- * Calculate coverage delta between current and baseline.
- * Returns formatted string like "+2.50" or "-1.25"
- */
+// calculateDelta calculates the coverage delta between current and baseline.
+// Returns a formatted string like "+2.50" or "-1.25".
 export function calculateDelta(
   currentPercentage: string,
   baselinePercentage: string,
@@ -172,10 +161,8 @@ export function calculateDelta(
   return `${sign}${delta.toFixed(precision)}`
 }
 
-/**
- * Format coverage with delta for display.
- * Returns string like "85.5% (↑2.1%)" or "83.2% (↓1.8%)"
- */
+// formatCoverageWithDelta formats coverage with delta for display.
+// Returns a string like "85.5% (↑2.1%)" or "83.2% (↓1.8%)".
 export function formatCoverageWithDelta(currentPercentage: string, delta: string): string {
   const deltaNum = parseFloat(delta)
   const arrow = deltaNum >= 0 ? '↑' : '↓'

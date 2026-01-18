@@ -2,10 +2,8 @@ import * as fs from 'fs'
 import * as path from 'path'
 import {CoverageParsed, CoverageEntry} from './general.js'
 
-/**
- * Parse LCOV format coverage data.
- * Inlined from lcov-parse to reduce dependencies.
- */
+// parseLcovContent parses LCOV format coverage data.
+// Inlined from lcov-parse to reduce dependencies.
 function parseLcovContent(str: string): CoverageParsed {
   const data: CoverageEntry[] = []
   let item: CoverageEntry = makeEmptyEntry()

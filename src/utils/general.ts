@@ -1,7 +1,5 @@
-/**
- * Merge coverage entries for the same file from multiple test runs.
- * A line is considered covered if it was hit in ANY test run.
- */
+// mergeCoverageByFile merges coverage entries for the same file from multiple test runs.
+// A line is considered covered if it was hit in any test run.
 export function mergeCoverageByFile(coverage: CoverageParsed): CoverageParsed {
   const byFile = new Map<string, CoverageEntry>()
 
@@ -56,20 +54,13 @@ export function coalesceLineNumbers(lineNumbers: number[]): LineRange[] {
   return coalesceLineNumbersWithGaps(lineNumbers)
 }
 
-// Maximum gap size to bridge (prevents bridging across unrelated code sections)
+// MAX_BRIDGE_GAP is the maximum gap size to bridge (prevents bridging across unrelated code sections).
 const MAX_BRIDGE_GAP = 5
 
-/**
- * Coalesce line numbers into ranges, optionally bridging gaps where
- * the gap lines are non-executable (not in the executableLines set).
- *
- * For example, if uncovered lines are [10, 11, 13, 14] and line 12
- * is not executable (a comment), this will produce [{10, 14}] instead
- * of [{10, 11}, {13, 14}].
- *
- * Gaps larger than MAX_BRIDGE_GAP lines are never bridged, even if
- * all lines in the gap are non-executable.
- */
+// coalesceLineNumbersWithGaps coalesces line numbers into ranges, optionally bridging gaps
+// where the gap lines are non-executable. For example, if uncovered lines are [10, 11, 13, 14]
+// and line 12 is not executable (a comment), this produces [{10, 14}] instead of [{10, 11}, {13, 14}].
+// Gaps larger than MAX_BRIDGE_GAP lines are never bridged.
 export function coalesceLineNumbersWithGaps(
   lineNumbers: number[],
   executableLines?: Set<number>
@@ -107,10 +98,8 @@ export function coalesceLineNumbersWithGaps(
   return ranges
 }
 
-/**
- * Check if the gap between two lines contains only non-executable lines.
- * Returns true if all lines in the gap (exclusive) are not in executableLines.
- */
+// canBridgeGap checks if the gap between two lines contains only non-executable lines.
+// Returns true if all lines in the gap (exclusive) are not in executableLines.
 function canBridgeGap(from: number, to: number, executableLines: Set<number>): boolean {
   for (let line = from + 1; line < to; line++) {
     if (executableLines.has(line)) {

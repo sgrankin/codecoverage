@@ -18,10 +18,7 @@ import {generateSummary, FileCoverage} from './utils/summary.js'
 
 const SUPPORTED_FORMATS = ['lcov', 'cobertura', 'go']
 
-/**
- * Interface for GithubUtil operations.
- * Allows injecting a fake for testing.
- */
+// GithubOperations defines the GitHub API operations needed by the action.
 export interface GithubOperations {
   getPullRequestDiff(): Promise<PullRequestFiles>
   buildAnnotations(
@@ -30,10 +27,7 @@ export interface GithubOperations {
   ): Annotation[]
 }
 
-/**
- * Interface for baseline operations.
- * Allows injecting fakes for testing.
- */
+// BaselineOperations defines baseline storage and retrieval operations.
 export interface BaselineOperations {
   store(
     data: {
@@ -49,10 +43,7 @@ export interface BaselineOperations {
   ): Promise<{baseline: BaselineData | null; commit: string | null}>
 }
 
-/**
- * Dependencies that can be injected for testing.
- * Production code uses real implementations; tests can provide fakes.
- */
+// ActionDependencies defines injectable dependencies for the action.
 export interface ActionDependencies {
   /** Factory to create GithubOperations instance */
   createGithubUtil: (token: string, baseUrl: string) => GithubOperations
@@ -60,7 +51,7 @@ export interface ActionDependencies {
   baseline: BaselineOperations
 }
 
-/** Default dependencies using real implementations */
+// createDefaultDependencies returns the production dependencies.
 function createDefaultDependencies(): ActionDependencies {
   return {
     createGithubUtil: (token, baseUrl) => new GithubUtil(token, baseUrl),
@@ -71,7 +62,7 @@ function createDefaultDependencies(): ActionDependencies {
   }
 }
 
-/** Parse and compute coverage data from files */
+// parseCoverage parses coverage files and computes aggregate statistics.
 async function parseCoverage(
   coverageFilePath: string,
   coverageFormat: string,
@@ -116,7 +107,7 @@ async function parseCoverage(
   return {parsedCov, totalLines, coveredLines, coveragePercentage}
 }
 
-/** Starting Point of the Github Action*/
+// play is the entry point of the GitHub Action.
 export async function play(deps: ActionDependencies = createDefaultDependencies()): Promise<void> {
   try {
     core.info('Performing Code Coverage Analysis')

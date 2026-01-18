@@ -1,6 +1,6 @@
 import {formatCoverageWithDelta} from './baseline.js'
 
-/** Coverage data for a single file */
+// FileCoverage is the coverage data for a single file.
 export interface FileCoverage {
   file: string
   totalLines: number
@@ -8,6 +8,7 @@ export interface FileCoverage {
   package?: string
 }
 
+// PackageCoverage is the aggregate coverage data for a package.
 interface PackageCoverage {
   package: string
   totalLines: number
@@ -15,7 +16,7 @@ interface PackageCoverage {
   files: FileCoverage[]
 }
 
-/** Parameters for generating a coverage summary */
+// SummaryParams are the parameters for generating a coverage summary.
 export interface SummaryParams {
   coveragePercentage: string
   totalLines: number
@@ -23,13 +24,13 @@ export interface SummaryParams {
   filesAnalyzed: number
   annotationCount: number
   files: FileCoverage[]
-  /** Coverage delta string (e.g., "+2.50" or "-1.25") */
+  // coverageDelta is the coverage delta string (e.g., "+2.50" or "-1.25").
   coverageDelta?: string
-  /** Baseline coverage percentage */
+  // baselinePercentage is the baseline coverage percentage.
   baselinePercentage?: string
 }
 
-/** getPackageFromPath extracts the package name from a file path (directory path, or '.' for root) */
+// getPackageFromPath extracts the package name from a file path (directory path, or '.' for root).
 function getPackageFromPath(filePath: string): string {
   const lastSlash = filePath.lastIndexOf('/')
   if (lastSlash > 0) {
@@ -38,7 +39,7 @@ function getPackageFromPath(filePath: string): string {
   return '.'
 }
 
-/** groupByPackage groups files by package and computes aggregate coverage */
+// groupByPackage groups files by package and computes aggregate coverage.
 function groupByPackage(files: FileCoverage[]): PackageCoverage[] {
   const packageMap = new Map<string, FileCoverage[]>()
 
@@ -66,7 +67,7 @@ function groupByPackage(files: FileCoverage[]): PackageCoverage[] {
   return packages.sort((a, b) => a.package.localeCompare(b.package))
 }
 
-/** generateSummary creates a markdown coverage report */
+// generateSummary creates a markdown coverage report.
 export function generateSummary(params: SummaryParams): string {
   const {
     coveragePercentage,

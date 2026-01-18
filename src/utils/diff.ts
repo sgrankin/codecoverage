@@ -1,9 +1,11 @@
+// FileDiff represents the changes in a single file from a git diff.
 interface FileDiff {
   filename: string
   addedLines: number[]
   deletedLines: number[]
 }
 
+// parseGitDiff parses unified diff output and extracts file changes.
 export function parseGitDiff(diffOutput: string): FileDiff[] {
   const fileDiffs: FileDiff[] = []
   const lines = diffOutput.split('\n')
