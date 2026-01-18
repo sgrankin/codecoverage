@@ -1,13 +1,31 @@
 import {expect, test} from 'vitest'
 import * as coverage from '../../src/utils/general'
-import * as lcov from '../../src/utils/lcov'
-import {getFixturePath} from '../fixtures/util'
 
-test('filterByFile', async () => {
-  const path = getFixturePath('lcov.info')
-  const parsedLcov = await lcov.parse(path, '')
-  const output = coverage.filterByFile(parsedLcov)
-  expect(output).toMatchSnapshot()
+test('filterByFile extracts file coverage info', () => {
+  const parsed: coverage.Parsed = [
+    {
+      file: 'test.ts',
+      title: 'test',
+      lines: {
+        found: 4,
+        hit: 2,
+        details: [
+          {line: 1, hit: 1},
+          {line: 2, hit: 0},
+          {line: 3, hit: 1},
+          {line: 4, hit: 0}
+        ]
+      }
+    }
+  ]
+
+  const output = coverage.filterByFile(parsed)
+
+  expect(output).toHaveLength(1)
+  expect(output[0]!.fileName).toBe('test.ts')
+  expect(output[0]!.missingLineNumbers).toEqual([2, 4])
+  expect(output[0]!.coveredLineCount).toBe(2)
+  expect(output[0]!.executableLines).toEqual(new Set([1, 2, 3, 4]))
 })
 
 const coalesceTestCases = [

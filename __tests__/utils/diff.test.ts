@@ -1,17 +1,24 @@
-import * as fs from 'node:fs'
 import {expect, test} from 'vitest'
 import * as diff from '../../src/utils/diff'
-import {getFixturePath} from '../fixtures/util'
-
-test('should parse Git diff from fixture', async () => {
-  const path = getFixturePath('test.diff')
-  const diffOutput = fs.readFileSync(path, 'utf8')
-  const output = diff.parse(diffOutput)
-
-  expect(output).toMatchSnapshot()
-})
 
 const parseGitDiffTestCases = [
+  {
+    name: 'multiple hunks in single file',
+    input: `diff --git a/file.txt b/file.txt
+--- a/file.txt
++++ b/file.txt
+@@ -1,4 +1,5 @@
+ line1
+-deleted
++added1
+ line3
++added2
+@@ -10,2 +11,3 @@
+ line10
++added3
+ line11`,
+    expected: [{filename: 'file.txt', addedLines: [2, 4, 12], deletedLines: [2]}]
+  },
   {
     name: 'empty diff',
     input: '',
