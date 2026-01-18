@@ -1,9 +1,9 @@
-import {mkdtemp, rm, writeFile} from 'node:fs/promises'
-import {tmpdir} from 'node:os'
+import {writeFile} from 'node:fs/promises'
 import {join} from 'node:path'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import * as baseline from '../../src/utils/baseline'
 import * as gitnotes from '../../src/utils/gitnotes'
+import {type TestRepo, createTestRepo} from '../fixtures/git-repo'
 
 describe('baseline', () => {
   describe('parse', () => {
@@ -103,46 +103,14 @@ describe('baseline', () => {
   })
 
   describe('store and load integration', () => {
-    let tempDir: string
-    let repoDir: string
-    let bareRepoDir: string
-
-    // createCommit creates a git commit with a file.
-    async function createCommit(cwd: string, message: string, filename?: string): Promise<string> {
-      const file = filename || `file-${Date.now()}.txt`
-      await writeFile(join(cwd, file), `content for ${message}`)
-      await gitnotes.exec(['add', file], cwd)
-      await gitnotes.exec(['commit', '-m', message], cwd)
-      const result = await gitnotes.exec(['rev-parse', 'HEAD'], cwd)
-      return result.stdout.trim()
-    }
+    let repo: TestRepo
 
     beforeEach(async () => {
-      // Create temp directory for test repos
-      tempDir = await mkdtemp(join(tmpdir(), 'baseline-test-'))
-
-      // Create bare repo to act as "origin" with main as default branch
-      bareRepoDir = join(tempDir, 'origin.git')
-      await gitnotes.exec(['init', '--bare', '--initial-branch=main', bareRepoDir])
-
-      // Create working repo
-      repoDir = join(tempDir, 'repo')
-      await gitnotes.exec(['clone', bareRepoDir, repoDir])
-
-      // Configure git user for commits
-      await gitnotes.exec(['config', 'user.email', 'test@test.com'], repoDir)
-      await gitnotes.exec(['config', 'user.name', 'Test User'], repoDir)
-
-      // Ensure we're on main branch (in case git defaults to something else)
-      await gitnotes.exec(['checkout', '-B', 'main'], repoDir)
-
-      // Create initial commit on main
-      await createCommit(repoDir, 'Initial commit', 'README.md')
-      await gitnotes.exec(['push', '-u', 'origin', 'main'], repoDir)
+      repo = await createTestRepo('baseline-test-')
     })
 
     afterEach(async () => {
-      await rm(tempDir, {recursive: true, force: true})
+      await repo.cleanup()
     })
 
     test('stores and retrieves baseline coverage', async () => {
@@ -153,16 +121,16 @@ describe('baseline', () => {
           totalLines: 1000,
           coveredLines: 855
         },
-        {cwd: repoDir}
+        {cwd: repo.repoDir}
       )
       expect(stored).toBe(true)
 
       // Create a feature branch
-      await gitnotes.exec(['checkout', '-b', 'feature'], repoDir)
-      await createCommit(repoDir, 'Feature commit')
+      await gitnotes.exec(['checkout', '-b', 'feature'], repo.repoDir)
+      await repo.createCommit('Feature commit')
 
       // Load baseline from feature branch
-      const result = await baseline.load('main', {cwd: repoDir})
+      const result = await baseline.load('main', {cwd: repo.repoDir})
 
       expect(result.baseline).not.toBeNull()
       expect(result.baseline?.coveragePercentage).toBe('85.50')
@@ -172,24 +140,24 @@ describe('baseline', () => {
 
     test('returns null when no baseline exists', async () => {
       // Create feature branch without storing baseline on main
-      await gitnotes.exec(['checkout', '-b', 'feature'], repoDir)
-      await createCommit(repoDir, 'Feature commit')
+      await gitnotes.exec(['checkout', '-b', 'feature'], repo.repoDir)
+      await repo.createCommit('Feature commit')
 
-      const result = await baseline.load('main', {cwd: repoDir})
+      const result = await baseline.load('main', {cwd: repo.repoDir})
 
       expect(result.baseline).toBeNull()
     })
 
     test('handles corrupted baseline data gracefully', async () => {
       // Store invalid JSON as baseline
-      const commit = await gitnotes.headCommit({cwd: repoDir})
-      await gitnotes.writeAndPush({commit, content: 'not valid json', force: true}, {cwd: repoDir})
+      const commit = await gitnotes.headCommit({cwd: repo.repoDir})
+      await gitnotes.writeAndPush({commit, content: 'not valid json', force: true}, {cwd: repo.repoDir})
 
       // Create feature branch
-      await gitnotes.exec(['checkout', '-b', 'feature'], repoDir)
-      await createCommit(repoDir, 'Feature commit')
+      await gitnotes.exec(['checkout', '-b', 'feature'], repo.repoDir)
+      await repo.createCommit('Feature commit')
 
-      const result = await baseline.load('main', {cwd: repoDir})
+      const result = await baseline.load('main', {cwd: repo.repoDir})
 
       expect(result.baseline).toBeNull()
       expect(result.parseError).toBe('Invalid format')
@@ -203,20 +171,20 @@ describe('baseline', () => {
           totalLines: 500,
           coveredLines: 450
         },
-        {cwd: repoDir, namespace: 'coverage/release'}
+        {cwd: repo.repoDir, namespace: 'coverage/release'}
       )
 
       // Create feature branch
-      await gitnotes.exec(['checkout', '-b', 'feature'], repoDir)
-      await createCommit(repoDir, 'Feature commit')
+      await gitnotes.exec(['checkout', '-b', 'feature'], repo.repoDir)
+      await repo.createCommit('Feature commit')
 
       // Default namespace should have no baseline
-      const defaultResult = await baseline.load('main', {cwd: repoDir})
+      const defaultResult = await baseline.load('main', {cwd: repo.repoDir})
       expect(defaultResult.baseline).toBeNull()
 
       // Custom namespace should have baseline
       const customResult = await baseline.load('main', {
-        cwd: repoDir,
+        cwd: repo.repoDir,
         namespace: 'coverage/release'
       })
       expect(customResult.baseline?.coveragePercentage).toBe('90.00')
@@ -230,19 +198,19 @@ describe('baseline', () => {
           totalLines: 1000,
           coveredLines: 850
         },
-        {cwd: repoDir}
+        {cwd: repo.repoDir}
       )
 
       // Create another commit on main (this commit has no notes)
-      await createCommit(repoDir, 'Second main commit')
-      await gitnotes.exec(['push', 'origin', 'main'], repoDir)
+      await repo.createCommit('Second main commit')
+      await gitnotes.exec(['push', 'origin', 'main'], repo.repoDir)
 
       // Create feature branch from the second commit
-      await gitnotes.exec(['checkout', '-b', 'feature'], repoDir)
-      await createCommit(repoDir, 'Feature commit')
+      await gitnotes.exec(['checkout', '-b', 'feature'], repo.repoDir)
+      await repo.createCommit('Feature commit')
 
       // Load baseline - merge-base is the second main commit which has no notes
-      const result = await baseline.load('main', {cwd: repoDir})
+      const result = await baseline.load('main', {cwd: repo.repoDir})
 
       // Should find merge-base but no baseline data for it
       expect(result.baseline).toBeNull()
@@ -279,19 +247,19 @@ describe('baseline', () => {
           totalLines: 1000,
           coveredLines: 850
         },
-        {cwd: repoDir}
+        {cwd: repo.repoDir}
       )
 
       // Create an orphan branch (no common ancestor with main)
-      await gitnotes.exec(['checkout', '--orphan', 'orphan-branch'], repoDir)
+      await gitnotes.exec(['checkout', '--orphan', 'orphan-branch'], repo.repoDir)
       // Clear the staging area from the previous branch's files
-      await gitnotes.exec(['rm', '-rf', '--cached', 'README.md'], repoDir)
-      await writeFile(join(repoDir, 'orphan.txt'), 'orphan content')
-      await gitnotes.exec(['add', 'orphan.txt'], repoDir)
-      await gitnotes.exec(['commit', '-m', 'Orphan commit'], repoDir)
+      await gitnotes.exec(['rm', '-rf', '--cached', 'README.md'], repo.repoDir)
+      await writeFile(join(repo.repoDir, 'orphan.txt'), 'orphan content')
+      await gitnotes.exec(['add', 'orphan.txt'], repo.repoDir)
+      await gitnotes.exec(['commit', '-m', 'Orphan commit'], repo.repoDir)
 
       // Load baseline - should find no merge-base with main
-      const result = await baseline.load('main', {cwd: repoDir})
+      const result = await baseline.load('main', {cwd: repo.repoDir})
 
       expect(result.baseline).toBeNull()
       expect(result.commit).toBeNull()
@@ -299,28 +267,15 @@ describe('baseline', () => {
   })
 
   describe('store with mocked push', () => {
-    let tempDir: string
-    let repoDir: string
-    let bareRepoDir: string
+    let repo: TestRepo
 
     beforeEach(async () => {
-      tempDir = await mkdtemp(join(tmpdir(), 'baseline-mock-test-'))
-      bareRepoDir = join(tempDir, 'origin.git')
-      await gitnotes.exec(['init', '--bare', '--initial-branch=main', bareRepoDir])
-      repoDir = join(tempDir, 'repo')
-      await gitnotes.exec(['clone', bareRepoDir, repoDir])
-      await gitnotes.exec(['config', 'user.email', 'test@test.com'], repoDir)
-      await gitnotes.exec(['config', 'user.name', 'Test User'], repoDir)
-      await gitnotes.exec(['checkout', '-B', 'main'], repoDir)
-      await writeFile(join(repoDir, 'README.md'), 'initial')
-      await gitnotes.exec(['add', 'README.md'], repoDir)
-      await gitnotes.exec(['commit', '-m', 'Initial commit'], repoDir)
-      await gitnotes.exec(['push', '-u', 'origin', 'main'], repoDir)
+      repo = await createTestRepo('baseline-mock-test-')
     })
 
     afterEach(async () => {
       vi.restoreAllMocks()
-      await rm(tempDir, {recursive: true, force: true})
+      await repo.cleanup()
     })
 
     test('returns false when push fails', async () => {
@@ -333,7 +288,7 @@ describe('baseline', () => {
           totalLines: 1000,
           coveredLines: 850
         },
-        {cwd: repoDir}
+        {cwd: repo.repoDir}
       )
 
       expect(result).toBe(false)
