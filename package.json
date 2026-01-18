@@ -6,14 +6,14 @@
   "description": "GitHub Action to annotate PRs with lines that are missing test coverage",
   "main": "src/main.ts",
   "scripts": {
-    "build": "tsc",
+    "typecheck": "tsc --noEmit",
     "format": "prettier --write --log-level warn '**/*.ts'",
     "format-check": "prettier --check '**/*.ts'",
     "lint": "eslint --fix src/**/*.ts",
-    "package": "esbuild src/main.ts --bundle --platform=node --target=node24 --format=esm --minify --outfile=dist/index.js --sourcemap --legal-comments=linked && echo '{\"type\":\"module\"}' > dist/package.json",
+    "package": "esbuild src/main.ts --bundle --platform=node --target=node24 --format=cjs --minify --outfile=dist/index.cjs --sourcemap --legal-comments=linked",
     "test": "NO_COLOR=1 vitest",
     "test:cov": "NO_COLOR=1 vitest run --coverage",
-    "all": "npm run build && npm run format && npm run lint && npm run package && npm run test:cov"
+    "all": "npm run typecheck && npm run format && npm run lint && npm run package && npm run test:cov"
   },
   "repository": {
     "type": "git",
