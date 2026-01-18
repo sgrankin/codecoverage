@@ -10,7 +10,7 @@
     "format": "prettier --write --log-level warn '**/*.ts'",
     "format-check": "prettier --check '**/*.ts'",
     "lint": "eslint src/**/*.ts",
-    "package": "esbuild src/main.ts --bundle --platform=node --target=node24 --format=esm --outfile=dist/index.js --sourcemap --legal-comments=linked && echo '{\"type\":\"module\"}' > dist/package.json",
+    "package": "esbuild src/main.ts --bundle --platform=node --target=node24 --format=esm --minify --outfile=dist/index.js --sourcemap --legal-comments=linked && echo '{\"type\":\"module\"}' > dist/package.json",
     "test": "NO_COLOR=1 vitest",
     "test:cov": "NO_COLOR=1 vitest run --coverage",
     "all": "npm run build && npm run format && npm run lint && npm run package && npm run test:cov",
