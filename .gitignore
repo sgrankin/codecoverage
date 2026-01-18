@@ -98,3 +98,4 @@ __tests__/runner/*
 lib/
 stats.json
 meta.json
+bundle.html
