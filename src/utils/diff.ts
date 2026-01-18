@@ -62,10 +62,12 @@ function getLineInfoFromHeaderLine(line: string): {
   additionStartingLineNumber: number
 } {
   const matches = line.match(/-(\d+),?(\d+)? \+(\d+),?(\d+)? @@/)
-  if (matches && matches.length === 5) {
+  const deletion = matches?.[1]
+  const addition = matches?.[3]
+  if (deletion !== undefined && addition !== undefined) {
     return {
-      deletionStartingLineNumber: parseInt(matches[1]!, 10),
-      additionStartingLineNumber: parseInt(matches[3]!, 10)
+      deletionStartingLineNumber: parseInt(deletion, 10),
+      additionStartingLineNumber: parseInt(addition, 10)
     }
   }
   return {deletionStartingLineNumber: 0, additionStartingLineNumber: 0}

@@ -1,20 +1,7 @@
-import js from '@eslint/js';
 import globals from 'globals';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
-import { FlatCompat } from '@eslint/eslintrc';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import github from 'eslint-plugin-github'
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-  recommendedConfig: js.configs.recommended,
-  allConfig: js.configs.all
-});
 
 export default [
   github.getFlatConfigs().recommended,
@@ -43,7 +30,8 @@ export default [
       'import/no-deprecated': 'off',
       'import/extensions': 'off',
       'import/named': 'off',
-      'import/no-duplicates': 'off'
+      'import/no-duplicates': 'off',
+      'import/no-commonjs': 'off'
     },
   },
   {
@@ -58,7 +46,7 @@ export default [
       parser: tsParser,
       parserOptions: {
         project: './tsconfig.json',
-        ecmaVersion: 9,
+        ecmaVersion: 'latest',
         sourceType: 'module'
       }
     },
@@ -88,7 +76,7 @@ export default [
       '@typescript-eslint/no-inferrable-types': 'error',
       '@typescript-eslint/no-misused-new': 'error',
       '@typescript-eslint/no-namespace': 'error',
-      '@typescript-eslint/no-non-null-assertion': 'warn',
+      '@typescript-eslint/no-non-null-assertion': 'error',
       '@typescript-eslint/no-unnecessary-qualifier': 'error',
       '@typescript-eslint/no-unnecessary-type-assertion': 'error',
       '@typescript-eslint/no-useless-constructor': 'error',

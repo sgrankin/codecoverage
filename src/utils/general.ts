@@ -70,8 +70,8 @@ export function coalesceWithGaps(lineNumbers: number[], executableLines?: Set<nu
   let rend = rstart
 
   for (let i = 1; i < lineNumbers.length; i++) {
-    const current = lineNumbers[i]!
-    const previous = lineNumbers[i - 1]!
+    const current = lineNumbers[i] as number
+    const previous = lineNumbers[i - 1] as number
     const gap = current - previous
 
     if (gap === 1) {
@@ -115,8 +115,8 @@ export function intersectRanges(a: Range[], b: Range[]): Range[] {
   let j = 0
 
   while (i < a.length && j < b.length) {
-    const rangeA = a[i]!
-    const rangeB = b[j]!
+    const rangeA = a[i] as Range
+    const rangeB = b[j] as Range
 
     if (rangeA.end_line < rangeB.start_line) {
       i++
