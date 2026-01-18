@@ -5,12 +5,12 @@ Future improvements for the codecoverage action.
 ## Code Quality
 
 - [x] Improve test coverage in baseline.ts
-- [ ] Review tests for opportunities to use "fakes, not mocks"
-- [ ] Use @actions/github instead of direct octokit where possible
+- [x] Review tests for opportunities to use "fakes, not mocks" (action tests use fakes via createFakeDeps; boundary mocks for @actions/* are appropriate)
+- [x] Use @actions/github instead of direct octokit where possible (already using it)
 
 ## Features
 
-- [ ] Support 'master' branch for mode detection (wherever 'main' is supported)
+- [x] Support 'master' branch for mode detection (mainBranch parameter is configurable)
 - [ ] Limit annotations to 10 per run (GitHub's reported limit)
 - [ ] Add switch to disable debug output
 - [ ] Suppress debug output for large diffs (action isn't relevant for large merges)
