@@ -1,6 +1,6 @@
 # Contributing
 
-> First, you'll need to have a reasonably modern version of `node` handy, ideally 16 or newer. Older versions will change the format of `package-lock.json`.
+> First, you'll need to have Node.js 24 or newer (matching the action's runtime).
 
 Install the dependencies:
 ```bash
@@ -16,7 +16,7 @@ Make sure you commit the `dist/` folder or CI will fail.
 
 ## Validate
 
-You can validate the action while developing by referencing `./` in a workflow in your repo (see [test.yml](.github/workflows/test.yml)):
+You can validate the action while developing by referencing `./` in a workflow in your repo (see [ci.yml](.github/workflows/ci.yml)):
 
 ```yaml
 uses: ./
