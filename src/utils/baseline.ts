@@ -150,7 +150,10 @@ export function delta(
 // Returns a string like "85.5% (↑2.1%)" or "83.2% (↓1.8%)".
 export function formatWithDelta(currentPercentage: string, deltaValue: string): string {
   const deltaNum = parseFloat(deltaValue)
-  const arrow = deltaNum >= 0 ? '↑' : '↓'
+  const arrow = deltaNum > 0 ? '↑' : deltaNum < 0 ? '↓' : ''
   const absDelta = Math.abs(deltaNum).toFixed(2)
+  if (deltaNum === 0) {
+    return `${currentPercentage}% (${absDelta}%)`
+  }
   return `${currentPercentage}% (${arrow}${absDelta}%)`
 }

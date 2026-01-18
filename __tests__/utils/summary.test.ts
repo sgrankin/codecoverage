@@ -167,7 +167,7 @@ const testCases = [
       coverageDelta: '+2.50',
       baselinePercentage: '83.00'
     },
-    expected: `## 🟢 Code Coverage Report
+    expected: `## 📈 Code Coverage Report
 
 | Coverage | Baseline | Covered | Uncovered | Total | Files |
 | ----: | ----: | ----: | ----: | ----: | ----: |
@@ -197,7 +197,7 @@ const testCases = [
       coverageDelta: '-2.00',
       baselinePercentage: '80.00'
     },
-    expected: `## 🟡 Code Coverage Report
+    expected: `## 📉 Code Coverage Report
 
 | Coverage | Baseline | Covered | Uncovered | Total | Files |
 | ----: | ----: | ----: | ----: | ----: | ----: |
@@ -211,6 +211,66 @@ const testCases = [
 | Package | Files | Total Lines | Covered | Coverage |
 | ------- | ----: | ----------: | ------: | -------: |
 | src | 1 | 1,000 | 780 | 78.0% |
+
+</details>
+`
+  },
+  {
+    name: 'coverage with zero delta',
+    input: {
+      coveragePercentage: '75.00',
+      totalLines: 1000,
+      coveredLines: 750,
+      filesAnalyzed: 1,
+      annotationCount: 0,
+      files: [{file: 'src/main.ts', totalLines: 1000, coveredLines: 750}],
+      coverageDelta: '+0.00',
+      baselinePercentage: '75.00'
+    },
+    expected: `## ➖ Code Coverage Report
+
+| Coverage | Baseline | Covered | Uncovered | Total | Files |
+| ----: | ----: | ----: | ----: | ----: | ----: |
+| 75.00% (0.00%) | 75.00% | 750 | 250 | 1,000 | 1 |
+
+✅ No new uncovered lines detected in this PR.
+
+<details>
+<summary>Coverage by Package</summary>
+
+| Package | Files | Total Lines | Covered | Coverage |
+| ------- | ----: | ----------: | ------: | -------: |
+| src | 1 | 1,000 | 750 | 75.0% |
+
+</details>
+`
+  },
+  {
+    name: 'low coverage but improving (green stoplight)',
+    input: {
+      coveragePercentage: '45.00',
+      totalLines: 1000,
+      coveredLines: 450,
+      filesAnalyzed: 1,
+      annotationCount: 0,
+      files: [{file: 'src/main.ts', totalLines: 1000, coveredLines: 450}],
+      coverageDelta: '+5.00',
+      baselinePercentage: '40.00'
+    },
+    expected: `## 📈 Code Coverage Report
+
+| Coverage | Baseline | Covered | Uncovered | Total | Files |
+| ----: | ----: | ----: | ----: | ----: | ----: |
+| 45.00% (↑5.00%) | 40.00% | 450 | 550 | 1,000 | 1 |
+
+✅ No new uncovered lines detected in this PR.
+
+<details>
+<summary>Coverage by Package</summary>
+
+| Package | Files | Total Lines | Covered | Coverage |
+| ------- | ----: | ----------: | ------: | -------: |
+| src | 1 | 1,000 | 450 | 45.0% |
 
 </details>
 `

@@ -84,11 +84,18 @@ export function generate(params: Params): string {
   } = params
   const uncoveredLines = totalLines - coveredLines
 
-  let statusEmoji = '🔴'
-  if (parseFloat(coveragePercentage) >= 80) {
+  // Status emoji: if we have a delta, use it to determine color (encourage improvement).
+  // Otherwise fall back to absolute coverage thresholds.
+  let statusEmoji: string
+  if (coverageDelta) {
+    const deltaNum = parseFloat(coverageDelta)
+    statusEmoji = deltaNum > 0 ? '📈' : deltaNum < 0 ? '📉' : '➖'
+  } else if (parseFloat(coveragePercentage) >= 80) {
     statusEmoji = '🟢'
   } else if (parseFloat(coveragePercentage) >= 60) {
     statusEmoji = '🟡'
+  } else {
+    statusEmoji = '🔴'
   }
 
   // Format coverage display with delta if available

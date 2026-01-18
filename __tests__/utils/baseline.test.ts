@@ -90,7 +90,7 @@ describe('baseline', () => {
     const testCases = [
       {current: '85.50', deltaVal: '+2.50', expected: '85.50% (↑2.50%)'},
       {current: '80.00', deltaVal: '-5.00', expected: '80.00% (↓5.00%)'},
-      {current: '85.00', deltaVal: '+0.00', expected: '85.00% (↑0.00%)'}
+      {current: '85.00', deltaVal: '+0.00', expected: '85.00% (0.00%)'}
     ]
 
     test.each(testCases)('current=$current deltaVal=$deltaVal -> $expected', ({

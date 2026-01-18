@@ -15,6 +15,12 @@ The summary is Markdown formatted with:
 
 ### 1. Status Emoji
 
+When a baseline exists (delta available):
+- 📈 Chart up: Coverage improved (delta > 0)
+- ➖ Minus: Coverage unchanged (delta = 0)
+- 📉 Chart down: Coverage decreased (delta < 0)
+
+Without baseline (no delta):
 - 🟢 Green: Coverage ≥ 80%
 - 🟡 Yellow: Coverage ≥ 60%
 - 🔴 Red: Coverage < 60%
