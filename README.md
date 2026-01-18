@@ -1,4 +1,4 @@
-![Build Status](https://github.com/sgrankin/codecoverage/actions/workflows/test.yml/badge.svg)
+![Build Status](https://github.com/sgrankin/codecoverage/actions/workflows/ci.yml/badge.svg)
 
 # Code Coverage Annotation
 
@@ -7,8 +7,6 @@ and hard to take action on. It's much more useful to catch gaps in coverage as
 they're introduced to a repo, right in the context of pull requests!
 
 All processing is done within Github Actions, no data is sent to an external server.
-
-> **Note**: This is a fork of [ggilder/codecoverage](https://github.com/ggilder/codecoverage) with updated dependencies and additional improvements.
 
 ## Sample PR Annotation
 <img width="1069" alt="Screen Shot 2022-06-26 at 7 11 21 PM" src="https://user-images.githubusercontent.com/23582455/175847244-dbed2fb3-70be-4bcd-a7d0-64197951c517.png">
@@ -38,6 +36,82 @@ All processing is done within Github Actions, no data is sent to an external ser
 | `coverage_delta`      | Change in coverage compared to baseline (e.g., `+2.50` or `-1.25`) |
 | `baseline_percentage` | Baseline coverage percentage from git notes                    |
 | `mode`                | The operating mode used (`pr-check` or `store-baseline`)       |
+
+## Usage
+
+Add the action to your workflow file like so, replacing the file path and
+coverage format with values appropriate for your repo:
+
+```yaml
+- name: Code Coverage Annotation
+  uses: sgrankin/codecoverage@main
+  with:
+    GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+    COVERAGE_FILE_PATH: "./coverage/lcov.info"
+    COVERAGE_FORMAT: "lcov"
+```
+
+## Usage with GitHub Enterprise Server or Cloud
+
+You need to set the `GITHUB_BASE_URL` input to point to your API endpoint to use this action with GitHub Enterprise Server or Cloud. For example:
+
+```yaml
+with:
+  GITHUB_BASE_URL: https://github.acme-inc.com/api/v3 # for GitHub Enterprise Server
+```
+ or 
+
+```yaml
+with:
+  GITHUB_BASE_URL: https://api.acme-inc.ghe.com # for GitHub Enterprise Cloud
+```
+
+### Multiple Coverage Files
+
+You can specify multiple coverage files using glob patterns or newline-separated paths:
+
+```yaml
+# Using glob pattern
+- name: Code Coverage Annotation
+  uses: sgrankin/codecoverage@main
+  with:
+    GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+    COVERAGE_FILE_PATH: "**/coverage.out"
+    COVERAGE_FORMAT: go
+
+# Using multiple paths
+- name: Code Coverage Annotation
+  uses: sgrankin/codecoverage@main
+  with:
+    GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+    COVERAGE_FILE_PATH: |
+      packages/frontend/coverage/lcov.info
+      packages/backend/coverage/lcov.info
+    COVERAGE_FORMAT: lcov
+```
+
+### Golang Workflow Example
+
+```yaml
+- name: Run tests with coverage
+  run: go test -v ./... -coverprofile coverage.out
+
+- name: Code Coverage Annotation
+  uses: sgrankin/codecoverage@main
+  with:
+    GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+    COVERAGE_FILE_PATH: coverage.out
+    COVERAGE_FORMAT: go
+```
+
+### Javascript/Typescript
+
+Set up `npm run test:cov` in your `package.json` scripts to run `jest --coverage`, which will output Lcov formatted information to `coverage/lcov.info`.
+
+### Other languages
+
+* C++: GCC Gcov can output Lcov format; [this blog post](https://shenxianpeng.github.io/2021/07/gcov-example/) may help you get started.
+* Ruby: Simplecov can output Lcov format when you add the [`simplecov-lcov`](https://github.com/fortissimo1997/simplecov-lcov) gem to your Gemfile. Make sure to set `SimpleCov::Formatter::LcovFormatter.config.report_with_single_file` to `true` and provide the path to the output file using `COVERAGE_FILE_PATH` as described above.
 
 ## Coverage Delta
 
@@ -110,86 +184,10 @@ You can manually control the mode:
     # ...
 ```
 
-## Usage
-
-Add the action to your workflow file like so, replacing the file path and
-coverage format with values appropriate for your repo:
-
-```yaml
-- name: Code Coverage Annotation
-  uses: sgrankin/codecoverage@main
-  with:
-    GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-    COVERAGE_FILE_PATH: "./coverage/lcov.info"
-    COVERAGE_FORMAT: "lcov"
-```
-
-## Usage with GitHub Enterprise Server or Cloud
-
-You need to the `GITHUB_BASE_URL` input to point to your API endpoint to use this action with GitHub Enterprise Server or Cloud. For example:
-
-```yaml
-with:
-  GITHUB_BASE_URL: https://github.acme-inc.com/api/v3 # for GitHub Enterprise Server
-```
- or 
-
-```yaml
-with:
-  GITHUB_BASE_URL: https://api.acme-inc.ghe.com # for GitHub Enterprise Cloud
-```
-
-### Multiple Coverage Files
-
-You can specify multiple coverage files using glob patterns or newline-separated paths:
-
-```yaml
-# Using glob pattern
-- name: Code Coverage Annotation
-  uses: sgrankin/codecoverage@main
-  with:
-    GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-    COVERAGE_FILE_PATH: "**/coverage.out"
-    COVERAGE_FORMAT: go
-
-# Using multiple paths
-- name: Code Coverage Annotation
-  uses: sgrankin/codecoverage@main
-  with:
-    GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-    COVERAGE_FILE_PATH: |
-      packages/frontend/coverage/lcov.info
-      packages/backend/coverage/lcov.info
-    COVERAGE_FORMAT: lcov
-```
-
-### Golang Workflow Example
-
-```yaml
-- name: Run tests with coverage
-  run: go test -v ./... -coverprofile coverage.out
-
-- name: Code Coverage Annotation
-  uses: sgrankin/codecoverage@main
-  with:
-    GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-    COVERAGE_FILE_PATH: coverage.out
-    COVERAGE_FORMAT: go
-```
-
-### Javascript/Typescript
-
-Set up `npm run test:cov` in your `package.json` scripts to run `jest --coverage`, which will output Lcov formatted information to `coverage/lcov.info`.
-
-### Other languages
-
-* C++: GCC Gcov can output Lcov format; [this blog post](https://shenxianpeng.github.io/2021/07/gcov-example/) may help you get started.
-* Ruby: Simplecov can output Lcov format when you add the [`simplecov-lcov`](https://github.com/fortissimo1997/simplecov-lcov) gem to your Gemfile. Make sure to set `SimpleCov::Formatter::LcovFormatter.config.report_with_single_file` to `true` and provide the path to the output file using `COVERAGE_FILE_PATH` as described above.
-
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines.
 
 ## Acknowledgements
 
-This fork is based on [ggilder/codecoverage](https://github.com/ggilder/codecoverage), which was originally based on [shravan097/codecoverage](https://github.com/shravan097/codecoverage).
+This is a fork of [ggilder/codecoverage](https://github.com/ggilder/codecoverage) with updated dependencies and additional improvements. The original was based on [shravan097/codecoverage](https://github.com/shravan097/codecoverage).
