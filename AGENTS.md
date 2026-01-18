@@ -31,12 +31,28 @@ Use `jj` (Jujutsu) for version control. Key workflow:
 - **Avoid repetition/stutter** - Don't repeat context clear from the module name. Use namespace imports (`import * as baseline from './baseline'`) so functions can have short names (`baseline.store()` not `storeBaseline()`).
 - **Namespace imports** - Prefer `import * as foo from './foo'` over named imports for internal modules. This provides clear context at call sites while allowing shorter export names.
 
-## Testing Requirements
+## Testing
 
 - **All tests must pass** before completing a commit
-- **Code coverage must be maintained** at or near 100%
+- **Code coverage must be maintained** at or near 95%
 - Run `npm run test:cov` to run tests with coverage report
 - **Prefer table-driven tests** using `test.each()` for better readability and easier extension
+
+### In-Source Tests
+
+Use `import.meta.vitest` for testing private/internal functions:
+
+```typescript
+// At the end of a source file
+if (import.meta.vitest) {
+  const {test, expect} = import.meta.vitest
+  test('helper does X', () => {
+    expect(privateHelper('input')).toBe('output')
+  })
+}
+```
+
+This keeps tests close to the code they test and avoids exporting internals.
 
 ### Fakes, Not Mocks
 
@@ -57,37 +73,65 @@ Example: Instead of mocking `fs.readFile` to return specific data, use a fake fi
 
 - `npm test` - Run tests in watch mode
 - `npm run test:cov` - Run tests with coverage report
-- `npm run build` - Compile TypeScript
-- `npm run package` - Build for distribution (creates dist/)
-- `npm run lint` - Run ESLint
-- `npm run format` - Format code with Prettier
-- `npm run all` - Build, format, lint, package, and test
+- `npm run typecheck` - Type check with tsgo
+- `npm run check` - Lint and format with Biome
+- `npm run package` - Bundle for distribution (creates dist/)
+- `npm run all` - Typecheck, format, package, and test with coverage
 
 **Always run `npm run all` before committing** - this ensures dist/ is rebuilt and included in the commit.
 
 ## Project Structure
 
-- `src/` - TypeScript source files
-  - `action.ts` - Main action logic (`play()` function)
-  - `main.ts` - Entry point
-  - `utils/` - Utility modules (coverage parsers, GitHub API, diff parsing)
-- `__tests__/` - Test files (mirroring src/ structure)
-  - `fixtures/` - Test fixture files
-- `dist/` - Compiled output (committed to repo)
+```
+src/
+  action.ts         # Main action logic (play() function)
+  main.ts           # Entry point
+  utils/            # Utility modules
+__tests__/          # External test files (mirrors src/)
+  fixtures/         # Test data files
+dist/               # Bundled output (committed to repo)
+docs/               # User documentation
+  examples.md       # Workflow examples
+specs/              # Design specifications (see below)
+```
 
 ## Specifications
 
-The `specs/` directory contains design documentation. When making significant changes:
+The `specs/` directory contains design documentation:
 
-- **Update existing specs** if modifying related functionality
-- **Create new specs** for major features or architectural decisions
-- Keep specs as living documentation that explains *why* decisions were made
+| Spec | Covers |
+|------|--------|
+| `architecture.md` | Project structure, data flow, dependencies |
+| `coverage-formats.md` | LCOV, Cobertura, Go coverage parsing |
+| `multiple-files.md` | Glob patterns, file merging |
+| `annotations.md` | PR annotation generation, coalescing |
+| `step-summary.md` | Summary format, package grouping |
+| `pr-comment.md` | PR comment posting, upsert logic |
+| `coverage-delta.md` | Git notes, baseline storage, delta calculation |
+
+### Keeping Specs Updated
+
+When making changes:
+
+1. **Before starting**: Check if a relevant spec exists
+2. **While working**: Note any design decisions that should be documented
+3. **Before committing**: Update or create specs for significant changes
+
+**Rule of thumb**: If you're adding a new input/output, changing data format, or modifying core behavior, update the relevant spec.
+
+## Checklist Before Committing
+
+- [ ] `npm run all` passes
+- [ ] New/changed functionality has tests
+- [ ] Specs updated if behavior changed
+- [ ] README updated if inputs/outputs changed
 
 ## Versioning and Releases
 
 This action uses semantic versioning with floating major version tags:
 
 - **Patch releases**: `v1.3.1`, `v1.3.2`, etc. for bug fixes and minor changes
+- **Minor releases**: `v1.4.0`, `v1.5.0`, etc. for new features
 - **Floating tag**: `v1` always points to the latest `v1.x.x` release
 
 When releasing a new version (using raw git, as jj doesn't handle tags):
@@ -95,12 +139,15 @@ When releasing a new version (using raw git, as jj doesn't handle tags):
 ```bash
 # Tag the specific version
 jj git export  # ensure commits are in git
-git tag v1.3.2
-git push origin v1.3.2
+git tag v1.6.0
+git push origin v1.6.0
 
 # Update the floating v1 tag
 git tag -f v1
 git push -f origin v1
+
+# Create GitHub release
+gh release create v1.6.0 --title "v1.6.0" --notes "..."
 ```
 
 Users can reference `@v1` to always get the latest v1.x release.
