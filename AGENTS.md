@@ -14,6 +14,14 @@ Use `jj` (Jujutsu) for version control. Key workflow:
 
 - **Inject functions, not single-method interfaces** - If a dependency only has one method called on it, inject a function instead of a class/interface. Simpler to test, simpler to understand.
 - **Prefer pure functions** - Keep side effects at the edges; core logic should be pure and easy to test.
+- **Doc comments** - Full sentences, starting with the identifier name, ending with a period.
+  ```typescript
+  // FetchPullDiff retrieves the raw diff for a pull request.
+  type FetchPullDiff = () => Promise<string>
+  ```
+- **Interfaces belong to consumers** - Define interfaces in the code that uses them, not the code that implements them. Don't define interfaces before they're needed.
+- **Happy path at minimum indent** - Handle errors/edge cases first and return early; keep the main logic at the lowest nesting level.
+- **Variable names** - Short for local scope (`i`, `err`), descriptive for wider scope or exports.
 
 ## Testing Requirements
 
