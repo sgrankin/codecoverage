@@ -5,10 +5,10 @@ import * as os from 'node:os'
 import * as path from 'node:path'
 import {getFixturePath} from './fixtures/util'
 import {captureStdout} from './fixtures/capture-stdout'
-import type {ActionDependencies, GithubOperations} from '../src/action'
-import type {PullRequestFiles, Annotation} from '../src/utils/github'
-import type {BaselineData} from '../src/utils/baseline'
-import type {CoverageFile} from '../src/utils/general'
+import type {Dependencies, GitHubOps} from '../src/action'
+import type * as github from '../src/utils/github'
+import type * as baseline from '../src/utils/baseline'
+import type * as coverage from '../src/utils/general'
 
 // We need to mock getInput since it reads from env vars
 // and setOutput/setFailed since they write to special files
@@ -47,24 +47,22 @@ vi.mock('@actions/github', () => ({
 // Import after mocks are set up
 import {play} from '../src/action'
 
-/**
- * Creates fake dependencies for testing.
- * Uses simple objects instead of mocks - "fakes, not mocks".
- */
+// createFakeDeps creates fake dependencies for testing.
+// Uses simple objects instead of mocks - "fakes, not mocks".
 function createFakeDeps(
   options: {
-    diffResponse?: PullRequestFiles
-    annotations?: Annotation[]
-    baselineData?: BaselineData | null
+    diffResponse?: github.PullRequestFiles
+    annotations?: github.Annotation[]
+    baselineData?: baseline.Data | null
     storeResult?: boolean
-    /** Track calls to baseline.store */
+    // onStore tracks calls to baseline.store.
     onStore?: (data: unknown, opts: unknown) => void
-    /** Track calls to baseline.load */
+    // onLoad tracks calls to baseline.load.
     onLoad?: (branch: string, opts: unknown) => void
   } = {}
-): ActionDependencies {
+): Dependencies {
   return {
-    createGithubUtil: (): GithubOperations => ({
+    createGitHub: (): GitHubOps => ({
       getPullRequestDiff: async () => options.diffResponse ?? {},
       buildAnnotations: () => options.annotations ?? []
     }),

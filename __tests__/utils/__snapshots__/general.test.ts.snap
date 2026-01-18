@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`filterCoverageByFile 1`] = `
+exports[`filterByFile 1`] = `
 [
   {
     "coveredLineCount": 1,

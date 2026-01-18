@@ -1,5 +1,5 @@
 import {test, expect} from 'vitest'
-import {expandCoverageFilePaths} from '../../src/utils/files'
+import * as files from '../../src/utils/files'
 import {getFixturePath} from '../fixtures/util'
 import * as path from 'path'
 
@@ -54,7 +54,7 @@ const expandTestCases = [
 ]
 
 test.each(expandTestCases)('$name', async ({input, expectedContains, expectedLength}) => {
-  const result = await expandCoverageFilePaths(input)
+  const result = await files.expand(input)
 
   for (const expected of expectedContains) {
     expect(result).toContain(expected)

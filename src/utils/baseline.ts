@@ -1,16 +1,8 @@
 import * as core from '@actions/core'
-import {
-  fetchNotes,
-  readNotes,
-  writeNotes,
-  pushNotes,
-  findMergeBase,
-  getHeadCommit,
-  GitNotesOptions
-} from './gitnotes.js'
+import * as gitnotes from './gitnotes.js'
 
-// BaselineData is the coverage baseline stored in git notes.
-export interface BaselineData {
+// Data is the coverage baseline stored in git notes.
+export interface Data {
   /** ISO timestamp when baseline was recorded */
   timestamp: string
   /** Coverage percentage as string (e.g., "85.50") */
@@ -23,25 +15,25 @@ export interface BaselineData {
   commit: string
 }
 
-// BaselineResult is the result of loading baseline data.
-export interface BaselineResult {
-  /** The baseline data, or null if not found */
-  baseline: BaselineData | null
-  /** The commit SHA the baseline was found on */
+// Result is the result of loading baseline data.
+export interface Result {
+  // baseline is the baseline data, or null if not found.
+  baseline: Data | null
+  // commit is the commit SHA the baseline was found on.
   commit: string | null
-  /** Whether notes exist but couldn't be parsed */
+  // parseError indicates notes exist but couldn't be parsed.
   parseError?: string
 }
 
-// parseBaseline parses baseline data from JSONL content, using the first line.
-export function parseBaseline(content: string): BaselineData | null {
+// parse parses baseline data from JSONL content, using the first line.
+export function parse(content: string): Data | null {
   const firstLine = content.split('\n')[0]?.trim()
   if (!firstLine) {
     return null
   }
 
   try {
-    const data = JSON.parse(firstLine) as BaselineData
+    const data = JSON.parse(firstLine) as Data
     // Validate required fields
     if (
       typeof data.coveragePercentage !== 'string' ||
@@ -56,35 +48,35 @@ export function parseBaseline(content: string): BaselineData | null {
   }
 }
 
-// formatBaseline formats baseline data as JSONL for storage.
-export function formatBaseline(data: BaselineData): string {
+// format formats baseline data as JSONL for storage.
+export function format(data: Data): string {
   return JSON.stringify(data)
 }
 
-// storeBaseline stores coverage baseline for the current commit.
-export async function storeBaseline(
-  data: Omit<BaselineData, 'timestamp' | 'commit'>,
-  options: GitNotesOptions = {}
+// store stores coverage baseline for the current commit.
+export async function store(
+  data: Omit<Data, 'timestamp' | 'commit'>,
+  options: gitnotes.Options = {}
 ): Promise<boolean> {
   const {cwd, namespace} = options
 
   try {
-    const commit = await getHeadCommit({cwd})
+    const commit = await gitnotes.headCommit({cwd})
 
-    const baseline: BaselineData = {
+    const baseline: Data = {
       ...data,
       timestamp: new Date().toISOString(),
       commit
     }
 
-    const content = formatBaseline(baseline)
+    const content = format(baseline)
     core.info(`Storing baseline coverage: ${data.coveragePercentage}%`)
 
     // Write notes for current commit
-    await writeNotes(commit, content, {cwd, namespace, force: true})
+    await gitnotes.write(commit, content, {cwd, namespace, force: true})
 
     // Push notes to origin
-    const pushSuccess = await pushNotes({cwd, namespace})
+    const pushSuccess = await gitnotes.push({cwd, namespace})
     if (!pushSuccess) {
       core.warning('Failed to push coverage baseline to origin after retries')
       return false
@@ -99,23 +91,20 @@ export async function storeBaseline(
   }
 }
 
-// loadBaseline loads baseline coverage from the merge-base commit with a target branch.
-export async function loadBaseline(
-  targetBranch: string,
-  options: GitNotesOptions = {}
-): Promise<BaselineResult> {
+// load loads baseline coverage from the merge-base commit with a target branch.
+export async function load(targetBranch: string, options: gitnotes.Options = {}): Promise<Result> {
   const {cwd, namespace} = options
 
   try {
     // Fetch latest notes from origin
-    const fetched = await fetchNotes({cwd, namespace})
+    const fetched = await gitnotes.fetch({cwd, namespace})
     if (!fetched) {
       core.info('No coverage notes found in origin')
       return {baseline: null, commit: null}
     }
 
     // Find merge-base with target branch
-    const mergeBase = await findMergeBase(`origin/${targetBranch}`, {cwd})
+    const mergeBase = await gitnotes.findMergeBase(`origin/${targetBranch}`, {cwd})
     if (!mergeBase) {
       core.info(`No merge-base found with origin/${targetBranch}`)
       return {baseline: null, commit: null}
@@ -124,14 +113,14 @@ export async function loadBaseline(
     core.info(`Found merge-base: ${mergeBase.substring(0, 8)}`)
 
     // Read notes from merge-base
-    const content = await readNotes(mergeBase, {cwd, namespace})
+    const content = await gitnotes.read(mergeBase, {cwd, namespace})
     if (!content) {
       core.info('No baseline coverage found for merge-base commit')
       return {baseline: null, commit: mergeBase}
     }
 
     // Parse the baseline data
-    const baseline = parseBaseline(content)
+    const baseline = parse(content)
     if (!baseline) {
       core.warning('Failed to parse baseline coverage data')
       return {baseline: null, commit: mergeBase, parseError: 'Invalid format'}
@@ -146,25 +135,25 @@ export async function loadBaseline(
   }
 }
 
-// calculateDelta calculates the coverage delta between current and baseline.
+// delta calculates the coverage delta between current and baseline.
 // Returns a formatted string like "+2.50" or "-1.25".
-export function calculateDelta(
+export function delta(
   currentPercentage: string,
   baselinePercentage: string,
   precision = 2
 ): string {
   const current = parseFloat(currentPercentage)
-  const baseline = parseFloat(baselinePercentage)
-  const delta = current - baseline
+  const base = parseFloat(baselinePercentage)
+  const diff = current - base
 
-  const sign = delta >= 0 ? '+' : ''
-  return `${sign}${delta.toFixed(precision)}`
+  const sign = diff >= 0 ? '+' : ''
+  return `${sign}${diff.toFixed(precision)}`
 }
 
-// formatCoverageWithDelta formats coverage with delta for display.
+// formatWithDelta formats coverage with delta for display.
 // Returns a string like "85.5% (↑2.1%)" or "83.2% (↓1.8%)".
-export function formatCoverageWithDelta(currentPercentage: string, delta: string): string {
-  const deltaNum = parseFloat(delta)
+export function formatWithDelta(currentPercentage: string, deltaValue: string): string {
+  const deltaNum = parseFloat(deltaValue)
   const arrow = deltaNum >= 0 ? '↑' : '↓'
   const absDelta = Math.abs(deltaNum).toFixed(2)
   return `${currentPercentage}% (${arrow}${absDelta}%)`

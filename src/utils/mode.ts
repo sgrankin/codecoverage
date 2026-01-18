@@ -1,12 +1,12 @@
 import * as github from '@actions/github'
 
-// ActionMode is the operating mode for the coverage action.
-export type ActionMode = 'pr-check' | 'store-baseline'
+// Mode is the operating mode for the coverage action.
+export type Mode = 'pr-check' | 'store-baseline'
 
-// ModeContext contains context information for mode detection.
-export interface ModeContext {
+// Context contains context information for mode detection.
+export interface Context {
   // mode is the mode the action is running in.
-  mode: ActionMode
+  mode: Mode
   // baseBranch is the target branch for PR mode (e.g., 'main').
   baseBranch?: string
   // isPullRequest indicates whether this is a pull request event.
@@ -34,19 +34,19 @@ export interface GithubContext {
   }
 }
 
-// detectMode detects the operating mode based on GitHub context.
+// detect detects the operating mode based on GitHub context.
 // PR events use 'pr-check' mode; push to main uses 'store-baseline' mode.
-export function detectMode(
+export function detect(
   modeOverride?: string,
   mainBranch = 'main',
   ctx: GithubContext = github.context
-): ModeContext {
+): Context {
   const eventName = ctx.eventName
   const ref = ctx.ref
 
   // Handle manual override
   if (modeOverride) {
-    const mode = modeOverride as ActionMode
+    const mode = modeOverride as Mode
     if (mode !== 'pr-check' && mode !== 'store-baseline') {
       throw new Error(
         `Invalid mode override: ${modeOverride}. Must be 'pr-check' or 'store-baseline'`
@@ -91,9 +91,9 @@ export function detectMode(
   }
 }
 
-// getNamespaceForBranch returns the namespace for coverage notes based on the branch.
+// namespaceForBranch returns the namespace for coverage notes based on the branch.
 // This allows different branches (main, release-v1, etc.) to have separate baseline coverage data.
-export function getNamespaceForBranch(branch: string, prefix = 'coverage'): string {
+export function namespaceForBranch(branch: string, prefix = 'coverage'): string {
   // Sanitize branch name for git ref compatibility
   const sanitized = branch.replace(/[^a-zA-Z0-9_-]/g, '-')
   return `${prefix}/${sanitized}`

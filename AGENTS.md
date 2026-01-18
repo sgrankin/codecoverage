@@ -26,6 +26,8 @@ Use `jj` (Jujutsu) for version control. Key workflow:
 - **Clear is better than clever** - Prefer readable code over clever one-liners.
 - **A little copying is better than a little dependency** - Don't add a dependency for trivial code.
 - **`any` says nothing** - Avoid `any`; use precise types.
+- **Avoid repetition/stutter** - Don't repeat context clear from the module name. Use namespace imports (`import * as baseline from './baseline'`) so functions can have short names (`baseline.store()` not `storeBaseline()`).
+- **Namespace imports** - Prefer `import * as foo from './foo'` over named imports for internal modules. This provides clear context at call sites while allowing shorter export names.
 
 ## Testing Requirements
 

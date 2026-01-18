@@ -1,34 +1,29 @@
 import {env} from 'node:process'
 
 import * as core from '@actions/core'
-import {
-  correctLineTotals,
-  mergeCoverageByFile,
-  filterCoverageByFile,
-  CoverageParsed
-} from './utils/general.js'
-import {parseLCov} from './utils/lcov.js'
-import {parseCobertura} from './utils/cobertura.js'
-import {parseGoCoverage} from './utils/gocoverage.js'
-import {GithubUtil, PullRequestFiles, Annotation} from './utils/github.js'
-import {expandCoverageFilePaths} from './utils/files.js'
-import {detectMode, getNamespaceForBranch} from './utils/mode.js'
-import {storeBaseline, loadBaseline, calculateDelta, BaselineData} from './utils/baseline.js'
-import {generateSummary, FileCoverage} from './utils/summary.js'
+import * as coverage from './utils/general.js'
+import * as lcov from './utils/lcov.js'
+import * as cobertura from './utils/cobertura.js'
+import * as gocov from './utils/gocoverage.js'
+import * as github from './utils/github.js'
+import * as files from './utils/files.js'
+import * as mode from './utils/mode.js'
+import * as baseline from './utils/baseline.js'
+import * as summary from './utils/summary.js'
 
 const SUPPORTED_FORMATS = ['lcov', 'cobertura', 'go']
 
-// GithubOperations defines the GitHub API operations needed by the action.
-export interface GithubOperations {
-  getPullRequestDiff(): Promise<PullRequestFiles>
+// GitHubOps defines the GitHub API operations needed by the action.
+export interface GitHubOps {
+  getPullRequestDiff(): Promise<github.PullRequestFiles>
   buildAnnotations(
-    coverageFiles: ReturnType<typeof filterCoverageByFile>,
-    pullRequestFiles: PullRequestFiles
-  ): Annotation[]
+    coverageFiles: coverage.File[],
+    pullRequestFiles: github.PullRequestFiles
+  ): github.Annotation[]
 }
 
-// BaselineOperations defines baseline storage and retrieval operations.
-export interface BaselineOperations {
+// BaselineOps defines baseline storage and retrieval operations.
+export interface BaselineOps {
   store(
     data: {
       coveragePercentage: string
@@ -40,63 +35,63 @@ export interface BaselineOperations {
   load(
     baseBranch: string,
     options: {cwd?: string; namespace: string}
-  ): Promise<{baseline: BaselineData | null; commit: string | null}>
+  ): Promise<{baseline: baseline.Data | null; commit: string | null}>
 }
 
-// ActionDependencies defines injectable dependencies for the action.
-export interface ActionDependencies {
-  /** Factory to create GithubOperations instance */
-  createGithubUtil: (token: string, baseUrl: string) => GithubOperations
-  /** Baseline storage/retrieval operations */
-  baseline: BaselineOperations
+// Dependencies defines injectable dependencies for the action.
+export interface Dependencies {
+  // createGitHub is a factory to create GitHubOps instance.
+  createGitHub: (token: string, baseUrl: string) => GitHubOps
+  // baseline provides baseline storage/retrieval operations.
+  baseline: BaselineOps
 }
 
-// createDefaultDependencies returns the production dependencies.
-function createDefaultDependencies(): ActionDependencies {
+// defaultDeps returns the production dependencies.
+function defaultDeps(): Dependencies {
   return {
-    createGithubUtil: (token, baseUrl) => new GithubUtil(token, baseUrl),
+    createGitHub: (token, baseUrl) => new github.Client(token, baseUrl),
     baseline: {
-      store: storeBaseline,
-      load: loadBaseline
+      store: baseline.store,
+      load: baseline.load
     }
   }
 }
 
-// parseCoverage parses coverage files and computes aggregate statistics.
-async function parseCoverage(
+// parseCoverageFiles parses coverage files and computes aggregate statistics.
+async function parseCoverageFiles(
   coverageFilePath: string,
   coverageFormat: string,
   workspacePath: string
 ): Promise<{
-  parsedCov: CoverageParsed
+  parsedCov: coverage.Parsed
   totalLines: number
   coveredLines: number
   coveragePercentage: string
 }> {
   // Expand file paths (supports globs and multiple paths)
-  const coverageFiles = await expandCoverageFilePaths(coverageFilePath)
+  const coverageFiles = await files.expand(coverageFilePath)
   if (coverageFiles.length === 0) {
     throw new Error(`No coverage files found matching: ${coverageFilePath}`)
   }
   core.info(`Found ${coverageFiles.length} coverage file(s)`)
 
   // Parse all coverage files and merge results
-  let parsedCov: CoverageParsed = []
-  for (const coverageFile of coverageFiles) {
-    let fileCov: CoverageParsed
+  let parsedCov: coverage.Parsed = []
+  for (const covFile of coverageFiles) {
+    let fileCov: coverage.Parsed
     if (coverageFormat === 'cobertura') {
-      fileCov = await parseCobertura(coverageFile, workspacePath)
+      fileCov = await cobertura.parse(covFile, workspacePath)
     } else if (coverageFormat === 'go') {
-      fileCov = await parseGoCoverage(coverageFile, 'go.mod')
+      fileCov = await gocov.parse(covFile, 'go.mod')
     } else {
-      fileCov = await parseLCov(coverageFile, workspacePath)
+      fileCov = await lcov.parse(covFile, workspacePath)
     }
     parsedCov = parsedCov.concat(fileCov)
   }
 
   // Merge coverage from multiple test runs
-  parsedCov = mergeCoverageByFile(parsedCov)
-  parsedCov = correctLineTotals(parsedCov)
+  parsedCov = coverage.mergeByFile(parsedCov)
+  parsedCov = coverage.correctTotals(parsedCov)
 
   // Calculate totals
   const totalLines = parsedCov.reduce((acc, entry) => acc + entry.lines.found, 0)
@@ -108,7 +103,7 @@ async function parseCoverage(
 }
 
 // play is the entry point of the GitHub Action.
-export async function play(deps: ActionDependencies = createDefaultDependencies()): Promise<void> {
+export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
   try {
     core.info('Performing Code Coverage Analysis')
 
@@ -132,12 +127,12 @@ export async function play(deps: ActionDependencies = createDefaultDependencies(
     core.info(`Workspace: ${workspacePath}`)
 
     // Detect operating mode
-    const modeContext = detectMode(modeOverride)
-    core.info(`Mode: ${modeContext.mode} (event: ${modeContext.eventName})`)
-    core.setOutput('mode', modeContext.mode)
+    const ctx = mode.detect(modeOverride)
+    core.info(`Mode: ${ctx.mode} (event: ${ctx.eventName})`)
+    core.setOutput('mode', ctx.mode)
 
     // Parse coverage data
-    const {parsedCov, totalLines, coveredLines, coveragePercentage} = await parseCoverage(
+    const {parsedCov, totalLines, coveredLines, coveragePercentage} = await parseCoverageFiles(
       COVERAGE_FILE_PATH,
       COVERAGE_FORMAT,
       workspacePath
@@ -156,10 +151,10 @@ export async function play(deps: ActionDependencies = createDefaultDependencies(
     let baselinePercentage: string | undefined
 
     // Handle mode-specific logic
-    if (modeContext.mode === 'store-baseline') {
+    if (ctx.mode === 'store-baseline') {
       // Store baseline mode: save coverage to git notes
-      if (modeContext.baseBranch) {
-        const namespace = getNamespaceForBranch(modeContext.baseBranch, noteNamespace)
+      if (ctx.baseBranch) {
+        const namespace = mode.namespaceForBranch(ctx.baseBranch, noteNamespace)
         core.info(`Storing baseline with namespace: ${namespace}`)
 
         await deps.baseline.store(
@@ -175,25 +170,25 @@ export async function play(deps: ActionDependencies = createDefaultDependencies(
       }
 
       // In store-baseline mode on non-PR events, we're done (no annotations)
-      if (!modeContext.isPullRequest) {
+      if (!ctx.isPullRequest) {
         // Write summary if enabled
         const STEP_SUMMARY = core.getInput('STEP_SUMMARY')
         if (STEP_SUMMARY !== 'false') {
-          const files: FileCoverage[] = parsedCov.map(entry => ({
+          const fileStats: summary.FileCoverage[] = parsedCov.map(entry => ({
             file: entry.file,
             totalLines: entry.lines.found,
             coveredLines: entry.lines.hit,
             package: entry.package
           }))
-          const summary = generateSummary({
+          const summaryText = summary.generate({
             coveragePercentage,
             totalLines,
             coveredLines,
             filesAnalyzed: parsedCov.length,
             annotationCount: 0,
-            files
+            files: fileStats
           })
-          await core.summary.addRaw(summary).write()
+          await core.summary.addRaw(summaryText).write()
           core.info('Step summary written')
         }
         return
@@ -201,18 +196,18 @@ export async function play(deps: ActionDependencies = createDefaultDependencies(
     }
 
     // PR Check mode (or store-baseline mode on PR event): calculate delta and create annotations
-    if (calculateDeltaInput && modeContext.baseBranch) {
-      const namespace = getNamespaceForBranch(modeContext.baseBranch, noteNamespace)
+    if (calculateDeltaInput && ctx.baseBranch) {
+      const namespace = mode.namespaceForBranch(ctx.baseBranch, noteNamespace)
       core.info(`Loading baseline from namespace: ${namespace}`)
 
-      const baselineResult = await deps.baseline.load(modeContext.baseBranch, {
+      const baselineResult = await deps.baseline.load(ctx.baseBranch, {
         cwd: workspacePath || undefined,
         namespace
       })
 
       if (baselineResult.baseline) {
         baselinePercentage = baselineResult.baseline.coveragePercentage
-        coverageDelta = calculateDelta(coveragePercentage, baselinePercentage, deltaPrecision)
+        coverageDelta = baseline.delta(coveragePercentage, baselinePercentage, deltaPrecision)
         core.info(`Coverage delta: ${coverageDelta}`)
         core.setOutput('coverage_delta', coverageDelta)
         core.setOutput('baseline_percentage', baselinePercentage)
@@ -223,12 +218,12 @@ export async function play(deps: ActionDependencies = createDefaultDependencies(
 
     // Only create annotations for PR events
     let annotationCount = 0
-    if (modeContext.isPullRequest) {
-      const coverageByFile = filterCoverageByFile(parsedCov)
+    if (ctx.isPullRequest) {
+      const coverageByFile = coverage.filterByFile(parsedCov)
       core.info('Filter done')
 
-      const githubUtil = deps.createGithubUtil(GITHUB_TOKEN, GITHUB_BASE_URL)
-      const pullRequestFiles = await githubUtil.getPullRequestDiff()
+      const gh = deps.createGitHub(GITHUB_TOKEN, GITHUB_BASE_URL)
+      const pullRequestFiles = await gh.getPullRequestDiff()
 
       // Debug output: scoped to files in the diff
       const prFileSet = new Set(Object.keys(pullRequestFiles))
@@ -250,7 +245,7 @@ export async function play(deps: ActionDependencies = createDefaultDependencies(
       }
       core.endGroup()
 
-      const annotations = githubUtil.buildAnnotations(coverageByFile, pullRequestFiles)
+      const annotations = gh.buildAnnotations(coverageByFile, pullRequestFiles)
       annotationCount = annotations.length
       core.setOutput('annotation_count', annotationCount)
 
@@ -283,23 +278,23 @@ export async function play(deps: ActionDependencies = createDefaultDependencies(
     // Write step summary
     const STEP_SUMMARY = core.getInput('STEP_SUMMARY')
     if (STEP_SUMMARY !== 'false') {
-      const files: FileCoverage[] = parsedCov.map(entry => ({
+      const fileStats: summary.FileCoverage[] = parsedCov.map(entry => ({
         file: entry.file,
         totalLines: entry.lines.found,
         coveredLines: entry.lines.hit,
         package: entry.package
       }))
-      const summary = generateSummary({
+      const summaryText = summary.generate({
         coveragePercentage,
         totalLines,
         coveredLines,
         filesAnalyzed: parsedCov.length,
         annotationCount,
-        files,
+        files: fileStats,
         coverageDelta,
         baselinePercentage
       })
-      await core.summary.addRaw(summary).write()
+      await core.summary.addRaw(summaryText).write()
       core.info('Step summary written')
     }
   } catch (error) {

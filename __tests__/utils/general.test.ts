@@ -1,19 +1,12 @@
 import {test, expect} from 'vitest'
 import {getFixturePath} from '../fixtures/util'
-import {parseLCov} from '../../src/utils/lcov'
-import {
-  filterCoverageByFile,
-  mergeCoverageByFile,
-  coalesceLineNumbers,
-  coalesceLineNumbersWithGaps,
-  intersectLineRanges,
-  correctLineTotals
-} from '../../src/utils/general'
+import * as lcov from '../../src/utils/lcov'
+import * as coverage from '../../src/utils/general'
 
-test('filterCoverageByFile', async function () {
+test('filterByFile', async function () {
   const path = getFixturePath('lcov.info')
-  const parsedLcov = await parseLCov(path, '')
-  const output = filterCoverageByFile(parsedLcov)
+  const parsedLcov = await lcov.parse(path, '')
+  const output = coverage.filterByFile(parsedLcov)
   expect(output).toMatchSnapshot()
 })
 
@@ -76,10 +69,10 @@ const coalesceTestCases = [
   }
 ]
 
-test.each(coalesceTestCases)('coalesceLineNumbers: $name', ({lines, executableLines, expected}) => {
+test.each(coalesceTestCases)('coalesce: $name', ({lines, executableLines, expected}) => {
   const result = executableLines
-    ? coalesceLineNumbersWithGaps(lines, executableLines)
-    : coalesceLineNumbers(lines)
+    ? coverage.coalesceWithGaps(lines, executableLines)
+    : coverage.coalesce(lines)
   expect(result).toEqual(expected)
 })
 
@@ -104,11 +97,11 @@ test('range intersections', function () {
     {start_line: 134, end_line: 136}
   ]
 
-  expect(intersectLineRanges(a, b)).toEqual(expected)
+  expect(coverage.intersectRanges(a, b)).toEqual(expected)
 })
 
-test('mergeCoverageByFile merges multiple entries for same file', function () {
-  const coverage = [
+test('mergeByFile merges multiple entries for same file', function () {
+  const cov = [
     {
       file: 'src/foo.ts',
       title: 'foo',
@@ -146,7 +139,7 @@ test('mergeCoverageByFile merges multiple entries for same file', function () {
     }
   ]
 
-  const merged = mergeCoverageByFile(coverage)
+  const merged = coverage.mergeByFile(cov)
 
   expect(merged).toHaveLength(2)
 
@@ -168,9 +161,9 @@ test('mergeCoverageByFile merges multiple entries for same file', function () {
   expect(bar.lines.details).toEqual([{line: 5, hit: 0}])
 })
 
-test('mergeCoverageByFile handles partial coverage correctly', function () {
+test('mergeByFile handles partial coverage correctly', function () {
   // Simulates the real bug: one test run has coverage, another has zero
-  const coverage = [
+  const cov = [
     {
       file: 'src/helper.cs',
       title: 'helper',
@@ -203,7 +196,7 @@ test('mergeCoverageByFile handles partial coverage correctly', function () {
     }
   ]
 
-  const merged = mergeCoverageByFile(coverage)
+  const merged = coverage.mergeByFile(cov)
 
   expect(merged).toHaveLength(1)
   const helper = merged[0]
@@ -211,7 +204,7 @@ test('mergeCoverageByFile handles partial coverage correctly', function () {
   expect(helper.lines.details.every(d => d.hit === 1)).toBe(true)
 })
 
-test('correctLineTotals', function () {
+test('correctTotals', function () {
   const mockCoverage = [
     {
       file: 'test.ts',
@@ -229,7 +222,7 @@ test('correctLineTotals', function () {
     }
   ]
 
-  const result = correctLineTotals(mockCoverage)
+  const result = coverage.correctTotals(mockCoverage)
   expect(result[0].lines.found).toBe(4)
   expect(result[0].lines.hit).toBe(2)
   expect(result[0].file).toBe('test.ts')
@@ -264,7 +257,7 @@ test('correctLineTotals', function () {
     }
   ]
 
-  const multiResult = correctLineTotals(multiFileMock)
+  const multiResult = coverage.correctTotals(multiFileMock)
   expect(multiResult[0].lines.found).toBe(2)
   expect(multiResult[0].lines.hit).toBe(2)
   expect(multiResult[1].lines.found).toBe(3)

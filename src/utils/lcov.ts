@@ -1,12 +1,12 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import {CoverageParsed, CoverageEntry} from './general.js'
+import * as coverage from './general.js'
 
-// parseLcovContent parses LCOV format coverage data.
+// parseContent parses LCOV format coverage data.
 // Inlined from lcov-parse to reduce dependencies.
-function parseLcovContent(str: string): CoverageParsed {
-  const data: CoverageEntry[] = []
-  let item: CoverageEntry = makeEmptyEntry()
+function parseContent(str: string): coverage.Parsed {
+  const data: coverage.Entry[] = []
+  let item: coverage.Entry = emptyEntry()
 
   for (const line of ['end_of_record', ...str.split('\n')]) {
     const trimmed = line.trim()
@@ -39,7 +39,7 @@ function parseLcovContent(str: string): CoverageParsed {
 
     if (trimmed.includes('end_of_record')) {
       data.push(item)
-      item = makeEmptyEntry()
+      item = emptyEntry()
     }
   }
 
@@ -53,7 +53,7 @@ function parseLcovContent(str: string): CoverageParsed {
   return data
 }
 
-function makeEmptyEntry(): CoverageEntry {
+function emptyEntry(): coverage.Entry {
   return {
     title: '',
     file: '',
@@ -61,13 +61,14 @@ function makeEmptyEntry(): CoverageEntry {
   }
 }
 
-export async function parseLCov(lcovPath: string, workspacePath: string): Promise<CoverageParsed> {
+// parse parses an LCOV file and returns coverage data.
+export async function parse(lcovPath: string, workspacePath: string): Promise<coverage.Parsed> {
   if (!lcovPath) {
     throw Error('No LCov path provided')
   }
 
   const fileRaw = fs.readFileSync(lcovPath, 'utf8')
-  const parsed = parseLcovContent(fileRaw)
+  const parsed = parseContent(fileRaw)
 
   for (const entry of parsed) {
     entry.file = path.relative(workspacePath, entry.file)

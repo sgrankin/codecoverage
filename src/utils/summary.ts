@@ -1,4 +1,4 @@
-import {formatCoverageWithDelta} from './baseline.js'
+import * as baseline from './baseline.js'
 
 // FileCoverage is the coverage data for a single file.
 export interface FileCoverage {
@@ -16,8 +16,8 @@ interface PackageCoverage {
   files: FileCoverage[]
 }
 
-// SummaryParams are the parameters for generating a coverage summary.
-export interface SummaryParams {
+// Params are the parameters for generating a coverage summary.
+export interface Params {
   coveragePercentage: string
   totalLines: number
   coveredLines: number
@@ -67,8 +67,8 @@ function groupByPackage(files: FileCoverage[]): PackageCoverage[] {
   return packages.sort((a, b) => a.package.localeCompare(b.package))
 }
 
-// generateSummary creates a markdown coverage report.
-export function generateSummary(params: SummaryParams): string {
+// generate creates a markdown coverage report.
+export function generate(params: Params): string {
   const {
     coveragePercentage,
     totalLines,
@@ -91,7 +91,7 @@ export function generateSummary(params: SummaryParams): string {
   // Format coverage display with delta if available
   let coverageDisplay = `${coveragePercentage}%`
   if (coverageDelta) {
-    coverageDisplay = formatCoverageWithDelta(coveragePercentage, coverageDelta)
+    coverageDisplay = baseline.formatWithDelta(coveragePercentage, coverageDelta)
   }
 
   // Group files by package

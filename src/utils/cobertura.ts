@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import {XMLParser} from 'fast-xml-parser'
-import {CoverageParsed, CoverageEntry} from './general.js'
+import * as coverage from './general.js'
 
 interface CoberturaLine {
   '@_number': string
@@ -32,10 +32,11 @@ function toArray<T>(val: T | T[] | undefined): T[] {
   return Array.isArray(val) ? val : [val]
 }
 
-export async function parseCobertura(
+// parse parses a Cobertura XML file and returns coverage data.
+export async function parse(
   coberturaPath: string,
   workspacePath: string
-): Promise<CoverageParsed> {
+): Promise<coverage.Parsed> {
   if (!coberturaPath) {
     throw Error('No Cobertura XML path provided')
   }
@@ -44,7 +45,7 @@ export async function parseCobertura(
   const parser = new XMLParser({ignoreAttributes: false})
   const parsed = parser.parse(fileRaw) as CoberturaXml
 
-  const result: CoverageParsed = []
+  const result: coverage.Parsed = []
 
   const packages = toArray(parsed.coverage.packages?.package)
   for (const pkg of packages) {
@@ -60,7 +61,7 @@ export async function parseCobertura(
         hit: parseInt(line['@_hits'], 10)
       }))
 
-      const entry: CoverageEntry = {
+      const entry: coverage.Entry = {
         title: cls['@_name'],
         file: path.relative(workspacePath, filename),
         package: packageName,

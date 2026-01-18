@@ -1,5 +1,5 @@
 import {test, expect, vi} from 'vitest'
-import {GithubUtil, FetchPullDiff} from '../../src/utils/github'
+import * as github from '../../src/utils/github'
 import {captureStdout} from '../fixtures/capture-stdout'
 
 // Mock @actions/github - only for context, not for getOctokit
@@ -24,14 +24,12 @@ vi.mock('@actions/github', () => ({
   }
 }))
 
-/**
- * Creates a fake fetchDiff function for testing.
- * Returns configurable responses without mocking internals.
- */
+// createFakeFetchDiff creates a fake fetchDiff function for testing.
+// Returns configurable responses without mocking internals.
 function createFakeFetchDiff(options: {
   diffResponse?: string
   diffError?: {status: number; message: string}
-}): FetchPullDiff {
+}): github.FetchDiff {
   return async () => {
     if (options.diffError) {
       throw options.diffError
@@ -40,13 +38,15 @@ function createFakeFetchDiff(options: {
   }
 }
 
-test('github init successfully', async function () {
-  const githubUtil = new GithubUtil('1234', 'https://api.github.com')
-  expect(githubUtil).toBeInstanceOf(GithubUtil)
+test('Client init successfully', async function () {
+  const client = new github.Client('1234', 'https://api.github.com')
+  expect(client).toBeInstanceOf(github.Client)
 })
 
-test('github init to throw error', function () {
-  expect(() => new GithubUtil('', 'https://api.github.com')).toThrowError('GITHUB_TOKEN is missing')
+test('Client init to throw error', function () {
+  expect(() => new github.Client('', 'https://api.github.com')).toThrowError(
+    'GITHUB_TOKEN is missing'
+  )
 })
 
 const buildAnnotationsTestCases = [
@@ -251,8 +251,8 @@ test.each(buildAnnotationsTestCases)(
   ({prFiles, coverageFiles, expected}) => {
     const capture = captureStdout()
     try {
-      const githubUtil = new GithubUtil('1234', 'https://api.github.com')
-      const annotations = githubUtil.buildAnnotations(coverageFiles, prFiles)
+      const client = new github.Client('1234', 'https://api.github.com')
+      const annotations = client.buildAnnotations(coverageFiles, prFiles)
       expect(annotations).toEqual(expected)
       // Verify it logged annotation count
       expect(capture.output()).toContain(`Annotation count: ${expected.length}`)
@@ -274,9 +274,9 @@ index abcdefg..1234567 100644
  line3`
 
   const fakeFetchDiff = createFakeFetchDiff({diffResponse: mockDiff})
-  const githubUtil = new GithubUtil('1234', 'https://api.github.com', fakeFetchDiff)
+  const client = new github.Client('1234', 'https://api.github.com', fakeFetchDiff)
 
-  const result = await githubUtil.getPullRequestDiff()
+  const result = await client.getPullRequestDiff()
 
   // Now returns raw line numbers instead of pre-coalesced ranges
   expect(result).toEqual({
@@ -305,9 +305,9 @@ test.each(diffTooLargeTestCases)(
     const capture = captureStdout()
     try {
       const fakeFetchDiff = createFakeFetchDiff({diffError: error})
-      const githubUtil = new GithubUtil('1234', 'https://api.github.com', fakeFetchDiff)
+      const client = new github.Client('1234', 'https://api.github.com', fakeFetchDiff)
 
-      const result = await githubUtil.getPullRequestDiff()
+      const result = await client.getPullRequestDiff()
 
       expect(result).toEqual({})
       // Check that warning was emitted to stdout
@@ -322,9 +322,9 @@ test('getPullRequestDiff throws for other errors', async function () {
   const fakeFetchDiff = createFakeFetchDiff({
     diffError: {status: 500, message: 'Server error'}
   })
-  const githubUtil = new GithubUtil('1234', 'https://api.github.com', fakeFetchDiff)
+  const client = new github.Client('1234', 'https://api.github.com', fakeFetchDiff)
 
-  await expect(githubUtil.getPullRequestDiff()).rejects.toEqual({
+  await expect(client.getPullRequestDiff()).rejects.toEqual({
     status: 500,
     message: 'Server error'
   })

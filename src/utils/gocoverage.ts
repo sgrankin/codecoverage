@@ -1,12 +1,12 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import * as readline from 'readline'
-import {CoverageParsed, CoverageEntry} from './general.js'
+import * as coverage from './general.js'
 
-// parseGoCoverageContent parses Go coverage file content.
+// parseContent parses Go coverage file content.
 // Inlined from golang-cover-parse to avoid its problematic mocha dependency.
-function parseGoCoverageContent(text: string): CoverageParsed {
-  const files: CoverageEntry[] = []
+function parseContent(text: string): coverage.Parsed {
+  const files: coverage.Entry[] = []
   const modes = text.split('mode:')
 
   if (!modes.length) {
@@ -65,10 +65,8 @@ function parseGoCoverageContent(text: string): CoverageParsed {
   return files
 }
 
-export async function parseGoCoverage(
-  coveragePath: string,
-  goModPath: string
-): Promise<CoverageParsed> {
+// parse parses a Go coverage file and returns coverage data.
+export async function parse(coveragePath: string, goModPath: string): Promise<coverage.Parsed> {
   if (!coveragePath) {
     throw Error('No Go coverage path provided')
   }
@@ -79,12 +77,12 @@ export async function parseGoCoverage(
 
   const goModule = await parseGoModFile(goModPath)
   const fileRaw = fs.readFileSync(coveragePath, 'utf8')
-  const result = parseGoCoverageContent(fileRaw)
+  const result = parseContent(fileRaw)
   filterModulePaths(result, goModule)
   return result
 }
 
-function filterModulePaths(entries: CoverageParsed, moduleName: string): void {
+function filterModulePaths(entries: coverage.Parsed, moduleName: string): void {
   for (const entry of entries) {
     entry.file = path.relative(moduleName, entry.file)
   }

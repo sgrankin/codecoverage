@@ -1,5 +1,5 @@
 import {test, expect} from 'vitest'
-import {generateSummary} from '../../src/utils/summary'
+import * as summary from '../../src/utils/summary'
 
 const testCases = [
   {
@@ -226,7 +226,7 @@ const testCases = [
   }
 ]
 
-test.each(testCases)('generateSummary: $name', ({input, expected}) => {
-  const summary = generateSummary(input)
-  expect(summary).toBe(expected)
+test.each(testCases)('generate: $name', ({input, expected}) => {
+  const result = summary.generate(input)
+  expect(result).toBe(expected)
 })

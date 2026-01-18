@@ -1,15 +1,13 @@
 import {test, expect, describe} from 'vitest'
-import {detectMode, getNamespaceForBranch, GithubContext} from '../../src/utils/mode'
+import * as mode from '../../src/utils/mode'
 
-/**
- * Creates a fake GitHub context for testing.
- * No mocking required - just pass data.
- */
+// createFakeContext creates a fake GitHub context for testing.
+// No mocking required - just pass data.
 function createFakeContext(options: {
   eventName: string
   ref: string
   pullRequestBaseRef?: string
-}): GithubContext {
+}): mode.GithubContext {
   return {
     eventName: options.eventName,
     ref: options.ref,
@@ -91,7 +89,7 @@ describe('mode detection', () => {
     ]
 
     test.each(testCases)('$name', ({ctx, expected}) => {
-      const result = detectMode(undefined, 'main', ctx)
+      const result = mode.detect(undefined, 'main', ctx)
       expect(result.mode).toBe(expected.mode)
       expect(result.baseBranch).toBe(expected.baseBranch)
       expect(result.isPullRequest).toBe(expected.isPullRequest)
@@ -104,7 +102,7 @@ describe('mode detection', () => {
         ref: 'refs/heads/develop'
       })
 
-      const result = detectMode(undefined, 'develop', ctx)
+      const result = mode.detect(undefined, 'develop', ctx)
       expect(result.mode).toBe('store-baseline')
       expect(result.baseBranch).toBe('develop')
     })
@@ -116,7 +114,7 @@ describe('mode detection', () => {
           ref: 'refs/heads/main'
         })
 
-        const result = detectMode('pr-check', 'main', ctx)
+        const result = mode.detect('pr-check', 'main', ctx)
         expect(result.mode).toBe('pr-check')
         expect(result.isPullRequest).toBe(false) // Still reflects actual event
       })
@@ -128,7 +126,7 @@ describe('mode detection', () => {
           pullRequestBaseRef: 'main'
         })
 
-        const result = detectMode('store-baseline', 'main', ctx)
+        const result = mode.detect('store-baseline', 'main', ctx)
         expect(result.mode).toBe('store-baseline')
         expect(result.isPullRequest).toBe(true) // Still reflects actual event
         expect(result.baseBranch).toBe('main') // Still available from payload
@@ -139,14 +137,14 @@ describe('mode detection', () => {
           eventName: 'push',
           ref: 'refs/heads/main'
         })
-        expect(() => detectMode('invalid-mode', 'main', ctx)).toThrow(
+        expect(() => mode.detect('invalid-mode', 'main', ctx)).toThrow(
           "Invalid mode override: invalid-mode. Must be 'pr-check' or 'store-baseline'"
         )
       })
     })
   })
 
-  describe('getNamespaceForBranch', () => {
+  describe('namespaceForBranch', () => {
     const testCases = [
       {branch: 'main', prefix: 'coverage', expected: 'coverage/main'},
       {branch: 'develop', prefix: 'coverage', expected: 'coverage/develop'},
@@ -166,12 +164,12 @@ describe('mode detection', () => {
     test.each(testCases)(
       'branch "$branch" with prefix "$prefix" returns "$expected"',
       ({branch, prefix, expected}) => {
-        expect(getNamespaceForBranch(branch, prefix)).toBe(expected)
+        expect(mode.namespaceForBranch(branch, prefix)).toBe(expected)
       }
     )
 
     test('uses default prefix', () => {
-      expect(getNamespaceForBranch('main')).toBe('coverage/main')
+      expect(mode.namespaceForBranch('main')).toBe('coverage/main')
     })
   })
 })

@@ -1,9 +1,9 @@
 import {test, expect} from 'vitest'
-import {parseCobertura} from '../../src/utils/cobertura'
+import * as cobertura from '../../src/utils/cobertura'
 import {getFixturePath} from '../fixtures/util'
 
 test('should throw error if path is not provided', async function () {
-  await expect(parseCobertura('', '/workspace')).rejects.toThrow('No Cobertura XML path provided')
+  await expect(cobertura.parse('', '/workspace')).rejects.toThrow('No Cobertura XML path provided')
 })
 
 const parseCoberturaTestCases = [
@@ -77,19 +77,16 @@ const parseCoberturaTestCases = [
   }
 ]
 
-test.each(parseCoberturaTestCases)(
-  'parseCobertura: $name',
-  async ({fixture, workspace, expected}) => {
-    const path = getFixturePath(fixture)
-    const output = await parseCobertura(path, workspace)
+test.each(parseCoberturaTestCases)('parse: $name', async ({fixture, workspace, expected}) => {
+  const path = getFixturePath(fixture)
+  const output = await cobertura.parse(path, workspace)
 
-    expect(output).toHaveLength(expected.length)
-    for (let i = 0; i < expected.length; i++) {
-      expect(output[i].file).toBe(expected[i].file)
-      expect(output[i].package).toBe(expected[i].package)
-      expect(output[i].lines.found).toBe(expected[i].linesFound)
-      expect(output[i].lines.hit).toBe(expected[i].linesHit)
-      expect(output[i].lines.details).toHaveLength(expected[i].detailsLength)
-    }
+  expect(output).toHaveLength(expected.length)
+  for (let i = 0; i < expected.length; i++) {
+    expect(output[i].file).toBe(expected[i].file)
+    expect(output[i].package).toBe(expected[i].package)
+    expect(output[i].lines.found).toBe(expected[i].linesFound)
+    expect(output[i].lines.hit).toBe(expected[i].linesHit)
+    expect(output[i].lines.details).toHaveLength(expected[i].detailsLength)
   }
-)
+})

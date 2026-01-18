@@ -1,12 +1,12 @@
 import {test, expect} from 'vitest'
-import {parseGitDiff} from '../../src/utils/diff'
+import * as diff from '../../src/utils/diff'
 import {getFixturePath} from '../fixtures/util'
 import * as fs from 'fs'
 
 test('should parse Git diff from fixture', async function () {
   const path = getFixturePath('test.diff')
   const diffOutput = fs.readFileSync(path, 'utf8')
-  const output = parseGitDiff(diffOutput)
+  const output = diff.parse(diffOutput)
 
   expect(output).toMatchSnapshot()
 })
@@ -64,6 +64,6 @@ index abcdefg..1234567 100644
   }
 ]
 
-test.each(parseGitDiffTestCases)('parseGitDiff: $name', ({input, expected}) => {
-  expect(parseGitDiff(input)).toEqual(expected)
+test.each(parseGitDiffTestCases)('parse: $name', ({input, expected}) => {
+  expect(diff.parse(input)).toEqual(expected)
 })

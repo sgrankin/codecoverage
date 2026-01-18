@@ -1,7 +1,7 @@
-// mergeCoverageByFile merges coverage entries for the same file from multiple test runs.
+// mergeByFile merges coverage entries for the same file from multiple test runs.
 // A line is considered covered if it was hit in any test run.
-export function mergeCoverageByFile(coverage: CoverageParsed): CoverageParsed {
-  const byFile = new Map<string, CoverageEntry>()
+export function mergeByFile(coverage: Parsed): Parsed {
+  const byFile = new Map<string, Entry>()
 
   for (const entry of coverage) {
     const existing = byFile.get(entry.file)
@@ -34,7 +34,7 @@ export function mergeCoverageByFile(coverage: CoverageParsed): CoverageParsed {
   return Array.from(byFile.values())
 }
 
-export function filterCoverageByFile(coverage: CoverageParsed): CoverageFile[] {
+export function filterByFile(coverage: Parsed): File[] {
   return coverage.map(item => {
     const allExecutableLines = new Set(item?.lines?.details.map(line => line.line) || [])
     const missingLineNumbers =
@@ -50,22 +50,19 @@ export function filterCoverageByFile(coverage: CoverageParsed): CoverageFile[] {
   })
 }
 
-export function coalesceLineNumbers(lineNumbers: number[]): LineRange[] {
-  return coalesceLineNumbersWithGaps(lineNumbers)
+export function coalesce(lineNumbers: number[]): Range[] {
+  return coalesceWithGaps(lineNumbers)
 }
 
 // MAX_BRIDGE_GAP is the maximum gap size to bridge (prevents bridging across unrelated code sections).
 const MAX_BRIDGE_GAP = 5
 
-// coalesceLineNumbersWithGaps coalesces line numbers into ranges, optionally bridging gaps
+// coalesceWithGaps coalesces line numbers into ranges, optionally bridging gaps
 // where the gap lines are non-executable. For example, if uncovered lines are [10, 11, 13, 14]
 // and line 12 is not executable (a comment), this produces [{10, 14}] instead of [{10, 11}, {13, 14}].
 // Gaps larger than MAX_BRIDGE_GAP lines are never bridged.
-export function coalesceLineNumbersWithGaps(
-  lineNumbers: number[],
-  executableLines?: Set<number>
-): LineRange[] {
-  const ranges: LineRange[] = []
+export function coalesceWithGaps(lineNumbers: number[], executableLines?: Set<number>): Range[] {
+  const ranges: Range[] = []
   if (lineNumbers.length === 0) return ranges
 
   let rstart = lineNumbers[0]
@@ -111,8 +108,8 @@ function canBridgeGap(from: number, to: number, executableLines: Set<number>): b
   return true
 }
 
-export function intersectLineRanges(a: LineRange[], b: LineRange[]): LineRange[] {
-  const result: LineRange[] = []
+export function intersectRanges(a: Range[], b: Range[]): Range[] {
+  const result: Range[] = []
   let i = 0
   let j = 0
 
@@ -140,7 +137,7 @@ export function intersectLineRanges(a: LineRange[], b: LineRange[]): LineRange[]
   return result
 }
 
-export function correctLineTotals(coverage: CoverageParsed): CoverageParsed {
+export function correctTotals(coverage: Parsed): Parsed {
   return coverage.map(item => ({
     ...item,
     lines: {
@@ -151,7 +148,7 @@ export function correctLineTotals(coverage: CoverageParsed): CoverageParsed {
   }))
 }
 
-export type CoverageEntry = {
+export type Entry = {
   file: string
   title: string
   package?: string
@@ -166,16 +163,16 @@ export type CoverageEntry = {
   }
 }
 
-export type CoverageParsed = CoverageEntry[]
+export type Parsed = Entry[]
 
-export type CoverageFile = {
+export type File = {
   fileName: string
   missingLineNumbers: number[]
   executableLines: Set<number>
   coveredLineCount: number
 }
 
-export type LineRange = {
+export type Range = {
   start_line: number
   end_line: number
 }

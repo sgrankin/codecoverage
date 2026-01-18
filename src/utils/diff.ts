@@ -5,8 +5,8 @@ interface FileDiff {
   deletedLines: number[]
 }
 
-// parseGitDiff parses unified diff output and extracts file changes.
-export function parseGitDiff(diffOutput: string): FileDiff[] {
+// parse parses unified diff output and extracts file changes.
+export function parse(diffOutput: string): FileDiff[] {
   const fileDiffs: FileDiff[] = []
   const lines = diffOutput.split('\n')
 

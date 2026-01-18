@@ -1,7 +1,7 @@
 import * as core from '@actions/core'
-import * as diff from './diff'
+import * as diff from './diff.js'
 import * as github from '@actions/github'
-import {CoverageFile, coalesceLineNumbersWithGaps, intersectLineRanges} from './general'
+import * as coverage from './general.js'
 
 export type Annotation = {
   path: string
@@ -14,14 +14,15 @@ export type PullRequestFiles = {
   [key: string]: number[]
 }
 
-// FetchPullDiff fetches the PR diff from the GitHub API.
+// FetchDiff fetches the PR diff from the GitHub API.
 // Returns the raw diff string, or throws an error.
-export type FetchPullDiff = () => Promise<string>
+export type FetchDiff = () => Promise<string>
 
-export class GithubUtil {
-  private fetchDiff: FetchPullDiff
+// Client provides GitHub API operations for the coverage action.
+export class Client {
+  private fetchDiff: FetchDiff
 
-  constructor(token: string, baseUrl: string, fetchDiff?: FetchPullDiff) {
+  constructor(token: string, baseUrl: string, fetchDiff?: FetchDiff) {
     if (!token) {
       throw new Error('GITHUB_TOKEN is missing')
     }
@@ -43,7 +44,7 @@ export class GithubUtil {
     try {
       diffText = await this.fetchDiff()
     } catch (error) {
-      if (isDiffTooLargeError(error)) {
+      if (isDiffTooLarge(error)) {
         core.warning(
           'PR diff is too large for the GitHub API. Skipping coverage annotations for this PR.'
         )
@@ -51,7 +52,7 @@ export class GithubUtil {
       }
       throw error
     }
-    const fileLines = diff.parseGitDiff(diffText)
+    const fileLines = diff.parse(diffText)
     const prFiles: PullRequestFiles = {}
     for (const item of fileLines) {
       // Store raw line numbers - coalescing happens in buildAnnotations
@@ -63,7 +64,7 @@ export class GithubUtil {
   }
 
   buildAnnotations(
-    coverageFiles: CoverageFile[],
+    coverageFiles: coverage.File[],
     pullRequestFiles: PullRequestFiles
   ): Annotation[] {
     const annotations: Annotation[] = []
@@ -92,12 +93,12 @@ export class GithubUtil {
         // Coalesce both coverage and PR ranges using executable line info
         // This bridges gaps where non-executable lines (comments, braces)
         // were either not covered or not modified
-        const coverageRanges = coalesceLineNumbersWithGaps(
+        const coverageRanges = coverage.coalesceWithGaps(
           current.missingLineNumbers,
           current.executableLines
         )
-        const prFileRanges = coalesceLineNumbersWithGaps(executablePrLines, current.executableLines)
-        const uncoveredRanges = intersectLineRanges(coverageRanges, prFileRanges)
+        const prFileRanges = coverage.coalesceWithGaps(executablePrLines, current.executableLines)
+        const uncoveredRanges = coverage.intersectRanges(coverageRanges, prFileRanges)
 
         // Only annotate relevant line ranges
         for (const uRange of uncoveredRanges) {
@@ -119,9 +120,9 @@ export class GithubUtil {
   }
 }
 
-// isDiffTooLargeError checks if an error indicates the PR diff is too large.
+// isDiffTooLarge checks if an error indicates the PR diff is too large.
 // GitHub API returns 403 or 422 with messages about diff size limits.
-function isDiffTooLargeError(error: unknown): boolean {
+function isDiffTooLarge(error: unknown): boolean {
   if (error && typeof error === 'object' && 'status' in error) {
     const apiError = error as {status: number; message?: string}
     const message = apiError.message?.toLowerCase() || ''

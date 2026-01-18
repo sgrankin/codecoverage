@@ -1,8 +1,8 @@
 import * as glob from '@actions/glob'
 
-// expandCoverageFilePaths expands a coverage file path input into a list of files.
+// expand expands a coverage file path input into a list of files.
 // Supports single file paths, glob patterns (including **), and multiple paths separated by newlines.
-export async function expandCoverageFilePaths(input: string): Promise<string[]> {
+export async function expand(input: string): Promise<string[]> {
   const globber = await glob.create(input, {
     matchDirectories: false
   })
