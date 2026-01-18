@@ -15,9 +15,9 @@ const RETRY_DELAY_MS = 1000
 // Options configures git notes operations.
 export interface Options {
   // cwd is the git working directory.
-  cwd?: string | undefined
+  cwd?: string
   // namespace is the notes namespace (default: 'coverage').
-  namespace?: string | undefined
+  namespace?: string
 }
 
 // ExecResult is the result of a git command execution.
@@ -130,16 +130,14 @@ export async function append(
   content: string,
   options: Options = {}
 ): Promise<void> {
-  const {cwd, namespace = DEFAULT_NAMESPACE} = options
-
   // Read existing notes
-  const existing = await read(commit, {cwd, namespace})
+  const existing = await read(commit, options)
 
   // Combine existing + new content
   const newContent = existing ? `${existing}\n${content}` : content
 
   // Write (force since we're replacing)
-  await write(commit, newContent, {cwd, namespace, force: true})
+  await write(commit, newContent, {...options, force: true})
 }
 
 // sleep pauses execution for the specified milliseconds.
@@ -167,7 +165,7 @@ export async function push(options: Options & {maxRetries?: number} = {}): Promi
 
       if (isConflict && attempt < maxRetries) {
         // Fetch latest notes (force to handle diverged refs) and retry
-        await fetch({cwd, namespace, force: true})
+        await fetch(cwd ? {cwd, namespace, force: true} : {namespace, force: true})
         await sleep(RETRY_DELAY_MS * attempt) // Exponential backoff
         continue
       }
@@ -186,7 +184,7 @@ export async function push(options: Options & {maxRetries?: number} = {}): Promi
 // findMergeBase finds the merge-base commit between HEAD and a target ref.
 export async function findMergeBase(
   targetRef: string,
-  options: {cwd?: string | undefined} = {}
+  options: Options = {}
 ): Promise<string | null> {
   const {cwd} = options
 
@@ -210,7 +208,7 @@ export async function findMergeBase(
 }
 
 // headCommit returns the current HEAD commit SHA.
-export async function headCommit(options: {cwd?: string | undefined} = {}): Promise<string> {
+export async function headCommit(options: Options = {}): Promise<string> {
   const {cwd} = options
   const result = await exec(['rev-parse', 'HEAD'], cwd)
   return result.stdout.trim()

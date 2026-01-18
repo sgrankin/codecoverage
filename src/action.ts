@@ -9,6 +9,7 @@ import * as github from './utils/github.js'
 import * as files from './utils/files.js'
 import * as mode from './utils/mode.js'
 import * as baseline from './utils/baseline.js'
+import * as gitnotes from './utils/gitnotes.js'
 import * as summary from './utils/summary.js'
 
 const SUPPORTED_FORMATS = ['lcov', 'cobertura', 'go']
@@ -30,11 +31,11 @@ export interface BaselineOps {
       totalLines: number
       coveredLines: number
     },
-    options: {cwd?: string | undefined; namespace: string}
+    options: gitnotes.Options
   ): Promise<boolean>
   load(
     baseBranch: string,
-    options: {cwd?: string | undefined; namespace: string}
+    options: gitnotes.Options
   ): Promise<{baseline: baseline.Data | null; commit: string | null}>
 }
 
@@ -123,7 +124,7 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
       throw new Error(`COVERAGE_FORMAT must be one of ${SUPPORTED_FORMATS.join(',')}`)
     }
 
-    const workspacePath = env.GITHUB_WORKSPACE || ''
+    const workspacePath = env.GITHUB_WORKSPACE ?? ''
     core.info(`Workspace: ${workspacePath}`)
 
     // Detect operating mode
@@ -163,7 +164,7 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
             totalLines,
             coveredLines
           },
-          {cwd: workspacePath || undefined, namespace}
+          workspacePath ? {cwd: workspacePath, namespace} : {namespace}
         )
       } else {
         core.info('Skipping baseline storage (not on main branch)')
@@ -178,7 +179,7 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
             file: entry.file,
             totalLines: entry.lines.found,
             coveredLines: entry.lines.hit,
-            package: entry.package
+            ...(entry.package && {package: entry.package})
           }))
           const summaryText = summary.generate({
             coveragePercentage,
@@ -200,10 +201,10 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
       const namespace = mode.namespaceForBranch(ctx.baseBranch, noteNamespace)
       core.info(`Loading baseline from namespace: ${namespace}`)
 
-      const baselineResult = await deps.baseline.load(ctx.baseBranch, {
-        cwd: workspacePath || undefined,
-        namespace
-      })
+      const baselineResult = await deps.baseline.load(
+        ctx.baseBranch,
+        workspacePath ? {cwd: workspacePath, namespace} : {namespace}
+      )
 
       if (baselineResult.baseline) {
         baselinePercentage = baselineResult.baseline.coveragePercentage
@@ -282,7 +283,7 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
         file: entry.file,
         totalLines: entry.lines.found,
         coveredLines: entry.lines.hit,
-        package: entry.package
+        ...(entry.package && {package: entry.package})
       }))
       const summaryText = summary.generate({
         coveragePercentage,
@@ -291,8 +292,8 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
         filesAnalyzed: parsedCov.length,
         annotationCount,
         files: fileStats,
-        coverageDelta,
-        baselinePercentage
+        ...(coverageDelta && {coverageDelta}),
+        ...(baselinePercentage && {baselinePercentage})
       })
       await core.summary.addRaw(summaryText).write()
       core.info('Step summary written')

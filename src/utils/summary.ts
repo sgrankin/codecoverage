@@ -5,7 +5,7 @@ export interface FileCoverage {
   file: string
   totalLines: number
   coveredLines: number
-  package?: string | undefined
+  package?: string
 }
 
 // PackageCoverage is the aggregate coverage data for a package.
@@ -25,9 +25,9 @@ export interface Params {
   annotationCount: number
   files: FileCoverage[]
   // coverageDelta is the coverage delta string (e.g., "+2.50" or "-1.25").
-  coverageDelta?: string | undefined
+  coverageDelta?: string
   // baselinePercentage is the baseline coverage percentage.
-  baselinePercentage?: string | undefined
+  baselinePercentage?: string
 }
 
 // getPackageFromPath extracts the package name from a file path (directory path, or '.' for root).

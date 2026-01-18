@@ -58,10 +58,8 @@ export async function store(
   data: Omit<Data, 'timestamp' | 'commit'>,
   options: gitnotes.Options = {}
 ): Promise<boolean> {
-  const {cwd, namespace} = options
-
   try {
-    const commit = await gitnotes.headCommit({cwd})
+    const commit = await gitnotes.headCommit(options)
 
     const baseline: Data = {
       ...data,
@@ -73,10 +71,10 @@ export async function store(
     core.info(`Storing baseline coverage: ${data.coveragePercentage}%`)
 
     // Write notes for current commit
-    await gitnotes.write(commit, content, {cwd, namespace, force: true})
+    await gitnotes.write(commit, content, {...options, force: true})
 
     // Push notes to origin
-    const pushSuccess = await gitnotes.push({cwd, namespace})
+    const pushSuccess = await gitnotes.push(options)
     if (!pushSuccess) {
       core.warning('Failed to push coverage baseline to origin after retries')
       return false
@@ -93,18 +91,16 @@ export async function store(
 
 // load loads baseline coverage from the merge-base commit with a target branch.
 export async function load(targetBranch: string, options: gitnotes.Options = {}): Promise<Result> {
-  const {cwd, namespace} = options
-
   try {
     // Fetch latest notes from origin
-    const fetched = await gitnotes.fetch({cwd, namespace})
+    const fetched = await gitnotes.fetch(options)
     if (!fetched) {
       core.info('No coverage notes found in origin')
       return {baseline: null, commit: null}
     }
 
     // Find merge-base with target branch
-    const mergeBase = await gitnotes.findMergeBase(`origin/${targetBranch}`, {cwd})
+    const mergeBase = await gitnotes.findMergeBase(`origin/${targetBranch}`, options)
     if (!mergeBase) {
       core.info(`No merge-base found with origin/${targetBranch}`)
       return {baseline: null, commit: null}
@@ -113,7 +109,7 @@ export async function load(targetBranch: string, options: gitnotes.Options = {})
     core.info(`Found merge-base: ${mergeBase.substring(0, 8)}`)
 
     // Read notes from merge-base
-    const content = await gitnotes.read(mergeBase, {cwd, namespace})
+    const content = await gitnotes.read(mergeBase, options)
     if (!content) {
       core.info('No baseline coverage found for merge-base commit')
       return {baseline: null, commit: mergeBase}
