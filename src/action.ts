@@ -154,11 +154,21 @@ function generateSummary(
   })
 }
 
+// ParseOptions controls memory optimization during parsing.
+interface ParseOptions {
+  // detailsFor limits which files get full line details. Files not in this set
+  // get summary stats only (found/hit counts but empty details array).
+  // When undefined, all files get full details.
+  detailsFor?: Set<string>
+}
+
 // parseCoverageFiles parses coverage files and computes aggregate statistics.
+// When options.detailsFor is provided, only those files will have line details.
 async function parseCoverageFiles(
   coverageFilePath: string,
   coverageFormat: string,
-  workspacePath: string
+  workspacePath: string,
+  options: ParseOptions = {}
 ): Promise<{
   parsedCov: coverage.Parsed
   totalLines: number
@@ -177,11 +187,11 @@ async function parseCoverageFiles(
   for (const covFile of coverageFiles) {
     let fileCov: coverage.Parsed
     if (coverageFormat === 'cobertura') {
-      fileCov = await cobertura.parse(covFile, workspacePath)
+      fileCov = await cobertura.parse(covFile, workspacePath, options)
     } else if (coverageFormat === 'go') {
-      fileCov = await gocov.parse(covFile, 'go.mod')
+      fileCov = await gocov.parse(covFile, 'go.mod', options)
     } else {
-      fileCov = await lcov.parse(covFile, workspacePath)
+      fileCov = await lcov.parse(covFile, workspacePath, options)
     }
     for (const entry of fileCov) {
       allEntries.push(entry)
@@ -233,11 +243,24 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
     core.info(`Mode: ${ctx.mode} (event: ${ctx.eventName})`)
     core.setOutput('mode', ctx.mode)
 
-    // Parse coverage data
+    // For PR events, get diff first to optimize memory usage during parsing.
+    // Only files in the diff need full line details; others just need summary stats.
+    let pullRequestFiles: github.PullRequestFiles = {}
+    let gh: GitHubOps | undefined
+    if (ctx.isPullRequest) {
+      gh = deps.createGitHub(githubToken, githubBaseURL)
+      pullRequestFiles = await gh.getPullRequestDiff()
+      core.info(`Diff contains ${Object.keys(pullRequestFiles).length} files`)
+    }
+
+    // Parse coverage data, optimizing memory for large files
+    const diffFiles = Object.keys(pullRequestFiles)
+    const parseOptions: ParseOptions = diffFiles.length > 0 ? {detailsFor: new Set(diffFiles)} : {}
     const {parsedCov, totalLines, coveredLines, coveragePercentage} = await parseCoverageFiles(
       coverageFilePath,
       coverageFormat,
-      workspacePath
+      workspacePath,
+      parseOptions
     )
 
     core.info(
@@ -320,13 +343,11 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
     // Only create annotations for PR events
     let annotationCount = 0
     let diffStats: DiffStats = {coveredLines: 0, totalLines: 0}
-    if (ctx.isPullRequest) {
+    if (ctx.isPullRequest && gh) {
       const coverageByFile = coverage.filterByFile(parsedCov)
       core.info('Filter done')
 
-      const gh = deps.createGitHub(githubToken, githubBaseURL)
-      const pullRequestFiles = await gh.getPullRequestDiff()
-
+      // pullRequestFiles was already fetched above for parse optimization
       diffStats = calculateDiffStats(coverageByFile, pullRequestFiles)
       core.info(`Diff coverage: ${diffStats.coveredLines}/${diffStats.totalLines}`)
 

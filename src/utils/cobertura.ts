@@ -32,10 +32,22 @@ function toArray<T>(val: T | T[] | undefined): T[] {
   return Array.isArray(val) ? val : [val]
 }
 
+// ParseOptions controls memory usage during parsing.
+export interface ParseOptions {
+  // detailsFor limits which files get full line details. If provided, only
+  // files in this set will have details populated; others get summary stats only.
+  // This significantly reduces memory for large coverage files when only
+  // a subset of files (e.g., PR diff files) need annotation details.
+  detailsFor?: Set<string>
+}
+
 // parse parses a Cobertura XML file and returns coverage data.
+// When options.detailsFor is provided, only those files will have line details;
+// other files will have empty details arrays but correct found/hit counts.
 export async function parse(
   coberturaPath: string,
-  workspacePath: string
+  workspacePath: string,
+  options: ParseOptions = {}
 ): Promise<coverage.Parsed> {
   if (!coberturaPath) {
     throw Error('No Cobertura XML path provided')
@@ -46,6 +58,7 @@ export async function parse(
   const parsed = parser.parse(fileRaw) as CoberturaXML
 
   const result: coverage.Parsed = []
+  const {detailsFor} = options
 
   const packages = toArray(parsed.coverage.packages?.package)
   for (const pkg of packages) {
@@ -54,22 +67,31 @@ export async function parse(
 
     for (const cls of classes) {
       const filename = cls['@_filename']
+      const relativeFile = path.relative(workspacePath, filename)
       const lines = toArray(cls.lines?.line)
 
-      const details = lines.map(line => ({
-        line: parseInt(line['@_number'], 10),
-        hit: parseInt(line['@_hits'], 10)
-      }))
+      // Only keep full details for files we need to annotate
+      const needDetails = !detailsFor || detailsFor.has(relativeFile)
+
+      let found = 0
+      let hit = 0
+      const details: coverage.Entry['lines']['details'] = []
+
+      for (const line of lines) {
+        const lineNum = parseInt(line['@_number'], 10)
+        const hitCount = parseInt(line['@_hits'], 10)
+        found++
+        if (hitCount > 0) hit++
+        if (needDetails) {
+          details.push({line: lineNum, hit: hitCount})
+        }
+      }
 
       const entry: coverage.Entry = {
         title: cls['@_name'],
-        file: path.relative(workspacePath, filename),
+        file: relativeFile,
         package: packageName,
-        lines: {
-          found: details.length,
-          hit: details.filter(d => d.hit > 0).length,
-          details
-        }
+        lines: {found, hit, details}
       }
       result.push(entry)
     }

@@ -3,16 +3,25 @@ import * as path from 'node:path'
 import * as readline from 'node:readline'
 import type * as coverage from './general.js'
 
+// ParseOptions controls memory usage during parsing.
+export interface ParseOptions {
+  // detailsFor limits which files get full line details. If provided, only
+  // files in this set will have details populated; others get summary stats only.
+  detailsFor?: Set<string>
+}
+
 // FileAccumulator collects line coverage data efficiently using a Map.
 interface FileAccumulator {
   title: string
   file: string
-  lineHits: Map<number, number>
+  lineHits: Map<number, number> | null // null = summary only
+  found: number
+  hit: number
 }
 
 // parseContent parses Go coverage file content.
-// Inlined from golang-cover-parse to avoid its problematic mocha dependency.
-function parseContent(text: string): coverage.Parsed {
+// When detailsFor is provided, only those files get full line details.
+function parseContent(text: string, moduleName: string, detailsFor?: Set<string>): coverage.Parsed {
   const files: FileAccumulator[] = []
   const modes = text.split('mode:')
 
@@ -38,10 +47,14 @@ function parseContent(text: string): coverage.Parsed {
       let file = files[files.length - 1]
       if (!file || file.file !== filePath) {
         const nameParts = filePath.split('/')
+        const relativeFile = path.relative(moduleName, filePath)
+        const needDetails = !detailsFor || detailsFor.has(relativeFile)
         file = {
           title: nameParts.at(-1) ?? filePath,
           file: filePath,
-          lineHits: new Map()
+          lineHits: needDetails ? new Map() : null,
+          found: 0,
+          hit: 0
         }
         files.push(file)
       }
@@ -49,35 +62,59 @@ function parseContent(text: string): coverage.Parsed {
       // Parse line range and hit count: "startLine.col,endLine.col numStatements hitCount"
       const startLine = Number(values.split(',')[0]?.split('.')[0])
       const endLine = Number(values.split(',')[1]?.split('.')[0])
-      const hit = Number(values.split(' ')[2])
+      const hitCount = Number(values.split(' ')[2])
 
-      // Accumulate hits using Map for O(1) lookup instead of O(n) array.find()
-      for (let lineNumber = startLine; lineNumber <= endLine; lineNumber++) {
-        const existing = file.lineHits.get(lineNumber) ?? 0
-        file.lineHits.set(lineNumber, existing + hit)
+      if (file.lineHits) {
+        // Accumulate hits using Map for O(1) lookup
+        for (let lineNumber = startLine; lineNumber <= endLine; lineNumber++) {
+          const existing = file.lineHits.get(lineNumber) ?? 0
+          file.lineHits.set(lineNumber, existing + hitCount)
+        }
+      } else {
+        // Summary only: just count lines
+        const lineCount = endLine - startLine + 1
+        file.found += lineCount
+        if (hitCount > 0) file.hit += lineCount
       }
     }
   }
 
   // Convert accumulators to Entry format
   return files.map(file => {
-    const details = Array.from(file.lineHits.entries())
-      .map(([line, hit]) => ({line, hit}))
-      .sort((a, b) => a.line - b.line)
+    const relativeFile = path.relative(moduleName, file.file)
+    if (file.lineHits) {
+      const details = Array.from(file.lineHits.entries())
+        .map(([line, hit]) => ({line, hit}))
+        .sort((a, b) => a.line - b.line)
+      return {
+        title: file.title,
+        file: relativeFile,
+        lines: {
+          found: details.length,
+          hit: details.filter(d => d.hit > 0).length,
+          details
+        }
+      }
+    }
     return {
       title: file.title,
-      file: file.file,
+      file: relativeFile,
       lines: {
-        found: details.length,
-        hit: details.filter(d => d.hit > 0).length,
-        details
+        found: file.found,
+        hit: file.hit,
+        details: []
       }
     }
   })
 }
 
 // parse parses a Go coverage file and returns coverage data.
-export async function parse(coveragePath: string, goModPath: string): Promise<coverage.Parsed> {
+// When options.detailsFor is provided, only those files will have line details.
+export async function parse(
+  coveragePath: string,
+  goModPath: string,
+  options: ParseOptions = {}
+): Promise<coverage.Parsed> {
   if (!coveragePath) {
     throw Error('No Go coverage path provided')
   }
@@ -88,15 +125,7 @@ export async function parse(coveragePath: string, goModPath: string): Promise<co
 
   const goModule = await parseGoModFile(goModPath)
   const fileRaw = fs.readFileSync(coveragePath, 'utf8')
-  const result = parseContent(fileRaw)
-  filterModulePaths(result, goModule)
-  return result
-}
-
-function filterModulePaths(entries: coverage.Parsed, moduleName: string): void {
-  for (const entry of entries) {
-    entry.file = path.relative(moduleName, entry.file)
-  }
+  return parseContent(fileRaw, goModule, options.detailsFor)
 }
 
 async function parseGoModFile(filePath: string): Promise<string> {
@@ -125,9 +154,9 @@ if (import.meta.vitest) {
 example.com/pkg/file.go:10.1,12.1 3 1
 example.com/pkg/file.go:15.1,15.1 1 0`
 
-    const result = parseContent(input)
+    const result = parseContent(input, 'example.com')
     expect(result).toHaveLength(1)
-    expect(result[0]!.file).toBe('example.com/pkg/file.go')
+    expect(result[0]!.file).toBe('pkg/file.go')
     expect(result[0]!.lines.details).toContainEqual({line: 10, hit: 1})
     expect(result[0]!.lines.details).toContainEqual({line: 11, hit: 1})
     expect(result[0]!.lines.details).toContainEqual({line: 12, hit: 1})
@@ -139,10 +168,10 @@ example.com/pkg/file.go:15.1,15.1 1 0`
 example.com/a.go:1.1,1.1 1 1
 example.com/b.go:1.1,1.1 1 0`
 
-    const result = parseContent(input)
+    const result = parseContent(input, 'example.com')
     expect(result).toHaveLength(2)
-    expect(result[0]!.file).toBe('example.com/a.go')
-    expect(result[1]!.file).toBe('example.com/b.go')
+    expect(result[0]!.file).toBe('a.go')
+    expect(result[1]!.file).toBe('b.go')
   })
 
   test('parseContent accumulates hits for same line', () => {
@@ -150,20 +179,28 @@ example.com/b.go:1.1,1.1 1 0`
 example.com/file.go:5.1,5.1 1 2
 example.com/file.go:5.1,5.1 1 3`
 
-    const result = parseContent(input)
+    const result = parseContent(input, 'example.com')
     expect(result[0]!.lines.details.find(d => d.line === 5)?.hit).toBe(5)
   })
 
   test('parseContent returns empty for empty input', () => {
-    // Note: the throw in parseContent is dead code - split always returns at least ['']
-    expect(parseContent('')).toEqual([])
+    expect(parseContent('', '')).toEqual([])
   })
 
-  test('filterModulePaths strips module prefix', () => {
-    const entries = [
-      {file: 'example.com/pkg/file.go', title: '', lines: {found: 0, hit: 0, details: []}}
-    ]
-    filterModulePaths(entries, 'example.com')
-    expect(entries[0]!.file).toBe('pkg/file.go')
+  test('parseContent with detailsFor only keeps details for specified files', () => {
+    const input = `mode: set
+example.com/a.go:1.1,2.1 2 1
+example.com/b.go:1.1,2.1 2 1`
+
+    const result = parseContent(input, 'example.com', new Set(['a.go']))
+    expect(result).toHaveLength(2)
+    // a.go should have details
+    expect(result[0]!.file).toBe('a.go')
+    expect(result[0]!.lines.details).toHaveLength(2)
+    // b.go should have summary only
+    expect(result[1]!.file).toBe('b.go')
+    expect(result[1]!.lines.details).toHaveLength(0)
+    expect(result[1]!.lines.found).toBe(2)
+    expect(result[1]!.lines.hit).toBe(2)
   })
 }
