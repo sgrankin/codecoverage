@@ -1,15 +1,15 @@
 import {env} from 'node:process'
 
 import * as core from '@actions/core'
-import * as coverage from './utils/general.js'
-import * as lcov from './utils/lcov.js'
-import * as cobertura from './utils/cobertura.js'
-import * as gocov from './utils/gocoverage.js'
-import * as github from './utils/github.js'
-import * as files from './utils/files.js'
-import * as mode from './utils/mode.js'
 import * as baseline from './utils/baseline.js'
-import * as gitnotes from './utils/gitnotes.js'
+import * as cobertura from './utils/cobertura.js'
+import * as files from './utils/files.js'
+import * as coverage from './utils/general.js'
+import * as github from './utils/github.js'
+import type * as gitnotes from './utils/gitnotes.js'
+import * as gocov from './utils/gocoverage.js'
+import * as lcov from './utils/lcov.js'
+import * as mode from './utils/mode.js'
 import * as summary from './utils/summary.js'
 
 const SUPPORTED_FORMATS = ['lcov', 'cobertura', 'go']
@@ -120,7 +120,7 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
     const deltaPrecision = parseInt(core.getInput('delta_precision') || '2', 10)
     const maxAnnotations = parseInt(core.getInput('max_annotations') || '10', 10)
 
-    let coverageFormat = core.getInput('coverage_format') || 'lcov'
+    const coverageFormat = core.getInput('coverage_format') || 'lcov'
     if (!SUPPORTED_FORMATS.includes(coverageFormat)) {
       throw new Error(`coverage_format must be one of ${SUPPORTED_FORMATS.join(',')}`)
     }

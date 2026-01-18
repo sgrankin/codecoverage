@@ -1,4 +1,4 @@
-import {test, expect, vi} from 'vitest'
+import {expect, test, vi} from 'vitest'
 import * as github from '../../src/utils/github'
 import {captureStdout} from '../fixtures/capture-stdout'
 
@@ -38,12 +38,12 @@ function createFakeFetchDiff(options: {
   }
 }
 
-test('Client init successfully', async function () {
+test('Client init successfully', async () => {
   const client = new github.Client('1234', 'https://api.github.com')
   expect(client).toBeInstanceOf(github.Client)
 })
 
-test('Client init to throw error', function () {
+test('Client init to throw error', () => {
   expect(() => new github.Client('', 'https://api.github.com')).toThrowError(
     'github_token is missing'
   )
@@ -246,23 +246,24 @@ const buildAnnotationsTestCases = [
   }
 ]
 
-test.each(buildAnnotationsTestCases)(
-  'buildAnnotations: $name',
-  ({prFiles, coverageFiles, expected}) => {
-    const capture = captureStdout()
-    try {
-      const client = new github.Client('1234', 'https://api.github.com')
-      const annotations = client.buildAnnotations(coverageFiles, prFiles)
-      expect(annotations).toEqual(expected)
-      // Verify it logged annotation count
-      expect(capture.output()).toContain(`Annotation count: ${expected.length}`)
-    } finally {
-      capture.restore()
-    }
+test.each(buildAnnotationsTestCases)('buildAnnotations: $name', ({
+  prFiles,
+  coverageFiles,
+  expected
+}) => {
+  const capture = captureStdout()
+  try {
+    const client = new github.Client('1234', 'https://api.github.com')
+    const annotations = client.buildAnnotations(coverageFiles, prFiles)
+    expect(annotations).toEqual(expected)
+    // Verify it logged annotation count
+    expect(capture.output()).toContain(`Annotation count: ${expected.length}`)
+  } finally {
+    capture.restore()
   }
-)
+})
 
-test('getPullRequestDiff parses diff response', async function () {
+test('getPullRequestDiff parses diff response', async () => {
   const mockDiff = `diff --git a/src/test.ts b/src/test.ts
 index abcdefg..1234567 100644
 --- a/src/test.ts
@@ -299,26 +300,25 @@ const diffTooLargeTestCases = [
   }
 ]
 
-test.each(diffTooLargeTestCases)(
-  'getPullRequestDiff handles large diff error: $name',
-  async ({error}) => {
-    const capture = captureStdout()
-    try {
-      const fakeFetchDiff = createFakeFetchDiff({diffError: error})
-      const client = new github.Client('1234', 'https://api.github.com', fakeFetchDiff)
+test.each(diffTooLargeTestCases)('getPullRequestDiff handles large diff error: $name', async ({
+  error
+}) => {
+  const capture = captureStdout()
+  try {
+    const fakeFetchDiff = createFakeFetchDiff({diffError: error})
+    const client = new github.Client('1234', 'https://api.github.com', fakeFetchDiff)
 
-      const result = await client.getPullRequestDiff()
+    const result = await client.getPullRequestDiff()
 
-      expect(result).toEqual({})
-      // Check that warning was emitted to stdout
-      expect(capture.output()).toContain('::warning::PR diff is too large')
-    } finally {
-      capture.restore()
-    }
+    expect(result).toEqual({})
+    // Check that warning was emitted to stdout
+    expect(capture.output()).toContain('::warning::PR diff is too large')
+  } finally {
+    capture.restore()
   }
-)
+})
 
-test('getPullRequestDiff throws for other errors', async function () {
+test('getPullRequestDiff throws for other errors', async () => {
   const fakeFetchDiff = createFakeFetchDiff({
     diffError: {status: 500, message: 'Server error'}
   })

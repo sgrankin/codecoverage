@@ -1,9 +1,9 @@
-import {test, expect} from 'vitest'
+import * as fs from 'node:fs'
+import {expect, test} from 'vitest'
 import * as diff from '../../src/utils/diff'
 import {getFixturePath} from '../fixtures/util'
-import * as fs from 'fs'
 
-test('should parse Git diff from fixture', async function () {
+test('should parse Git diff from fixture', async () => {
   const path = getFixturePath('test.diff')
   const diffOutput = fs.readFileSync(path, 'utf8')
   const output = diff.parse(diffOutput)

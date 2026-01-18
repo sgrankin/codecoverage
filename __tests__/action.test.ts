@@ -1,14 +1,12 @@
-import {test, expect, vi, beforeEach} from 'vitest'
-import * as github from '@actions/github'
 import * as fs from 'node:fs'
 import * as os from 'node:os'
 import * as path from 'node:path'
-import {getFixturePath} from './fixtures/util'
-import {captureStdout} from './fixtures/capture-stdout'
+import * as github from '@actions/github'
+import {beforeEach, expect, test, vi} from 'vitest'
 import type {Dependencies, GitHubOps} from '../src/action'
-import type * as github from '../src/utils/github'
 import type * as baseline from '../src/utils/baseline'
-import type * as coverage from '../src/utils/general'
+import {captureStdout} from './fixtures/capture-stdout'
+import {getFixturePath} from './fixtures/util'
 
 // We need to mock getInput since it reads from env vars
 // and setOutput/setFailed since they write to special files
@@ -94,7 +92,7 @@ beforeEach(() => {
   vi.clearAllMocks()
 })
 
-test('runs in store-baseline mode when not a pull request', async function () {
+test('runs in store-baseline mode when not a pull request', async () => {
   const capture = captureStdout()
   const originalEventName = github.context.eventName
   const originalRef = github.context.ref
@@ -111,7 +109,7 @@ test('runs in store-baseline mode when not a pull request', async function () {
   }
 })
 
-test('stores baseline on push to main branch', async function () {
+test('stores baseline on push to main branch', async () => {
   const lcovPath = getFixturePath('lcov.info')
   const originalEventName = github.context.eventName
   const originalRef = github.context.ref
@@ -143,7 +141,7 @@ test('stores baseline on push to main branch', async function () {
   }
 })
 
-test('calculates delta when baseline exists in PR mode', async function () {
+test('calculates delta when baseline exists in PR mode', async () => {
   const lcovPath = getFixturePath('lcov.info')
   ;(github.context as any).payload = {
     pull_request: {
@@ -185,7 +183,7 @@ test('calculates delta when baseline exists in PR mode', async function () {
   }
 })
 
-test('shows absolute coverage when no baseline exists', async function () {
+test('shows absolute coverage when no baseline exists', async () => {
   const lcovPath = getFixturePath('lcov.info')
   ;(github.context as any).payload = {
     pull_request: {
@@ -219,7 +217,7 @@ test('shows absolute coverage when no baseline exists', async function () {
   }
 })
 
-test('throws error for unsupported coverage format', async function () {
+test('throws error for unsupported coverage format', async () => {
   setInputs({
     github_token: 'test-token',
     coverage_file_path: '/path/to/coverage',
@@ -231,7 +229,7 @@ test('throws error for unsupported coverage format', async function () {
   expect(mockSetFailed).toHaveBeenCalledWith('coverage_format must be one of lcov,cobertura,go')
 })
 
-test('processes lcov coverage file successfully', async function () {
+test('processes lcov coverage file successfully', async () => {
   const lcovPath = getFixturePath('lcov.info')
 
   setInputs({
@@ -255,7 +253,7 @@ test('processes lcov coverage file successfully', async function () {
   }
 })
 
-test('processes cobertura coverage file successfully', async function () {
+test('processes cobertura coverage file successfully', async () => {
   const coberturaPath = getFixturePath('cobertura.xml')
 
   setInputs({
@@ -278,7 +276,7 @@ test('processes cobertura coverage file successfully', async function () {
   }
 })
 
-test('processes go coverage file successfully', async function () {
+test('processes go coverage file successfully', async () => {
   const gocovPath = getFixturePath('gocoverage.out')
 
   setInputs({
@@ -301,7 +299,7 @@ test('processes go coverage file successfully', async function () {
   }
 })
 
-test('defaults to lcov format when not specified', async function () {
+test('defaults to lcov format when not specified', async () => {
   const lcovPath = getFixturePath('lcov.info')
 
   setInputs({
@@ -323,7 +321,7 @@ test('defaults to lcov format when not specified', async function () {
   }
 })
 
-test('outputs diagnostic dump for files in PR diff', async function () {
+test('outputs diagnostic dump for files in PR diff', async () => {
   const lcovPath = getFixturePath('lcov.info')
 
   setInputs({
@@ -358,7 +356,7 @@ test('outputs diagnostic dump for files in PR diff', async function () {
   }
 })
 
-test('sets output values for coverage stats', async function () {
+test('sets output values for coverage stats', async () => {
   const lcovPath = getFixturePath('lcov.info')
 
   setInputs({
@@ -391,7 +389,7 @@ test('sets output values for coverage stats', async function () {
   }
 })
 
-test('handles error gracefully', async function () {
+test('handles error gracefully', async () => {
   setInputs({
     github_token: 'test-token',
     coverage_file_path: '/nonexistent/file.info',
@@ -404,7 +402,7 @@ test('handles error gracefully', async function () {
   expect(mockSetFailed).toHaveBeenCalled()
 })
 
-test('writes step summary to temp file', async function () {
+test('writes step summary to temp file', async () => {
   const lcovPath = getFixturePath('lcov.info')
   const summaryFile = path.join(os.tmpdir(), `test-summary-${Date.now()}.md`)
 
@@ -441,7 +439,7 @@ test('writes step summary to temp file', async function () {
   }
 })
 
-test('does not write step summary when step_summary is false', async function () {
+test('does not write step summary when step_summary is false', async () => {
   const lcovPath = getFixturePath('lcov.info')
 
   setInputs({
@@ -461,7 +459,7 @@ test('does not write step summary when step_summary is false', async function ()
   }
 })
 
-test('limits annotations to max_annotations setting', async function () {
+test('limits annotations to max_annotations setting', async () => {
   const lcovPath = getFixturePath('lcov.info')
 
   setInputs({
@@ -496,7 +494,7 @@ test('limits annotations to max_annotations setting', async function () {
   }
 })
 
-test('does not show limit message when annotations are within limit', async function () {
+test('does not show limit message when annotations are within limit', async () => {
   const lcovPath = getFixturePath('lcov.info')
 
   setInputs({

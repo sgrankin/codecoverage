@@ -1,7 +1,7 @@
-import {test, expect, vi, beforeEach, afterEach, describe} from 'vitest'
 import {mkdtemp, rm, writeFile} from 'node:fs/promises'
 import {tmpdir} from 'node:os'
 import {join} from 'node:path'
+import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import * as baseline from '../../src/utils/baseline'
 import * as gitnotes from '../../src/utils/gitnotes'
 
@@ -76,12 +76,14 @@ describe('baseline', () => {
       {current: '100.00', base: '0.00', precision: 2, expected: '+100.00'}
     ]
 
-    test.each(testCases)(
-      'current=$current base=$base -> $expected',
-      ({current, base, precision, expected}) => {
-        expect(baseline.delta(current, base, precision)).toBe(expected)
-      }
-    )
+    test.each(testCases)('current=$current base=$base -> $expected', ({
+      current,
+      base,
+      precision,
+      expected
+    }) => {
+      expect(baseline.delta(current, base, precision)).toBe(expected)
+    })
   })
 
   describe('formatWithDelta', () => {
@@ -91,12 +93,13 @@ describe('baseline', () => {
       {current: '85.00', deltaVal: '+0.00', expected: '85.00% (↑0.00%)'}
     ]
 
-    test.each(testCases)(
-      'current=$current deltaVal=$deltaVal -> $expected',
-      ({current, deltaVal, expected}) => {
-        expect(baseline.formatWithDelta(current, deltaVal)).toBe(expected)
-      }
-    )
+    test.each(testCases)('current=$current deltaVal=$deltaVal -> $expected', ({
+      current,
+      deltaVal,
+      expected
+    }) => {
+      expect(baseline.formatWithDelta(current, deltaVal)).toBe(expected)
+    })
   })
 
   describe('store and load integration', () => {

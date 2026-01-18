@@ -1,7 +1,7 @@
-import {test, expect} from 'vitest'
+import * as path from 'node:path'
+import {expect, test} from 'vitest'
 import * as files from '../../src/utils/files'
 import {getFixturePath} from '../fixtures/util'
-import * as path from 'path'
 
 const fixturesDir = path.dirname(getFixturePath('lcov.info'))
 

@@ -1,7 +1,7 @@
-import * as fs from 'fs'
-import * as path from 'path'
-import * as readline from 'readline'
-import * as coverage from './general.js'
+import * as fs from 'node:fs'
+import * as path from 'node:path'
+import * as readline from 'node:readline'
+import type * as coverage from './general.js'
 
 // parseContent parses Go coverage file content.
 // Inlined from golang-cover-parse to avoid its problematic mocha dependency.

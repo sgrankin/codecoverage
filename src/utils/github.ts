@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
-import * as diff from './diff.js'
 import * as github from '@actions/github'
+import * as diff from './diff.js'
 import * as coverage from './general.js'
 
 export type Annotation = {

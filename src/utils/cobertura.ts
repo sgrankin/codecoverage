@@ -1,7 +1,7 @@
-import * as fs from 'fs'
-import * as path from 'path'
+import * as fs from 'node:fs'
+import * as path from 'node:path'
 import {XMLParser} from 'fast-xml-parser'
-import * as coverage from './general.js'
+import type * as coverage from './general.js'
 
 interface CoberturaLine {
   '@_number': string

@@ -1,6 +1,5 @@
-import {test, expect, vi} from 'vitest'
 import * as core from '@actions/core'
-import * as github from '@actions/github'
+import {expect, test, vi} from 'vitest'
 
 // Mock @actions/core
 vi.mock('@actions/core', () => ({
@@ -32,9 +31,9 @@ vi.mock('node:process', () => ({
   }
 }))
 
-test('main module exports run function', async function () {
+test('main module exports run function', async () => {
   // Import the main module - this will execute run()
-  const main = await import('../src/main')
+  const _main = await import('../src/main')
 
   // The module should have executed in store-baseline mode (not a PR)
   expect(core.info).toHaveBeenCalledWith('Mode: store-baseline (event: push)')

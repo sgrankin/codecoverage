@@ -1,6 +1,6 @@
-import * as fs from 'fs'
-import * as path from 'path'
-import * as coverage from './general.js'
+import * as fs from 'node:fs'
+import * as path from 'node:path'
+import type * as coverage from './general.js'
 
 // parseContent parses LCOV format coverage data.
 // Inlined from lcov-parse to reduce dependencies.

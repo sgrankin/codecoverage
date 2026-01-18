@@ -1,4 +1,4 @@
-import {exec as nodeExec, ExecException} from 'node:child_process'
+import {type ExecException, exec as nodeExec} from 'node:child_process'
 import {promisify} from 'node:util'
 
 const execAsync = promisify(nodeExec)

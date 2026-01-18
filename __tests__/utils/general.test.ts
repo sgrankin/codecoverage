@@ -1,9 +1,9 @@
-import {test, expect} from 'vitest'
-import {getFixturePath} from '../fixtures/util'
-import * as lcov from '../../src/utils/lcov'
+import {expect, test} from 'vitest'
 import * as coverage from '../../src/utils/general'
+import * as lcov from '../../src/utils/lcov'
+import {getFixturePath} from '../fixtures/util'
 
-test('filterByFile', async function () {
+test('filterByFile', async () => {
   const path = getFixturePath('lcov.info')
   const parsedLcov = await lcov.parse(path, '')
   const output = coverage.filterByFile(parsedLcov)
@@ -76,7 +76,7 @@ test.each(coalesceTestCases)('coalesce: $name', ({lines, executableLines, expect
   expect(result).toEqual(expected)
 })
 
-test('range intersections', function () {
+test('range intersections', () => {
   const a = [
     {start_line: 1, end_line: 4},
     {start_line: 7, end_line: 9},
@@ -100,7 +100,7 @@ test('range intersections', function () {
   expect(coverage.intersectRanges(a, b)).toEqual(expected)
 })
 
-test('mergeByFile merges multiple entries for same file', function () {
+test('mergeByFile merges multiple entries for same file', () => {
   const cov = [
     {
       file: 'src/foo.ts',
@@ -161,7 +161,7 @@ test('mergeByFile merges multiple entries for same file', function () {
   expect(bar.lines.details).toEqual([{line: 5, hit: 0}])
 })
 
-test('mergeByFile handles partial coverage correctly', function () {
+test('mergeByFile handles partial coverage correctly', () => {
   // Simulates the real bug: one test run has coverage, another has zero
   const cov = [
     {
@@ -204,7 +204,7 @@ test('mergeByFile handles partial coverage correctly', function () {
   expect(helper.lines.details.every(d => d.hit === 1)).toBe(true)
 })
 
-test('correctTotals', function () {
+test('correctTotals', () => {
   const mockCoverage = [
     {
       file: 'test.ts',

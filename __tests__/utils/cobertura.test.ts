@@ -1,8 +1,8 @@
-import {test, expect} from 'vitest'
+import {expect, test} from 'vitest'
 import * as cobertura from '../../src/utils/cobertura'
 import {getFixturePath} from '../fixtures/util'
 
-test('should throw error if path is not provided', async function () {
+test('should throw error if path is not provided', async () => {
   await expect(cobertura.parse('', '/workspace')).rejects.toThrow('No Cobertura XML path provided')
 })
 

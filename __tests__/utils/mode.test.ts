@@ -1,4 +1,4 @@
-import {test, expect, describe} from 'vitest'
+import {describe, expect, test} from 'vitest'
 import * as mode from '../../src/utils/mode'
 
 // createFakeContext creates a fake GitHub context for testing.
@@ -161,12 +161,13 @@ describe('mode detection', () => {
       {branch: 'main', prefix: 'cov', expected: 'cov/main'}
     ]
 
-    test.each(testCases)(
-      'branch "$branch" with prefix "$prefix" returns "$expected"',
-      ({branch, prefix, expected}) => {
-        expect(mode.namespaceForBranch(branch, prefix)).toBe(expected)
-      }
-    )
+    test.each(testCases)('branch "$branch" with prefix "$prefix" returns "$expected"', ({
+      branch,
+      prefix,
+      expected
+    }) => {
+      expect(mode.namespaceForBranch(branch, prefix)).toBe(expected)
+    })
 
     test('uses default prefix', () => {
       expect(mode.namespaceForBranch('main')).toBe('coverage/main')
