@@ -9,9 +9,6 @@ export const DEFAULT_NAMESPACE = 'coverage'
 // MAX_PUSH_RETRIES is the maximum number of retries for push operations.
 const MAX_PUSH_RETRIES = 3
 
-// RETRY_DELAY_MS is the delay between retries in milliseconds.
-const RETRY_DELAY_MS = 1000
-
 // Options configures git notes operations.
 // Empty string values are treated as defaults (cwd=current dir, namespace='coverage').
 export interface Options {
@@ -164,11 +161,6 @@ export async function append(
   await write(commit, newContent, {...options, force: true})
 }
 
-// sleep pauses execution for the specified milliseconds.
-async function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms))
-}
-
 // push pushes git notes to origin with retry logic for concurrent updates.
 // Returns true if push succeeded, false if it failed after all retries.
 export async function push(
@@ -193,7 +185,6 @@ export async function push(
       if (isConflict && attempt < maxRetries) {
         // Fetch latest notes (force to handle diverged refs) and retry
         await fetch({cwd, namespace, force: true})
-        await sleep(RETRY_DELAY_MS * attempt) // Exponential backoff
         continue
       }
 
