@@ -1,5 +1,6 @@
 import {type ExecException, exec as nodeExec} from 'node:child_process'
 import {promisify} from 'node:util'
+import * as core from '@actions/core'
 
 const execAsync = promisify(nodeExec)
 
@@ -40,12 +41,14 @@ export interface ExecResult {
 // exec runs a git command and returns stdout/stderr.
 export async function exec(args: string[], cwd: string): Promise<ExecResult> {
   const cmd = `git ${args.map(a => `'${a.replace(/'/g, "'\\''")}'`).join(' ')}`
+  core.debug(`[gitnotes] exec: ${cmd}${cwd ? ` (cwd: ${cwd})` : ''}`)
   try {
     const result = await execAsync(cmd, cwd ? {cwd} : undefined)
-    return {
-      stdout: result.stdout?.toString() ?? '',
-      stderr: result.stderr?.toString() ?? ''
-    }
+    const stdout = result.stdout?.toString() ?? ''
+    const stderr = result.stderr?.toString() ?? ''
+    if (stdout) core.debug(`[gitnotes] stdout: ${stdout.trim()}`)
+    if (stderr) core.debug(`[gitnotes] stderr: ${stderr.trim()}`)
+    return {stdout, stderr}
   } catch (error) {
     const execError = error as ExecException & {stdout?: string; stderr?: string}
     const err = new Error(
@@ -172,10 +175,15 @@ export async function push(
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      await exec(['push', 'origin', notesRef], cwd)
+      core.info(`[gitnotes] Push attempt ${attempt}/${maxRetries} for ${notesRef}`)
+      const result = await exec(['push', 'origin', notesRef], cwd)
+      core.info(
+        `[gitnotes] Push succeeded. stdout: ${result.stdout.trim() || '(empty)'}, stderr: ${result.stderr.trim() || '(empty)'}`
+      )
       return true
     } catch (error) {
       const err = error as Error & {stderr?: string}
+      core.warning(`[gitnotes] Push attempt ${attempt} failed: ${err.message}`)
       // Check if it's a non-fast-forward error (concurrent update)
       const isConflict =
         err.stderr?.includes('non-fast-forward') ||
@@ -183,6 +191,7 @@ export async function push(
         err.stderr?.includes('rejected')
 
       if (isConflict && attempt < maxRetries) {
+        core.info(`[gitnotes] Conflict detected, fetching and retrying...`)
         // Fetch latest notes (force to handle diverged refs) and retry
         await fetch({cwd, namespace, force: true})
         continue
@@ -190,6 +199,7 @@ export async function push(
 
       if (attempt === maxRetries) {
         // Failed after all retries
+        core.error(`[gitnotes] Push failed after ${maxRetries} attempts`)
         return false
       }
       throw error
