@@ -8,7 +8,7 @@ export interface Context {
   // mode is the mode the action is running in.
   mode: Mode
   // baseBranch is the target branch for PR mode (e.g., 'main').
-  baseBranch?: string
+  baseBranch?: string | undefined
   // isPullRequest indicates whether this is a pull request event.
   isPullRequest: boolean
   // eventName is the event name that triggered the action.

@@ -30,11 +30,11 @@ export interface BaselineOps {
       totalLines: number
       coveredLines: number
     },
-    options: {cwd?: string; namespace: string}
+    options: {cwd?: string | undefined; namespace: string}
   ): Promise<boolean>
   load(
     baseBranch: string,
-    options: {cwd?: string; namespace: string}
+    options: {cwd?: string | undefined; namespace: string}
   ): Promise<{baseline: baseline.Data | null; commit: string | null}>
 }
 

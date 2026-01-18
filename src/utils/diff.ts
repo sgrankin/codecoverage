@@ -80,8 +80,8 @@ function getLineInfoFromHeaderLine(line: string): {
   // Extract the starting line numbers for each side of the diff
   const matches = line.match(/-(\d+),?(\d+)? \+(\d+),?(\d+)? @@/)
   if (matches && matches.length === 5) {
-    const deletionStartingLineNumber = parseInt(matches[1], 10)
-    const additionStartingLineNumber = parseInt(matches[3], 10)
+    const deletionStartingLineNumber = parseInt(matches[1]!, 10)
+    const additionStartingLineNumber = parseInt(matches[3]!, 10)
     return {deletionStartingLineNumber, additionStartingLineNumber}
   }
   return {deletionStartingLineNumber: 0, additionStartingLineNumber: 0}

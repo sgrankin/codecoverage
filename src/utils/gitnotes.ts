@@ -15,9 +15,9 @@ const RETRY_DELAY_MS = 1000
 // Options configures git notes operations.
 export interface Options {
   // cwd is the git working directory.
-  cwd?: string
+  cwd?: string | undefined
   // namespace is the notes namespace (default: 'coverage').
-  namespace?: string
+  namespace?: string | undefined
 }
 
 // ExecResult is the result of a git command execution.
@@ -42,7 +42,11 @@ export async function exec(args: string[], cwd?: string): Promise<ExecResult> {
     }
     const err = new Error(
       `Git command failed: ${cmd}\n${execError.stderr || execError.message}`
-    ) as Error & {code?: number; stdout?: string; stderr?: string}
+    ) as Error & {
+      code?: number | undefined
+      stdout?: string | undefined
+      stderr?: string | undefined
+    }
     err.code = execError.code
     err.stdout = execError.stdout
     err.stderr = execError.stderr
@@ -182,7 +186,7 @@ export async function push(options: Options & {maxRetries?: number} = {}): Promi
 // findMergeBase finds the merge-base commit between HEAD and a target ref.
 export async function findMergeBase(
   targetRef: string,
-  options: {cwd?: string} = {}
+  options: {cwd?: string | undefined} = {}
 ): Promise<string | null> {
   const {cwd} = options
 
@@ -206,7 +210,7 @@ export async function findMergeBase(
 }
 
 // headCommit returns the current HEAD commit SHA.
-export async function headCommit(options: {cwd?: string} = {}): Promise<string> {
+export async function headCommit(options: {cwd?: string | undefined} = {}): Promise<string> {
   const {cwd} = options
   const result = await exec(['rev-parse', 'HEAD'], cwd)
   return result.stdout.trim()

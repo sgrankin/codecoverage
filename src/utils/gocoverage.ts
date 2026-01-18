@@ -32,7 +32,7 @@ function parseContent(text: string): coverage.Parsed {
       if (!file || file.file !== filePath) {
         const nameParts = filePath.split('/')
         file = {
-          title: nameParts[nameParts.length - 1],
+          title: nameParts.at(-1) ?? filePath,
           file: filePath,
           lines: {found: 0, hit: 0, details: []}
         }
@@ -40,8 +40,8 @@ function parseContent(text: string): coverage.Parsed {
       }
 
       // Parse line range and hit count: "startLine.col,endLine.col numStatements hitCount"
-      const startLine = Number(values.split(',')[0].split('.')[0])
-      const endLine = Number(values.split(',')[1].split('.')[0])
+      const startLine = Number(values.split(',')[0]?.split('.')[0])
+      const endLine = Number(values.split(',')[1]?.split('.')[0])
       const hit = Number(values.split(' ')[2])
 
       file.lines.found += endLine - startLine + 1

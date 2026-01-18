@@ -63,14 +63,15 @@ const MAX_BRIDGE_GAP = 5
 // Gaps larger than MAX_BRIDGE_GAP lines are never bridged.
 export function coalesceWithGaps(lineNumbers: number[], executableLines?: Set<number>): Range[] {
   const ranges: Range[] = []
-  if (lineNumbers.length === 0) return ranges
+  const first = lineNumbers[0]
+  if (first === undefined) return ranges
 
-  let rstart = lineNumbers[0]
+  let rstart = first
   let rend = rstart
 
   for (let i = 1; i < lineNumbers.length; i++) {
-    const current = lineNumbers[i]
-    const previous = lineNumbers[i - 1]
+    const current = lineNumbers[i]!
+    const previous = lineNumbers[i - 1]!
     const gap = current - previous
 
     if (gap === 1) {
@@ -114,8 +115,8 @@ export function intersectRanges(a: Range[], b: Range[]): Range[] {
   let j = 0
 
   while (i < a.length && j < b.length) {
-    const rangeA = a[i]
-    const rangeB = b[j]
+    const rangeA = a[i]!
+    const rangeB = b[j]!
 
     if (rangeA.end_line < rangeB.start_line) {
       i++
