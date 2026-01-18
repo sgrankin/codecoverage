@@ -37,6 +37,10 @@ inputs:
     required: false
     description: "Number of decimal places for delta display."
     default: '2'
+  max_annotations:
+    required: false
+    description: "Maximum number of annotations to emit. GitHub limits annotations to 10 per run."
+    default: '10'
 outputs:
   coverage_percentage:
     description: 'Overall code coverage percentage'

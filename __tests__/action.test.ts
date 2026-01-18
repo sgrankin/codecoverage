@@ -460,3 +460,69 @@ test('does not write step summary when step_summary is false', async function ()
     capture.restore()
   }
 })
+
+test('limits annotations to max_annotations setting', async function () {
+  const lcovPath = getFixturePath('lcov.info')
+
+  setInputs({
+    github_token: 'test-token',
+    coverage_file_path: lcovPath,
+    coverage_format: 'lcov',
+    github_base_url: 'https://api.github.com',
+    step_summary: 'false',
+    max_annotations: '2'
+  })
+
+  // Create more annotations than the limit
+  const fakeDeps = createFakeDeps({
+    annotations: [
+      {path: 'a.ts', start_line: 1, end_line: 1, message: 'test1'},
+      {path: 'b.ts', start_line: 2, end_line: 2, message: 'test2'},
+      {path: 'c.ts', start_line: 3, end_line: 3, message: 'test3'},
+      {path: 'd.ts', start_line: 4, end_line: 4, message: 'test4'}
+    ]
+  })
+
+  const capture = captureStdout()
+  try {
+    await play(fakeDeps)
+    const output = capture.output()
+    // Should report total count but limit emission
+    expect(mockSetOutput).toHaveBeenCalledWith('annotation_count', 4)
+    expect(output).toContain('Showing 2 of 4 annotations')
+    expect(output).toContain('limited by max_annotations')
+  } finally {
+    capture.restore()
+  }
+})
+
+test('does not show limit message when annotations are within limit', async function () {
+  const lcovPath = getFixturePath('lcov.info')
+
+  setInputs({
+    github_token: 'test-token',
+    coverage_file_path: lcovPath,
+    coverage_format: 'lcov',
+    github_base_url: 'https://api.github.com',
+    step_summary: 'false',
+    max_annotations: '10'
+  })
+
+  // Create fewer annotations than the limit
+  const fakeDeps = createFakeDeps({
+    annotations: [
+      {path: 'a.ts', start_line: 1, end_line: 1, message: 'test1'},
+      {path: 'b.ts', start_line: 2, end_line: 2, message: 'test2'}
+    ]
+  })
+
+  const capture = captureStdout()
+  try {
+    await play(fakeDeps)
+    const output = capture.output()
+    expect(mockSetOutput).toHaveBeenCalledWith('annotation_count', 2)
+    expect(output).not.toContain('limited by max_annotations')
+  } finally {
+    capture.restore()
+  }
+})

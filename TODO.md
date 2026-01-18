@@ -11,7 +11,7 @@ Future improvements for the codecoverage action.
 ## Features
 
 - [x] Support 'master' branch for mode detection (mainBranch parameter is configurable)
-- [ ] Limit annotations to 10 per run (GitHub's reported limit)
+- [x] Limit annotations to 10 per run (GitHub's reported limit)
 - [ ] Add switch to disable debug output
 - [ ] Suppress debug output for large diffs (action isn't relevant for large merges)
 - [ ] Optionally post summary as PR comment

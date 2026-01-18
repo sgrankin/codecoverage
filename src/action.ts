@@ -118,6 +118,7 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
     const calculateDeltaInput = core.getInput('calculate_delta') !== 'false'
     const noteNamespace = core.getInput('note_namespace') || 'coverage'
     const deltaPrecision = parseInt(core.getInput('delta_precision') || '2', 10)
+    const maxAnnotations = parseInt(core.getInput('max_annotations') || '10', 10)
 
     let coverageFormat = core.getInput('coverage_format') || 'lcov'
     if (!SUPPORTED_FORMATS.includes(coverageFormat)) {
@@ -248,13 +249,19 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
       annotationCount = annotations.length
       core.setOutput('annotation_count', annotationCount)
 
-      // Emit annotations
-      for (const annotation of annotations) {
+      // Emit annotations (limited to maxAnnotations)
+      const annotationsToEmit = annotations.slice(0, maxAnnotations)
+      for (const annotation of annotationsToEmit) {
         core.notice(annotation.message, {
           file: annotation.path,
           startLine: annotation.start_line,
           endLine: annotation.end_line
         })
+      }
+      if (annotations.length > maxAnnotations) {
+        core.info(
+          `Showing ${maxAnnotations} of ${annotations.length} annotations (limited by max_annotations)`
+        )
       }
       core.info('Annotations emitted')
 
