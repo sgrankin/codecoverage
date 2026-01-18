@@ -75,12 +75,6 @@ Example: Instead of mocking `fs.readFile` to return specific data, use a fake fi
   - `fixtures/` - Test fixture files
 - `dist/` - Compiled output (committed to repo)
 
-## Supported Coverage Formats
-
-- `lcov` (default)
-- `cobertura`
-- `go`
-
 ## Specifications
 
 The `specs/` directory contains design documentation. When making significant changes:
@@ -96,10 +90,11 @@ This action uses semantic versioning with floating major version tags:
 - **Patch releases**: `v1.3.1`, `v1.3.2`, etc. for bug fixes and minor changes
 - **Floating tag**: `v1` always points to the latest `v1.x.x` release
 
-When releasing a new version:
+When releasing a new version (using raw git, as jj doesn't handle tags):
 
 ```bash
 # Tag the specific version
+jj git export  # ensure commits are in git
 git tag v1.3.2
 git push origin v1.3.2
 
