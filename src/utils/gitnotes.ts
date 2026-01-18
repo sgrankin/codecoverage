@@ -110,6 +110,18 @@ export async function read(commit: string, options: Partial<Options> = {}): Prom
   }
 }
 
+// ensureGitIdentity configures git user identity if not already set.
+// This is needed for git notes operations in CI environments.
+async function ensureGitIdentity(cwd: string): Promise<void> {
+  try {
+    await exec(['config', 'user.email'], cwd)
+  } catch {
+    // Email not set, configure defaults for CI
+    await exec(['config', 'user.email', 'github-actions[bot]@users.noreply.github.com'], cwd)
+    await exec(['config', 'user.name', 'github-actions[bot]'], cwd)
+  }
+}
+
 // write writes notes for a specific commit.
 // If force is true, overwrites existing notes.
 export async function write(
@@ -120,6 +132,9 @@ export async function write(
   const {cwd, namespace} = withDefaults(options)
   const force = options.force ?? false
   const notesRef = ref(namespace)
+
+  // Ensure git identity is configured (needed in CI)
+  await ensureGitIdentity(cwd)
 
   const args = ['notes', '--ref', notesRef]
   if (force) {
