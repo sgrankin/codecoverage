@@ -164,9 +164,18 @@ export async function append(
   await write(commit, newContent, {...options, force: true})
 }
 
-// push pushes git notes to origin with retry logic for concurrent updates.
-// Returns true if push succeeded, false if it failed after all retries.
-export async function push(
+// WriteOp describes a note write operation for writeAndPush.
+export interface WriteOp {
+  commit: string
+  content: string
+  force?: boolean
+}
+
+// writeAndPush atomically writes notes and pushes to origin with retry.
+// On conflict, it fetches, re-writes, and retries the push.
+// Returns true if the note was successfully pushed.
+export async function writeAndPush(
+  op: WriteOp,
   options: Partial<Options> & {maxRetries?: number} = {}
 ): Promise<boolean> {
   const {cwd, namespace} = withDefaults(options)
@@ -174,8 +183,17 @@ export async function push(
   const notesRef = ref(namespace)
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    // Fetch latest notes before writing (force to handle diverged refs)
+    core.info(`[gitnotes] Attempt ${attempt}/${maxRetries}: fetching ${notesRef}`)
+    await fetch({cwd, namespace, force: true})
+
+    // Write the note
+    core.debug(`[gitnotes] Writing note for ${op.commit.substring(0, 8)}`)
+    await write(op.commit, op.content, {cwd, namespace, force: op.force ?? false})
+
+    // Push
     try {
-      core.info(`[gitnotes] Push attempt ${attempt}/${maxRetries} for ${notesRef}`)
+      core.info(`[gitnotes] Pushing ${notesRef}`)
       const result = await exec(['push', 'origin', notesRef], cwd)
       core.info(
         `[gitnotes] Push succeeded. stdout: ${result.stdout.trim() || '(empty)'}, stderr: ${result.stderr.trim() || '(empty)'}`
@@ -184,21 +202,18 @@ export async function push(
     } catch (error) {
       const err = error as Error & {stderr?: string}
       core.warning(`[gitnotes] Push attempt ${attempt} failed: ${err.message}`)
-      // Check if it's a non-fast-forward error (concurrent update)
+
       const isConflict =
         err.stderr?.includes('non-fast-forward') ||
         err.stderr?.includes('fetch first') ||
         err.stderr?.includes('rejected')
 
       if (isConflict && attempt < maxRetries) {
-        core.info(`[gitnotes] Conflict detected, fetching and retrying...`)
-        // Fetch latest notes (force to handle diverged refs) and retry
-        await fetch({cwd, namespace, force: true})
+        core.info(`[gitnotes] Conflict detected, will retry...`)
         continue
       }
 
       if (attempt === maxRetries) {
-        // Failed after all retries
         core.error(`[gitnotes] Push failed after ${maxRetries} attempts`)
         return false
       }

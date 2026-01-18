@@ -183,11 +183,7 @@ describe('baseline', () => {
     test('handles corrupted baseline data gracefully', async () => {
       // Store invalid JSON as baseline
       const commit = await gitnotes.headCommit({cwd: repoDir})
-      await gitnotes.exec(
-        ['notes', '--ref', 'refs/notes/coverage', 'add', '-m', 'not valid json', commit],
-        repoDir
-      )
-      await gitnotes.push({cwd: repoDir})
+      await gitnotes.writeAndPush({commit, content: 'not valid json', force: true}, {cwd: repoDir})
 
       // Create feature branch
       await gitnotes.exec(['checkout', '-b', 'feature'], repoDir)
@@ -329,7 +325,7 @@ describe('baseline', () => {
 
     test('returns false when push fails', async () => {
       // Mock push to return false
-      vi.spyOn(await import('../../src/utils/gitnotes'), 'push').mockResolvedValue(false)
+      vi.spyOn(await import('../../src/utils/gitnotes'), 'writeAndPush').mockResolvedValue(false)
 
       const result = await baseline.store(
         {

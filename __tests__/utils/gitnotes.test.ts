@@ -148,23 +148,7 @@ describe('gitnotes', () => {
     })
   })
 
-  describe('fetch and push', () => {
-    test('push pushes notes to origin', async () => {
-      const commit = await gitnotes.headCommit({cwd: repoDir})
-      await gitnotes.write(commit, 'pushed content', {cwd: repoDir})
-
-      const success = await gitnotes.push({cwd: repoDir})
-      expect(success).toBe(true)
-
-      // Clone a fresh repo and verify notes are there
-      const cloneDir = join(tempDir, 'clone')
-      await gitnotes.exec(['clone', bareRepoDir, cloneDir])
-      await gitnotes.fetch({cwd: cloneDir})
-
-      const result = await gitnotes.read(commit, {cwd: cloneDir})
-      expect(result).toBe('pushed content')
-    })
-
+  describe('fetch', () => {
     test('fetch returns false when notes ref does not exist', async () => {
       // Fresh clone, no notes pushed yet
       const cloneDir = join(tempDir, 'clone')
@@ -176,8 +160,7 @@ describe('gitnotes', () => {
 
     test('fetch returns true when notes exist', async () => {
       const commit = await gitnotes.headCommit({cwd: repoDir})
-      await gitnotes.write(commit, 'content', {cwd: repoDir})
-      await gitnotes.push({cwd: repoDir})
+      await gitnotes.writeAndPush({commit, content: 'content', force: true}, {cwd: repoDir})
 
       // Clone and fetch
       const cloneDir = join(tempDir, 'clone')
@@ -224,13 +207,28 @@ describe('gitnotes', () => {
     })
   })
 
-  describe('concurrent push handling', () => {
-    test('handles concurrent note updates with retry', async () => {
+  describe('writeAndPush', () => {
+    test('writes and pushes notes successfully', async () => {
+      const commit = await gitnotes.headCommit({cwd: repoDir})
+      const content = 'test note content'
+
+      const success = await gitnotes.writeAndPush({commit, content, force: true}, {cwd: repoDir})
+
+      expect(success).toBe(true)
+
+      // Verify note was pushed by reading from a fresh clone
+      const clone = join(tempDir, 'verify-clone')
+      await gitnotes.exec(['clone', bareRepoDir, clone])
+      await gitnotes.fetch({cwd: clone})
+      const note = await gitnotes.read(commit, {cwd: clone})
+      expect(note).toBe(content)
+    })
+
+    test('handles concurrent updates with fetch-write-push cycle', async () => {
       const commit = await gitnotes.headCommit({cwd: repoDir})
 
       // First, push initial note from repo
-      await gitnotes.write(commit, 'initial', {cwd: repoDir})
-      await gitnotes.push({cwd: repoDir})
+      await gitnotes.writeAndPush({commit, content: 'initial', force: true}, {cwd: repoDir})
 
       // Create two clones that will compete
       const clone1 = join(tempDir, 'clone1')
@@ -238,34 +236,32 @@ describe('gitnotes', () => {
       await gitnotes.exec(['clone', bareRepoDir, clone1])
       await gitnotes.exec(['clone', bareRepoDir, clone2])
 
-      // Configure git user for clones (required for notes operations)
+      // Configure git user for clones
       await gitnotes.exec(['config', 'user.email', 'test@test.com'], clone1)
       await gitnotes.exec(['config', 'user.name', 'Test User'], clone1)
       await gitnotes.exec(['config', 'user.email', 'test@test.com'], clone2)
       await gitnotes.exec(['config', 'user.name', 'Test User'], clone2)
 
-      // Fetch notes in both
-      await gitnotes.fetch({cwd: clone1})
-      await gitnotes.fetch({cwd: clone2})
-
-      // Update note in clone1 and push first
-      await gitnotes.write(commit, 'clone1 update', {cwd: clone1, force: true})
-      const success1 = await gitnotes.push({cwd: clone1})
+      // Clone1 updates and pushes first
+      const success1 = await gitnotes.writeAndPush(
+        {commit, content: 'clone1 update', force: true},
+        {cwd: clone1}
+      )
       expect(success1).toBe(true)
 
-      // Clone2's push would fail due to non-fast-forward, but retry should help
-      // However, since we're using force write, we need to simulate the conflict
-      // by having clone2 try to push without fetching the update first
-      await gitnotes.write(commit, 'clone2 update', {cwd: clone2, force: true})
+      // Clone2's writeAndPush should succeed because it fetches before writing
+      const success2 = await gitnotes.writeAndPush(
+        {commit, content: 'clone2 update', force: true},
+        {cwd: clone2, maxRetries: 3}
+      )
+      expect(success2).toBe(true)
 
-      // This push should eventually succeed after fetching and retrying
-      // Note: In practice, the retry logic fetches and the user would need to
-      // re-apply their changes. For this test, we verify the push at least
-      // attempts properly
-      const success2 = await gitnotes.push({cwd: clone2, maxRetries: 3})
-      // Either succeeds (if no conflict) or fails (conflict after retries)
-      // The actual behavior depends on git's merge strategy for notes
-      expect(typeof success2).toBe('boolean')
+      // Verify clone2's content is what ended up on remote
+      const verifyClone = join(tempDir, 'verify-clone2')
+      await gitnotes.exec(['clone', bareRepoDir, verifyClone])
+      await gitnotes.fetch({cwd: verifyClone})
+      const note = await gitnotes.read(commit, {cwd: verifyClone})
+      expect(note).toBe('clone2 update')
     })
   })
 })

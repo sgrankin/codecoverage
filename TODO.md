@@ -20,14 +20,4 @@ Future improvements for the codecoverage action.
 
 ## Bugs
 
-- [ ] Git notes push silently fails in CI
-  - Symptom: `baseline.store()` reports "Coverage baseline stored successfully" but the note doesn't appear on the remote
-  - The `gitnotes.push()` function returns `true` (success) but the remote ref isn't updated
-  - Observed: CI run 21104993097 on commit 5f00e2cc claimed success but note wasn't pushed; CI run 21105546644 on 600b8616 also failed silently
-  - Working: Manual `git push origin refs/notes/coverage/main` from local machine works fine
-  - Working: Earlier CI run 21104651220 on c693cee did successfully push
-  - Hypothesis: Race condition, auth token issue, or git command not executing in correct directory
-  - Potential fixes:
-    1. Add logging of git push stdout/stderr
-    2. Verify push by fetching and checking note exists after push
-    3. Use `git push --force` for notes ref
+- [x] Git notes push silently fails in CI (fixed: use fetch-write-push cycle)

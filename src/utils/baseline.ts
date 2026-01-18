@@ -70,12 +70,9 @@ export async function store(
     const content = format(baseline)
     core.info(`Storing baseline coverage: ${data.coveragePercentage}%`)
 
-    // Write notes for current commit
-    await gitnotes.write(commit, content, {...options, force: true})
-
-    // Push notes to origin
-    const pushSuccess = await gitnotes.push(options)
-    if (!pushSuccess) {
+    // Write and push notes atomically with retry
+    const success = await gitnotes.writeAndPush({commit, content, force: true}, options)
+    if (!success) {
       core.warning('Failed to push coverage baseline to origin after retries')
       return false
     }
