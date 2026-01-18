@@ -18,6 +18,11 @@ const {mockGetInput, mockSetOutput, mockSetFailed} = vi.hoisted(() => ({
   mockSetFailed: vi.fn()
 }))
 
+// setInputs configures mockGetInput to return values from the given map.
+function setInputs(inputs: Record<string, string>) {
+  mockGetInput.mockImplementation((name: string) => inputs[name] ?? '')
+}
+
 vi.mock('@actions/core', async () => {
   const actual = await vi.importActual('@actions/core')
   return {
@@ -113,11 +118,10 @@ test('stores baseline on push to main branch', async function () {
   ;(github.context as any).eventName = 'push'
   ;(github.context as any).ref = 'refs/heads/main'
 
-  mockGetInput.mockImplementation((name: string) => {
-    if (name === 'GITHUB_TOKEN') return 'test-token'
-    if (name === 'COVERAGE_FILE_PATH') return lcovPath
-    if (name === 'COVERAGE_FORMAT') return 'lcov'
-    return ''
+  setInputs({
+    github_token: 'test-token',
+    coverage_file_path: lcovPath,
+    coverage_format: 'lcov'
   })
 
   let storeCalled = false
@@ -148,12 +152,11 @@ test('calculates delta when baseline exists in PR mode', async function () {
     }
   }
 
-  mockGetInput.mockImplementation((name: string) => {
-    if (name === 'GITHUB_TOKEN') return 'test-token'
-    if (name === 'COVERAGE_FILE_PATH') return lcovPath
-    if (name === 'COVERAGE_FORMAT') return 'lcov'
-    if (name === 'calculate_delta') return 'true'
-    return ''
+  setInputs({
+    github_token: 'test-token',
+    coverage_file_path: lcovPath,
+    coverage_format: 'lcov',
+    calculate_delta: 'true'
   })
 
   let loadCalled = false
@@ -191,12 +194,11 @@ test('shows absolute coverage when no baseline exists', async function () {
     }
   }
 
-  mockGetInput.mockImplementation((name: string) => {
-    if (name === 'GITHUB_TOKEN') return 'test-token'
-    if (name === 'COVERAGE_FILE_PATH') return lcovPath
-    if (name === 'COVERAGE_FORMAT') return 'lcov'
-    if (name === 'calculate_delta') return 'true'
-    return ''
+  setInputs({
+    github_token: 'test-token',
+    coverage_file_path: lcovPath,
+    coverage_format: 'lcov',
+    calculate_delta: 'true'
   })
 
   let loadCalled = false
@@ -218,28 +220,26 @@ test('shows absolute coverage when no baseline exists', async function () {
 })
 
 test('throws error for unsupported coverage format', async function () {
-  mockGetInput.mockImplementation((name: string) => {
-    if (name === 'GITHUB_TOKEN') return 'test-token'
-    if (name === 'COVERAGE_FILE_PATH') return '/path/to/coverage'
-    if (name === 'COVERAGE_FORMAT') return 'unsupported'
-    return ''
+  setInputs({
+    github_token: 'test-token',
+    coverage_file_path: '/path/to/coverage',
+    coverage_format: 'unsupported'
   })
 
   await play(createFakeDeps())
 
-  expect(mockSetFailed).toHaveBeenCalledWith('COVERAGE_FORMAT must be one of lcov,cobertura,go')
+  expect(mockSetFailed).toHaveBeenCalledWith('coverage_format must be one of lcov,cobertura,go')
 })
 
 test('processes lcov coverage file successfully', async function () {
   const lcovPath = getFixturePath('lcov.info')
 
-  mockGetInput.mockImplementation((name: string) => {
-    if (name === 'GITHUB_TOKEN') return 'test-token'
-    if (name === 'COVERAGE_FILE_PATH') return lcovPath
-    if (name === 'COVERAGE_FORMAT') return 'lcov'
-    if (name === 'GITHUB_BASE_URL') return 'https://api.github.com'
-    if (name === 'STEP_SUMMARY') return 'false'
-    return ''
+  setInputs({
+    github_token: 'test-token',
+    coverage_file_path: lcovPath,
+    coverage_format: 'lcov',
+    github_base_url: 'https://api.github.com',
+    step_summary: 'false'
   })
 
   const capture = captureStdout()
@@ -258,13 +258,12 @@ test('processes lcov coverage file successfully', async function () {
 test('processes cobertura coverage file successfully', async function () {
   const coberturaPath = getFixturePath('cobertura.xml')
 
-  mockGetInput.mockImplementation((name: string) => {
-    if (name === 'GITHUB_TOKEN') return 'test-token'
-    if (name === 'COVERAGE_FILE_PATH') return coberturaPath
-    if (name === 'COVERAGE_FORMAT') return 'cobertura'
-    if (name === 'GITHUB_BASE_URL') return 'https://api.github.com'
-    if (name === 'STEP_SUMMARY') return 'false'
-    return ''
+  setInputs({
+    github_token: 'test-token',
+    coverage_file_path: coberturaPath,
+    coverage_format: 'cobertura',
+    github_base_url: 'https://api.github.com',
+    step_summary: 'false'
   })
 
   const capture = captureStdout()
@@ -282,13 +281,12 @@ test('processes cobertura coverage file successfully', async function () {
 test('processes go coverage file successfully', async function () {
   const gocovPath = getFixturePath('gocoverage.out')
 
-  mockGetInput.mockImplementation((name: string) => {
-    if (name === 'GITHUB_TOKEN') return 'test-token'
-    if (name === 'COVERAGE_FILE_PATH') return gocovPath
-    if (name === 'COVERAGE_FORMAT') return 'go'
-    if (name === 'GITHUB_BASE_URL') return 'https://api.github.com'
-    if (name === 'STEP_SUMMARY') return 'false'
-    return ''
+  setInputs({
+    github_token: 'test-token',
+    coverage_file_path: gocovPath,
+    coverage_format: 'go',
+    github_base_url: 'https://api.github.com',
+    step_summary: 'false'
   })
 
   const capture = captureStdout()
@@ -306,13 +304,12 @@ test('processes go coverage file successfully', async function () {
 test('defaults to lcov format when not specified', async function () {
   const lcovPath = getFixturePath('lcov.info')
 
-  mockGetInput.mockImplementation((name: string) => {
-    if (name === 'GITHUB_TOKEN') return 'test-token'
-    if (name === 'COVERAGE_FILE_PATH') return lcovPath
-    if (name === 'COVERAGE_FORMAT') return '' // Not specified
-    if (name === 'GITHUB_BASE_URL') return 'https://api.github.com'
-    if (name === 'STEP_SUMMARY') return 'false'
-    return ''
+  setInputs({
+    github_token: 'test-token',
+    coverage_file_path: lcovPath,
+    // coverage_format not specified - should default to lcov
+    github_base_url: 'https://api.github.com',
+    step_summary: 'false'
   })
 
   const capture = captureStdout()
@@ -329,13 +326,12 @@ test('defaults to lcov format when not specified', async function () {
 test('outputs diagnostic dump for files in PR diff', async function () {
   const lcovPath = getFixturePath('lcov.info')
 
-  mockGetInput.mockImplementation((name: string) => {
-    if (name === 'GITHUB_TOKEN') return 'test-token'
-    if (name === 'COVERAGE_FILE_PATH') return lcovPath
-    if (name === 'COVERAGE_FORMAT') return 'lcov'
-    if (name === 'GITHUB_BASE_URL') return 'https://api.github.com'
-    if (name === 'STEP_SUMMARY') return 'false'
-    return ''
+  setInputs({
+    github_token: 'test-token',
+    coverage_file_path: lcovPath,
+    coverage_format: 'lcov',
+    github_base_url: 'https://api.github.com',
+    step_summary: 'false'
   })
 
   // Set empty workspace so file paths stay as-is
@@ -365,13 +361,12 @@ test('outputs diagnostic dump for files in PR diff', async function () {
 test('sets output values for coverage stats', async function () {
   const lcovPath = getFixturePath('lcov.info')
 
-  mockGetInput.mockImplementation((name: string) => {
-    if (name === 'GITHUB_TOKEN') return 'test-token'
-    if (name === 'COVERAGE_FILE_PATH') return lcovPath
-    if (name === 'COVERAGE_FORMAT') return 'lcov'
-    if (name === 'GITHUB_BASE_URL') return 'https://api.github.com'
-    if (name === 'STEP_SUMMARY') return 'false'
-    return ''
+  setInputs({
+    github_token: 'test-token',
+    coverage_file_path: lcovPath,
+    coverage_format: 'lcov',
+    github_base_url: 'https://api.github.com',
+    step_summary: 'false'
   })
 
   const fakeDeps = createFakeDeps({
@@ -397,11 +392,10 @@ test('sets output values for coverage stats', async function () {
 })
 
 test('handles error gracefully', async function () {
-  mockGetInput.mockImplementation((name: string) => {
-    if (name === 'GITHUB_TOKEN') return 'test-token'
-    if (name === 'COVERAGE_FILE_PATH') return '/nonexistent/file.info'
-    if (name === 'COVERAGE_FORMAT') return 'lcov'
-    return ''
+  setInputs({
+    github_token: 'test-token',
+    coverage_file_path: '/nonexistent/file.info',
+    coverage_format: 'lcov'
   })
 
   await play(createFakeDeps())
@@ -420,13 +414,12 @@ test('writes step summary to temp file', async function () {
   // Set up env var for summary file
   process.env.GITHUB_STEP_SUMMARY = summaryFile
 
-  mockGetInput.mockImplementation((name: string) => {
-    if (name === 'GITHUB_TOKEN') return 'test-token'
-    if (name === 'COVERAGE_FILE_PATH') return lcovPath
-    if (name === 'COVERAGE_FORMAT') return 'lcov'
-    if (name === 'GITHUB_BASE_URL') return 'https://api.github.com'
-    if (name === 'STEP_SUMMARY') return 'true'
-    return ''
+  setInputs({
+    github_token: 'test-token',
+    coverage_file_path: lcovPath,
+    coverage_format: 'lcov',
+    github_base_url: 'https://api.github.com',
+    step_summary: 'true'
   })
 
   const capture = captureStdout()
@@ -448,16 +441,15 @@ test('writes step summary to temp file', async function () {
   }
 })
 
-test('does not write step summary when STEP_SUMMARY is false', async function () {
+test('does not write step summary when step_summary is false', async function () {
   const lcovPath = getFixturePath('lcov.info')
 
-  mockGetInput.mockImplementation((name: string) => {
-    if (name === 'GITHUB_TOKEN') return 'test-token'
-    if (name === 'COVERAGE_FILE_PATH') return lcovPath
-    if (name === 'COVERAGE_FORMAT') return 'lcov'
-    if (name === 'GITHUB_BASE_URL') return 'https://api.github.com'
-    if (name === 'STEP_SUMMARY') return 'false'
-    return ''
+  setInputs({
+    github_token: 'test-token',
+    coverage_file_path: lcovPath,
+    coverage_format: 'lcov',
+    github_base_url: 'https://api.github.com',
+    step_summary: 'false'
   })
 
   const capture = captureStdout()
