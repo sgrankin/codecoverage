@@ -63,10 +63,7 @@ function makeEmptyEntry(): CoverageEntry {
   }
 }
 
-export async function parseLCov(
-  lcovPath: string,
-  workspacePath: string
-): Promise<CoverageParsed> {
+export async function parseLCov(lcovPath: string, workspacePath: string): Promise<CoverageParsed> {
   if (!lcovPath) {
     throw Error('No LCov path provided')
   }

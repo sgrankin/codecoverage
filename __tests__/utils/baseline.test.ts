@@ -51,9 +51,7 @@ describe('baseline', () => {
     test('returns null for missing required fields', () => {
       expect(parseBaseline('{}')).toBeNull()
       expect(parseBaseline('{"coveragePercentage": 85}')).toBeNull() // wrong type
-      expect(
-        parseBaseline('{"coveragePercentage": "85", "totalLines": "100"}')
-      ).toBeNull() // wrong type
+      expect(parseBaseline('{"coveragePercentage": "85", "totalLines": "100"}')).toBeNull() // wrong type
     })
   })
 
@@ -115,11 +113,7 @@ describe('baseline', () => {
     let bareRepoDir: string
 
     /** Create a git commit with a file */
-    async function createCommit(
-      cwd: string,
-      message: string,
-      filename?: string
-    ): Promise<string> {
+    async function createCommit(cwd: string, message: string, filename?: string): Promise<string> {
       const file = filename || `file-${Date.now()}.txt`
       await writeFile(join(cwd, file), `content for ${message}`)
       await gitExec(['add', file], cwd)
@@ -195,15 +189,7 @@ describe('baseline', () => {
       // Store invalid JSON as baseline
       const commit = await getHeadCommit({cwd: repoDir})
       await gitExec(
-        [
-          'notes',
-          '--ref',
-          'refs/notes/coverage',
-          'add',
-          '-m',
-          'not valid json',
-          commit
-        ],
+        ['notes', '--ref', 'refs/notes/coverage', 'add', '-m', 'not valid json', commit],
         repoDir
       )
       await pushNotes({cwd: repoDir})
@@ -348,10 +334,7 @@ describe('baseline', () => {
 
     test('returns false when pushNotes fails', async () => {
       // Mock pushNotes to return false
-      vi.spyOn(
-        await import('../../src/utils/gitnotes'),
-        'pushNotes'
-      ).mockResolvedValue(false)
+      vi.spyOn(await import('../../src/utils/gitnotes'), 'pushNotes').mockResolvedValue(false)
 
       const result = await storeBaseline(
         {

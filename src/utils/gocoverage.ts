@@ -61,10 +61,7 @@ function parseGoCoverageContent(text: string): CoverageParsed {
 
   // Calculate hit counts
   for (const file of files) {
-    file.lines.hit = file.lines.details.reduce(
-      (acc, val) => acc + (val.hit > 0 ? 1 : 0),
-      0
-    )
+    file.lines.hit = file.lines.details.reduce((acc, val) => acc + (val.hit > 0 ? 1 : 0), 0)
   }
 
   return files

@@ -76,15 +76,12 @@ const coalesceTestCases = [
   }
 ]
 
-test.each(coalesceTestCases)(
-  'coalesceLineNumbers: $name',
-  ({lines, executableLines, expected}) => {
-    const result = executableLines
-      ? coalesceLineNumbersWithGaps(lines, executableLines)
-      : coalesceLineNumbers(lines)
-    expect(result).toEqual(expected)
-  }
-)
+test.each(coalesceTestCases)('coalesceLineNumbers: $name', ({lines, executableLines, expected}) => {
+  const result = executableLines
+    ? coalesceLineNumbersWithGaps(lines, executableLines)
+    : coalesceLineNumbers(lines)
+  expect(result).toEqual(expected)
+})
 
 test('range intersections', function () {
   const a = [

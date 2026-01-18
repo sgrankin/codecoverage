@@ -25,10 +25,7 @@ export interface GitExecResult {
 }
 
 /** Run a git command and return stdout/stderr */
-export async function gitExec(
-  args: string[],
-  cwd?: string
-): Promise<GitExecResult> {
+export async function gitExec(args: string[], cwd?: string): Promise<GitExecResult> {
   const cmd = `git ${args.map(a => `'${a.replace(/'/g, "'\\''")}'`).join(' ')}`
   try {
     const result = await execAsync(cmd, {cwd})
@@ -101,10 +98,7 @@ export async function readNotes(
   } catch (error) {
     const err = error as Error & {stderr?: string}
     // Check if the error is because no notes exist
-    if (
-      err.stderr?.includes('No note found') ||
-      err.stderr?.includes('error: no note found')
-    ) {
+    if (err.stderr?.includes('No note found') || err.stderr?.includes('error: no note found')) {
       return null
     }
     throw error
@@ -167,11 +161,7 @@ async function sleep(ms: number): Promise<void> {
 export async function pushNotes(
   options: GitNotesOptions & {maxRetries?: number} = {}
 ): Promise<boolean> {
-  const {
-    cwd,
-    namespace = DEFAULT_NOTE_NAMESPACE,
-    maxRetries = MAX_PUSH_RETRIES
-  } = options
+  const {cwd, namespace = DEFAULT_NOTE_NAMESPACE, maxRetries = MAX_PUSH_RETRIES} = options
   const ref = getNotesRef(namespace)
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -235,9 +225,7 @@ export async function findMergeBase(
 /**
  * Get the current HEAD commit SHA.
  */
-export async function getHeadCommit(
-  options: {cwd?: string} = {}
-): Promise<string> {
+export async function getHeadCommit(options: {cwd?: string} = {}): Promise<string> {
   const {cwd} = options
   const result = await gitExec(['rev-parse', 'HEAD'], cwd)
   return result.stdout.trim()

@@ -1,9 +1,5 @@
 import {test, expect, describe} from 'vitest'
-import {
-  detectMode,
-  getNamespaceForBranch,
-  GithubContext
-} from '../../src/utils/mode'
+import {detectMode, getNamespaceForBranch, GithubContext} from '../../src/utils/mode'
 
 /**
  * Creates a fake GitHub context for testing.

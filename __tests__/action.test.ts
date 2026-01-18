@@ -177,10 +177,7 @@ test('calculates delta when baseline exists in PR mode', async function () {
     await play(fakeDeps)
     expect(loadCalled).toBe(true)
     expect(capture.output()).toContain('Coverage delta:')
-    expect(mockSetOutput).toHaveBeenCalledWith(
-      'coverage_delta',
-      expect.any(String)
-    )
+    expect(mockSetOutput).toHaveBeenCalledWith('coverage_delta', expect.any(String))
     expect(mockSetOutput).toHaveBeenCalledWith('baseline_percentage', '80.00')
   } finally {
     capture.restore()
@@ -232,9 +229,7 @@ test('throws error for unsupported coverage format', async function () {
 
   await play(createFakeDeps())
 
-  expect(mockSetFailed).toHaveBeenCalledWith(
-    'COVERAGE_FORMAT must be one of lcov,cobertura,go'
-  )
+  expect(mockSetFailed).toHaveBeenCalledWith('COVERAGE_FORMAT must be one of lcov,cobertura,go')
 })
 
 test('processes lcov coverage file successfully', async function () {
@@ -651,13 +646,10 @@ const generateSummaryTestCases = [
 `
   }
 ]
-test.each(generateSummaryTestCases)(
-  'generateSummary: $name',
-  ({input, expected}) => {
-    const summary = generateSummary(input)
-    expect(summary).toBe(expected)
-  }
-)
+test.each(generateSummaryTestCases)('generateSummary: $name', ({input, expected}) => {
+  const summary = generateSummary(input)
+  expect(summary).toBe(expected)
+})
 
 test('writes step summary to temp file', async function () {
   const lcovPath = getFixturePath('lcov.info')

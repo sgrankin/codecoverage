@@ -173,17 +173,13 @@ export function generateSummary(params: SummaryParams): string {
   const packageRows = packages
     .map(pkg => {
       const pct =
-        pkg.totalLines > 0
-          ? ((pkg.coveredLines / pkg.totalLines) * 100).toFixed(1)
-          : '0.0'
+        pkg.totalLines > 0 ? ((pkg.coveredLines / pkg.totalLines) * 100).toFixed(1) : '0.0'
       return `| ${pkg.package} | ${pkg.files.length} | ${pkg.totalLines.toLocaleString()} | ${pkg.coveredLines.toLocaleString()} | ${pct}% |`
     })
     .join('\n')
 
   // Build baseline row if available
-  const baselineRow = baselinePercentage
-    ? `| **Baseline** | ${baselinePercentage}% |\n`
-    : ''
+  const baselineRow = baselinePercentage ? `| **Baseline** | ${baselinePercentage}% |\n` : ''
 
   return `## ${statusEmoji} Code Coverage Report
 
@@ -242,14 +238,8 @@ async function parseCoverage(
   parsedCov = correctLineTotals(parsedCov)
 
   // Calculate totals
-  const totalLines = parsedCov.reduce(
-    (acc, entry) => acc + entry.lines.found,
-    0
-  )
-  const coveredLines = parsedCov.reduce(
-    (acc, entry) => acc + entry.lines.hit,
-    0
-  )
+  const totalLines = parsedCov.reduce((acc, entry) => acc + entry.lines.found, 0)
+  const coveredLines = parsedCov.reduce((acc, entry) => acc + entry.lines.hit, 0)
   const coveragePercentage =
     totalLines > 0 ? ((coveredLines / totalLines) * 100).toFixed(2) : '0.00'
 
@@ -257,9 +247,7 @@ async function parseCoverage(
 }
 
 /** Starting Point of the Github Action*/
-export async function play(
-  deps: ActionDependencies = createDefaultDependencies()
-): Promise<void> {
+export async function play(deps: ActionDependencies = createDefaultDependencies()): Promise<void> {
   try {
     core.info('Performing Code Coverage Analysis')
 
@@ -276,9 +264,7 @@ export async function play(
 
     let COVERAGE_FORMAT = core.getInput('COVERAGE_FORMAT') || 'lcov'
     if (!SUPPORTED_FORMATS.includes(COVERAGE_FORMAT)) {
-      throw new Error(
-        `COVERAGE_FORMAT must be one of ${SUPPORTED_FORMATS.join(',')}`
-      )
+      throw new Error(`COVERAGE_FORMAT must be one of ${SUPPORTED_FORMATS.join(',')}`)
     }
 
     const workspacePath = env.GITHUB_WORKSPACE || ''
@@ -290,8 +276,11 @@ export async function play(
     core.setOutput('mode', modeContext.mode)
 
     // Parse coverage data
-    const {parsedCov, totalLines, coveredLines, coveragePercentage} =
-      await parseCoverage(COVERAGE_FILE_PATH, COVERAGE_FORMAT, workspacePath)
+    const {parsedCov, totalLines, coveredLines, coveragePercentage} = await parseCoverage(
+      COVERAGE_FILE_PATH,
+      COVERAGE_FORMAT,
+      workspacePath
+    )
 
     core.info(
       `Parsing done. ${parsedCov.length} files parsed. Total lines: ${totalLines}. Covered lines: ${coveredLines}. Coverage: ${coveragePercentage}%`
@@ -309,10 +298,7 @@ export async function play(
     if (modeContext.mode === 'store-baseline') {
       // Store baseline mode: save coverage to git notes
       if (modeContext.baseBranch) {
-        const namespace = getNamespaceForBranch(
-          modeContext.baseBranch,
-          noteNamespace
-        )
+        const namespace = getNamespaceForBranch(modeContext.baseBranch, noteNamespace)
         core.info(`Storing baseline with namespace: ${namespace}`)
 
         await deps.baseline.store(
@@ -355,10 +341,7 @@ export async function play(
 
     // PR Check mode (or store-baseline mode on PR event): calculate delta and create annotations
     if (calculateDeltaInput && modeContext.baseBranch) {
-      const namespace = getNamespaceForBranch(
-        modeContext.baseBranch,
-        noteNamespace
-      )
+      const namespace = getNamespaceForBranch(modeContext.baseBranch, noteNamespace)
       core.info(`Loading baseline from namespace: ${namespace}`)
 
       const baselineResult = await deps.baseline.load(modeContext.baseBranch, {
@@ -368,11 +351,7 @@ export async function play(
 
       if (baselineResult.baseline) {
         baselinePercentage = baselineResult.baseline.coveragePercentage
-        coverageDelta = calculateDelta(
-          coveragePercentage,
-          baselinePercentage,
-          deltaPrecision
-        )
+        coverageDelta = calculateDelta(coveragePercentage, baselinePercentage, deltaPrecision)
         core.info(`Coverage delta: ${coverageDelta}`)
         core.setOutput('coverage_delta', coverageDelta)
         core.setOutput('baseline_percentage', baselinePercentage)
@@ -410,10 +389,7 @@ export async function play(
       }
       core.endGroup()
 
-      const annotations = githubUtil.buildAnnotations(
-        coverageByFile,
-        pullRequestFiles
-      )
+      const annotations = githubUtil.buildAnnotations(coverageByFile, pullRequestFiles)
       annotationCount = annotations.length
       core.setOutput('annotation_count', annotationCount)
 

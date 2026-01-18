@@ -176,10 +176,7 @@ export function calculateDelta(
  * Format coverage with delta for display.
  * Returns string like "85.5% (↑2.1%)" or "83.2% (↓1.8%)"
  */
-export function formatCoverageWithDelta(
-  currentPercentage: string,
-  delta: string
-): string {
+export function formatCoverageWithDelta(currentPercentage: string, delta: string): string {
   const deltaNum = parseFloat(delta)
   const arrow = deltaNum >= 0 ? '↑' : '↓'
   const absDelta = Math.abs(deltaNum).toFixed(2)

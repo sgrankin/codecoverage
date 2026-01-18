@@ -10,15 +10,11 @@ test('should parse Go coverage file', async function () {
 })
 
 test('should throw err if file path is not given', async function () {
-  await expect(parseGoCoverage('', '')).rejects.toThrow(
-    'No Go coverage path provided'
-  )
+  await expect(parseGoCoverage('', '')).rejects.toThrow('No Go coverage path provided')
 })
 
 test('should throw err if go.mod path is not given', async function () {
-  await expect(parseGoCoverage('foo', '')).rejects.toThrow(
-    'No Go module path provided'
-  )
+  await expect(parseGoCoverage('foo', '')).rejects.toThrow('No Go module path provided')
 })
 
 test('should return empty module name for go.mod without module line', async function () {

@@ -25,19 +25,13 @@ const expandTestCases = [
   {
     name: 'handles multiple paths separated by newlines',
     input: `${getFixturePath('lcov.info')}\n${getFixturePath('cobertura.xml')}`,
-    expectedContains: [
-      getFixturePath('lcov.info'),
-      getFixturePath('cobertura.xml')
-    ],
+    expectedContains: [getFixturePath('lcov.info'), getFixturePath('cobertura.xml')],
     expectedLength: 2
   },
   {
     name: 'handles mixed paths and globs',
     input: `${getFixturePath('lcov.info')}\n${path.join(fixturesDir, '*.xml')}`,
-    expectedContains: [
-      getFixturePath('lcov.info'),
-      getFixturePath('cobertura.xml')
-    ]
+    expectedContains: [getFixturePath('lcov.info'), getFixturePath('cobertura.xml')]
   },
   {
     name: 'removes duplicates',
@@ -59,17 +53,14 @@ const expandTestCases = [
   }
 ]
 
-test.each(expandTestCases)(
-  '$name',
-  async ({input, expectedContains, expectedLength}) => {
-    const result = await expandCoverageFilePaths(input)
+test.each(expandTestCases)('$name', async ({input, expectedContains, expectedLength}) => {
+  const result = await expandCoverageFilePaths(input)
 
-    for (const expected of expectedContains) {
-      expect(result).toContain(expected)
-    }
-
-    if (expectedLength !== undefined) {
-      expect(result).toHaveLength(expectedLength)
-    }
+  for (const expected of expectedContains) {
+    expect(result).toContain(expected)
   }
-)
+
+  if (expectedLength !== undefined) {
+    expect(result).toHaveLength(expectedLength)
+  }
+})

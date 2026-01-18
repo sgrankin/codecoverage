@@ -38,15 +38,10 @@ export function mergeCoverageByFile(coverage: CoverageParsed): CoverageParsed {
 
 export function filterCoverageByFile(coverage: CoverageParsed): CoverageFile[] {
   return coverage.map(item => {
-    const allExecutableLines = new Set(
-      item?.lines?.details.map(line => line.line) || []
-    )
+    const allExecutableLines = new Set(item?.lines?.details.map(line => line.line) || [])
     const missingLineNumbers =
-      item?.lines?.details
-        .filter(line => line.hit === 0)
-        .map(line => line.line) || []
-    const coveredLineCount =
-      item?.lines?.details.filter(line => line.hit > 0).length || 0
+      item?.lines?.details.filter(line => line.hit === 0).map(line => line.line) || []
+    const coveredLineCount = item?.lines?.details.filter(line => line.hit > 0).length || 0
 
     return {
       fileName: item.file,
@@ -116,11 +111,7 @@ export function coalesceLineNumbersWithGaps(
  * Check if the gap between two lines contains only non-executable lines.
  * Returns true if all lines in the gap (exclusive) are not in executableLines.
  */
-function canBridgeGap(
-  from: number,
-  to: number,
-  executableLines: Set<number>
-): boolean {
+function canBridgeGap(from: number, to: number, executableLines: Set<number>): boolean {
   for (let line = from + 1; line < to; line++) {
     if (executableLines.has(line)) {
       // There's an executable line in the gap (which must be covered,
@@ -131,10 +122,7 @@ function canBridgeGap(
   return true
 }
 
-export function intersectLineRanges(
-  a: LineRange[],
-  b: LineRange[]
-): LineRange[] {
+export function intersectLineRanges(a: LineRange[], b: LineRange[]): LineRange[] {
   const result: LineRange[] = []
   let i = 0
   let j = 0

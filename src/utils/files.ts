@@ -7,9 +7,7 @@ import * as glob from '@actions/glob'
  * - Glob patterns (including **)
  * - Multiple paths/patterns separated by newlines
  */
-export async function expandCoverageFilePaths(
-  input: string
-): Promise<string[]> {
+export async function expandCoverageFilePaths(input: string): Promise<string[]> {
   const globber = await glob.create(input, {
     matchDirectories: false
   })

@@ -1,11 +1,7 @@
 import * as core from '@actions/core'
 import * as diff from './diff'
 import * as github from '@actions/github'
-import {
-  CoverageFile,
-  coalesceLineNumbersWithGaps,
-  intersectLineRanges
-} from './general'
+import {CoverageFile, coalesceLineNumbersWithGaps, intersectLineRanges} from './general'
 
 export type Annotation = {
   path: string
@@ -51,8 +47,7 @@ export class GithubUtil {
     } catch (error) {
       if (isDiffTooLargeError(error)) {
         core.warning(
-          'PR diff is too large for the GitHub API. ' +
-            'Skipping coverage annotations for this PR.'
+          'PR diff is too large for the GitHub API. Skipping coverage annotations for this PR.'
         )
         return {}
       }
@@ -91,9 +86,7 @@ export class GithubUtil {
 
         // Filter PR diff lines to only executable lines - whitespace-only
         // changes or comments shouldn't generate coverage annotations
-        const executablePrLines = prFileLines.filter(line =>
-          current.executableLines.has(line)
-        )
+        const executablePrLines = prFileLines.filter(line => current.executableLines.has(line))
         if (executablePrLines.length === 0) {
           continue
         }
@@ -105,14 +98,8 @@ export class GithubUtil {
           current.missingLineNumbers,
           current.executableLines
         )
-        const prFileRanges = coalesceLineNumbersWithGaps(
-          executablePrLines,
-          current.executableLines
-        )
-        const uncoveredRanges = intersectLineRanges(
-          coverageRanges,
-          prFileRanges
-        )
+        const prFileRanges = coalesceLineNumbersWithGaps(executablePrLines, current.executableLines)
+        const uncoveredRanges = intersectLineRanges(coverageRanges, prFileRanges)
 
         // Only annotate relevant line ranges
         for (const uRange of uncoveredRanges) {
@@ -142,11 +129,7 @@ function isDiffTooLargeError(error: unknown): boolean {
   if (error && typeof error === 'object' && 'status' in error) {
     const apiError = error as {status: number; message?: string}
     const message = apiError.message?.toLowerCase() || ''
-    if (
-      apiError.status === 403 ||
-      apiError.status === 422 ||
-      apiError.status === 406
-    ) {
+    if (apiError.status === 403 || apiError.status === 422 || apiError.status === 406) {
       return (
         message.includes('diff') ||
         message.includes('too large') ||

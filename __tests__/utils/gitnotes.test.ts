@@ -21,11 +21,7 @@ describe('gitnotes', () => {
   let bareRepoDir: string
 
   /** Create a git commit with a file */
-  async function createCommit(
-    cwd: string,
-    message: string,
-    filename?: string
-  ): Promise<string> {
+  async function createCommit(cwd: string, message: string, filename?: string): Promise<string> {
     const file = filename || `file-${Date.now()}.txt`
     await writeFile(join(cwd, file), `content for ${message}`)
     await gitExec(['add', file], cwd)
@@ -79,9 +75,7 @@ describe('gitnotes', () => {
     })
 
     test('throws on invalid git command', async () => {
-      await expect(gitExec(['invalid-command'], repoDir)).rejects.toThrow(
-        'Git command failed'
-      )
+      await expect(gitExec(['invalid-command'], repoDir)).rejects.toThrow('Git command failed')
     })
 
     test('handles special characters in arguments', async () => {
@@ -111,9 +105,7 @@ describe('gitnotes', () => {
       const commit = await getHeadCommit({cwd: repoDir})
 
       await writeNotes(commit, 'first', {cwd: repoDir})
-      await expect(
-        writeNotes(commit, 'second', {cwd: repoDir})
-      ).rejects.toThrow()
+      await expect(writeNotes(commit, 'second', {cwd: repoDir})).rejects.toThrow()
     })
 
     test('writeNotes overwrites with force flag', async () => {

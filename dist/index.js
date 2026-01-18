@@ -28804,9 +28804,7 @@ function mergeCoverageByFile(coverage) {
 }
 function filterCoverageByFile(coverage) {
   return coverage.map((item) => {
-    const allExecutableLines = new Set(
-      item?.lines?.details.map((line) => line.line) || []
-    );
+    const allExecutableLines = new Set(item?.lines?.details.map((line) => line.line) || []);
     const missingLineNumbers = item?.lines?.details.filter((line) => line.hit === 0).map((line) => line.line) || [];
     const coveredLineCount = item?.lines?.details.filter((line) => line.hit > 0).length || 0;
     return {
@@ -30487,10 +30485,7 @@ function parseGoCoverageContent(text) {
     }
   }
   for (const file of files) {
-    file.lines.hit = file.lines.details.reduce(
-      (acc, val) => acc + (val.hit > 0 ? 1 : 0),
-      0
-    );
+    file.lines.hit = file.lines.details.reduce((acc, val) => acc + (val.hit > 0 ? 1 : 0), 0);
   }
   return files;
 }
@@ -30644,9 +30639,7 @@ var GithubUtil = class {
           });
           continue;
         }
-        const executablePrLines = prFileLines.filter(
-          (line) => current.executableLines.has(line)
-        );
+        const executablePrLines = prFileLines.filter((line) => current.executableLines.has(line));
         if (executablePrLines.length === 0) {
           continue;
         }
@@ -30654,14 +30647,8 @@ var GithubUtil = class {
           current.missingLineNumbers,
           current.executableLines
         );
-        const prFileRanges = coalesceLineNumbersWithGaps(
-          executablePrLines,
-          current.executableLines
-        );
-        const uncoveredRanges = intersectLineRanges(
-          coverageRanges,
-          prFileRanges
-        );
+        const prFileRanges = coalesceLineNumbersWithGaps(executablePrLines, current.executableLines);
+        const uncoveredRanges = intersectLineRanges(coverageRanges, prFileRanges);
         for (const uRange of uncoveredRanges) {
           const message = uRange.end_line > uRange.start_line ? `Changed lines ${uRange.start_line}-${uRange.end_line} are not tested` : `Changed line ${uRange.start_line} is not tested`;
           annotations.push({
@@ -30822,11 +30809,7 @@ async function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 async function pushNotes(options = {}) {
-  const {
-    cwd,
-    namespace = DEFAULT_NOTE_NAMESPACE,
-    maxRetries = MAX_PUSH_RETRIES
-  } = options;
+  const { cwd, namespace = DEFAULT_NOTE_NAMESPACE, maxRetries = MAX_PUSH_RETRIES } = options;
   const ref = getNotesRef(namespace);
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
@@ -31066,14 +31049,8 @@ async function parseCoverage(coverageFilePath, coverageFormat, workspacePath) {
   }
   parsedCov = mergeCoverageByFile(parsedCov);
   parsedCov = correctLineTotals(parsedCov);
-  const totalLines = parsedCov.reduce(
-    (acc, entry) => acc + entry.lines.found,
-    0
-  );
-  const coveredLines = parsedCov.reduce(
-    (acc, entry) => acc + entry.lines.hit,
-    0
-  );
+  const totalLines = parsedCov.reduce((acc, entry) => acc + entry.lines.found, 0);
+  const coveredLines = parsedCov.reduce((acc, entry) => acc + entry.lines.hit, 0);
   const coveragePercentage = totalLines > 0 ? (coveredLines / totalLines * 100).toFixed(2) : "0.00";
   return { parsedCov, totalLines, coveredLines, coveragePercentage };
 }
@@ -31091,16 +31068,18 @@ async function play(deps = createDefaultDependencies()) {
     const deltaPrecision = parseInt(core3.getInput("delta_precision") || "2", 10);
     let COVERAGE_FORMAT = core3.getInput("COVERAGE_FORMAT") || "lcov";
     if (!SUPPORTED_FORMATS.includes(COVERAGE_FORMAT)) {
-      throw new Error(
-        `COVERAGE_FORMAT must be one of ${SUPPORTED_FORMATS.join(",")}`
-      );
+      throw new Error(`COVERAGE_FORMAT must be one of ${SUPPORTED_FORMATS.join(",")}`);
     }
     const workspacePath = env.GITHUB_WORKSPACE || "";
     core3.info(`Workspace: ${workspacePath}`);
     const modeContext = detectMode(modeOverride);
     core3.info(`Mode: ${modeContext.mode} (event: ${modeContext.eventName})`);
     core3.setOutput("mode", modeContext.mode);
-    const { parsedCov, totalLines, coveredLines, coveragePercentage } = await parseCoverage(COVERAGE_FILE_PATH, COVERAGE_FORMAT, workspacePath);
+    const { parsedCov, totalLines, coveredLines, coveragePercentage } = await parseCoverage(
+      COVERAGE_FILE_PATH,
+      COVERAGE_FORMAT,
+      workspacePath
+    );
     core3.info(
       `Parsing done. ${parsedCov.length} files parsed. Total lines: ${totalLines}. Covered lines: ${coveredLines}. Coverage: ${coveragePercentage}%`
     );
@@ -31110,10 +31089,7 @@ async function play(deps = createDefaultDependencies()) {
     let baselinePercentage;
     if (modeContext.mode === "store-baseline") {
       if (modeContext.baseBranch) {
-        const namespace = getNamespaceForBranch(
-          modeContext.baseBranch,
-          noteNamespace
-        );
+        const namespace = getNamespaceForBranch(modeContext.baseBranch, noteNamespace);
         core3.info(`Storing baseline with namespace: ${namespace}`);
         await deps.baseline.store(
           {
@@ -31150,10 +31126,7 @@ async function play(deps = createDefaultDependencies()) {
       }
     }
     if (calculateDeltaInput && modeContext.baseBranch) {
-      const namespace = getNamespaceForBranch(
-        modeContext.baseBranch,
-        noteNamespace
-      );
+      const namespace = getNamespaceForBranch(modeContext.baseBranch, noteNamespace);
       core3.info(`Loading baseline from namespace: ${namespace}`);
       const baselineResult = await deps.baseline.load(modeContext.baseBranch, {
         cwd: workspacePath || void 0,
@@ -31161,11 +31134,7 @@ async function play(deps = createDefaultDependencies()) {
       });
       if (baselineResult.baseline) {
         baselinePercentage = baselineResult.baseline.coveragePercentage;
-        coverageDelta = calculateDelta(
-          coveragePercentage,
-          baselinePercentage,
-          deltaPrecision
-        );
+        coverageDelta = calculateDelta(coveragePercentage, baselinePercentage, deltaPrecision);
         core3.info(`Coverage delta: ${coverageDelta}`);
         core3.setOutput("coverage_delta", coverageDelta);
         core3.setOutput("baseline_percentage", baselinePercentage);
@@ -31197,10 +31166,7 @@ async function play(deps = createDefaultDependencies()) {
         }
       }
       core3.endGroup();
-      const annotations = githubUtil.buildAnnotations(
-        coverageByFile,
-        pullRequestFiles
-      );
+      const annotations = githubUtil.buildAnnotations(coverageByFile, pullRequestFiles);
       annotationCount = annotations.length;
       core3.setOutput("annotation_count", annotationCount);
       for (const annotation of annotations) {

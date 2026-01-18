@@ -46,9 +46,7 @@ test('github init successfully', async function () {
 })
 
 test('github init to throw error', function () {
-  expect(() => new GithubUtil('', 'https://api.github.com')).toThrowError(
-    'GITHUB_TOKEN is missing'
-  )
+  expect(() => new GithubUtil('', 'https://api.github.com')).toThrowError('GITHUB_TOKEN is missing')
 })
 
 const buildAnnotationsTestCases = [
@@ -56,12 +54,11 @@ const buildAnnotationsTestCases = [
     name: 'multiple files with coalescing',
     prFiles: {
       'file1.txt': [
-        132, 133, 134, 135, 136, 137, 138, 139, 1000, 1001, 1002, 1003, 1004,
-        1005, 1006, 1007
+        132, 133, 134, 135, 136, 137, 138, 139, 1000, 1001, 1002, 1003, 1004, 1005, 1006, 1007
       ],
       'test/dir/file1.txt': [
-        22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39,
-        40, 41, 42, 43, 44, 45
+        22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44,
+        45
       ]
     },
     coverageFiles: [
@@ -121,9 +118,7 @@ const buildAnnotationsTestCases = [
   {
     name: 'bridges gaps for non-executable lines',
     prFiles: {
-      'file.ts': [
-        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20
-      ]
+      'file.ts': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
     },
     coverageFiles: [
       {
@@ -145,9 +140,7 @@ const buildAnnotationsTestCases = [
   {
     name: 'does not bridge gaps with covered lines',
     prFiles: {
-      'file.ts': [
-        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20
-      ]
+      'file.ts': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
     },
     coverageFiles: [
       {
@@ -281,11 +274,7 @@ index abcdefg..1234567 100644
  line3`
 
   const fakeFetchDiff = createFakeFetchDiff({diffResponse: mockDiff})
-  const githubUtil = new GithubUtil(
-    '1234',
-    'https://api.github.com',
-    fakeFetchDiff
-  )
+  const githubUtil = new GithubUtil('1234', 'https://api.github.com', fakeFetchDiff)
 
   const result = await githubUtil.getPullRequestDiff()
 
@@ -316,11 +305,7 @@ test.each(diffTooLargeTestCases)(
     const capture = captureStdout()
     try {
       const fakeFetchDiff = createFakeFetchDiff({diffError: error})
-      const githubUtil = new GithubUtil(
-        '1234',
-        'https://api.github.com',
-        fakeFetchDiff
-      )
+      const githubUtil = new GithubUtil('1234', 'https://api.github.com', fakeFetchDiff)
 
       const result = await githubUtil.getPullRequestDiff()
 
@@ -337,11 +322,7 @@ test('getPullRequestDiff throws for other errors', async function () {
   const fakeFetchDiff = createFakeFetchDiff({
     diffError: {status: 500, message: 'Server error'}
   })
-  const githubUtil = new GithubUtil(
-    '1234',
-    'https://api.github.com',
-    fakeFetchDiff
-  )
+  const githubUtil = new GithubUtil('1234', 'https://api.github.com', fakeFetchDiff)
 
   await expect(githubUtil.getPullRequestDiff()).rejects.toEqual({
     status: 500,

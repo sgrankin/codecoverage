@@ -60,9 +60,7 @@ export function detectMode(
     }
 
     const isPullRequest = eventName === 'pull_request'
-    const baseBranch = isPullRequest
-      ? ctx.payload.pull_request?.base?.ref
-      : undefined
+    const baseBranch = isPullRequest ? ctx.payload.pull_request?.base?.ref : undefined
 
     return {
       mode,
@@ -88,8 +86,7 @@ export function detectMode(
 
   // For push events or other triggers
   const isPushToMain =
-    eventName === 'push' &&
-    (ref === `refs/heads/${mainBranch}` || ref === mainBranch)
+    eventName === 'push' && (ref === `refs/heads/${mainBranch}` || ref === mainBranch)
 
   return {
     mode: 'store-baseline',
@@ -108,10 +105,7 @@ export function detectMode(
  * @param branch The branch name
  * @param prefix The namespace prefix (default: 'coverage')
  */
-export function getNamespaceForBranch(
-  branch: string,
-  prefix = 'coverage'
-): string {
+export function getNamespaceForBranch(branch: string, prefix = 'coverage'): string {
   // Sanitize branch name for git ref compatibility
   const sanitized = branch.replace(/[^a-zA-Z0-9_-]/g, '-')
   return `${prefix}/${sanitized}`

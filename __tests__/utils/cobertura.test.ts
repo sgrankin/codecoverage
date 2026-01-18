@@ -3,9 +3,7 @@ import {parseCobertura} from '../../src/utils/cobertura'
 import {getFixturePath} from '../fixtures/util'
 
 test('should throw error if path is not provided', async function () {
-  await expect(parseCobertura('', '/workspace')).rejects.toThrow(
-    'No Cobertura XML path provided'
-  )
+  await expect(parseCobertura('', '/workspace')).rejects.toThrow('No Cobertura XML path provided')
 })
 
 const parseCoberturaTestCases = [
