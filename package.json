@@ -9,7 +9,7 @@
     "build": "tsc",
     "format": "prettier --write --log-level warn '**/*.ts'",
     "format-check": "prettier --check '**/*.ts'",
-    "lint": "eslint src/**/*.ts",
+    "lint": "eslint --fix src/**/*.ts",
     "package": "esbuild src/main.ts --bundle --platform=node --target=node24 --format=esm --minify --outfile=dist/index.js --sourcemap --legal-comments=linked && echo '{\"type\":\"module\"}' > dist/package.json",
     "test": "NO_COLOR=1 vitest",
     "test:cov": "NO_COLOR=1 vitest run --coverage",
