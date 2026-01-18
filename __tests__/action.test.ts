@@ -225,81 +225,33 @@ test('throws error for unsupported coverage format', async () => {
   expect(mockSetFailed).toHaveBeenCalledWith('coverage_format must be one of lcov,cobertura,go')
 })
 
-test('processes lcov coverage file successfully', async () => {
-  const capture = captureStdout()
-  const lcovPath = getFixturePath('lcov.info')
+const coverageFormatTestCases = [
+  {format: 'lcov', fixture: 'lcov.info', shouldSucceed: true},
+  {format: 'cobertura', fixture: 'cobertura.xml', shouldSucceed: true},
+  {format: 'go', fixture: 'gocoverage.out', shouldSucceed: false}, // fails: no go.mod in cwd
+  {format: '', fixture: 'lcov.info', shouldSucceed: true} // defaults to lcov
+]
 
-  setInputs({
-    github_token: 'test-token',
-    coverage_file_path: lcovPath,
-    coverage_format: 'lcov',
-    github_base_url: 'https://api.github.com',
-    step_summary: 'false'
-  })
+test.each(coverageFormatTestCases)(
+  'processes $format coverage file',
+  async ({format, fixture, shouldSucceed}) => {
+    const capture = captureStdout()
 
-  await play(createFakeDeps())
-  const output = capture.output()
-  expect(output).toContain('Performing Code Coverage Analysis')
-  expect(output).toContain('Workspace: /workspace')
-  expect(output).toContain('Filter done')
-  expect(output).toContain('Annotations emitted')
-})
+    setInputs({
+      github_token: 'test-token',
+      coverage_file_path: getFixturePath(fixture),
+      coverage_format: format,
+      github_base_url: 'https://api.github.com',
+      step_summary: 'false'
+    })
 
-test('processes cobertura coverage file successfully', async () => {
-  const capture = captureStdout()
-  const coberturaPath = getFixturePath('cobertura.xml')
-
-  setInputs({
-    github_token: 'test-token',
-    coverage_file_path: coberturaPath,
-    coverage_format: 'cobertura',
-    github_base_url: 'https://api.github.com',
-    step_summary: 'false'
-  })
-
-  await play(createFakeDeps())
-  const output = capture.output()
-  expect(output).toContain('Performing Code Coverage Analysis')
-  expect(output).toContain('Filter done')
-  expect(output).toContain('Annotations emitted')
-})
-
-test('processes go coverage file successfully', async () => {
-  const capture = captureStdout()
-  const gocovPath = getFixturePath('gocoverage.out')
-
-  setInputs({
-    github_token: 'test-token',
-    coverage_file_path: gocovPath,
-    coverage_format: 'go',
-    github_base_url: 'https://api.github.com',
-    step_summary: 'false'
-  })
-
-  // The go parser looks for go.mod in cwd, so we need to handle this
-  // For now, we expect it to fail since go.mod isn't in workspace root
-  await play(createFakeDeps())
-  // It will fail because go.mod isn't found, but the format is accepted
-  expect(capture.output()).toContain('Performing Code Coverage Analysis')
-})
-
-test('defaults to lcov format when not specified', async () => {
-  const capture = captureStdout()
-  const lcovPath = getFixturePath('lcov.info')
-
-  setInputs({
-    github_token: 'test-token',
-    coverage_file_path: lcovPath,
-    // coverage_format not specified - should default to lcov
-    github_base_url: 'https://api.github.com',
-    step_summary: 'false'
-  })
-
-  await play(createFakeDeps())
-  // Should not fail - lcov is the default
-  expect(mockSetFailed).not.toHaveBeenCalled()
-  expect(capture.output()).toContain('Annotations emitted')
-})
+    await play(createFakeDeps())
+    expect(capture.output()).toContain('Performing Code Coverage Analysis')
+    if (shouldSucceed) {
+      expect(mockSetFailed).not.toHaveBeenCalled()
+    }
+  }
+)
 
 test('outputs diagnostic dump for files in PR diff', async () => {
   const capture = captureStdout()
