@@ -3,6 +3,9 @@ import * as github from '@actions/github'
 import * as diff from './diff.js'
 import * as coverage from './general.js'
 
+// COMMENT_MARKER identifies comments created by this action.
+const COMMENT_MARKER = '<!-- codecoverage-action -->'
+
 export type Annotation = {
   path: string
   start_line: number
@@ -18,18 +21,32 @@ export type PullRequestFiles = {
 // Returns the raw diff string, or throws an error.
 export type FetchDiff = () => Promise<string>
 
+// Comment represents a GitHub issue/PR comment.
+export type Comment = {
+  id: number
+  body: string
+}
+
+// CommentOps provides operations for managing PR comments.
+export interface CommentOps {
+  list(): Promise<Comment[]>
+  create(body: string): Promise<void>
+  update(id: number, body: string): Promise<void>
+}
+
 // Client provides GitHub API operations for the coverage action.
 export class Client {
   private fetchDiff: FetchDiff
+  private commentOps: CommentOps
 
-  constructor(token: string, baseURL: string, fetchDiff?: FetchDiff) {
+  constructor(token: string, baseURL: string, fetchDiff?: FetchDiff, commentOps?: CommentOps) {
     if (!token) {
       throw new Error('github_token is missing')
     }
+    const client = github.getOctokit(token, {baseUrl: baseURL})
     this.fetchDiff =
       fetchDiff ??
       (async () => {
-        const client = github.getOctokit(token, {baseUrl: baseURL})
         const response = await client.rest.pulls.get({
           ...github.context.repo,
           pull_number: github.context.issue.number,
@@ -37,6 +54,29 @@ export class Client {
         })
         return response.data as unknown as string
       })
+    this.commentOps = commentOps ?? {
+      async list() {
+        const response = await client.rest.issues.listComments({
+          ...github.context.repo,
+          issue_number: github.context.issue.number
+        })
+        return response.data.map(c => ({id: c.id, body: c.body ?? ''}))
+      },
+      async create(body: string) {
+        await client.rest.issues.createComment({
+          ...github.context.repo,
+          issue_number: github.context.issue.number,
+          body
+        })
+      },
+      async update(id: number, body: string) {
+        await client.rest.issues.updateComment({
+          ...github.context.repo,
+          comment_id: id,
+          body
+        })
+      }
+    }
   }
 
   async getPullRequestDiff(): Promise<PullRequestFiles> {
@@ -118,6 +158,41 @@ export class Client {
     core.info(`Annotation count: ${annotations.length}`)
     return annotations
   }
+
+  // upsertComment creates or updates the coverage comment on the PR.
+  // Returns true if successful, false if the comment could not be posted.
+  async upsertComment(body: string): Promise<boolean> {
+    const markedBody = `${COMMENT_MARKER}\n${body}`
+    try {
+      const comments = await this.commentOps.list()
+      const existing = comments.find(c => c.body.includes(COMMENT_MARKER))
+      if (existing) {
+        await this.commentOps.update(existing.id, markedBody)
+        core.info('Updated existing coverage comment')
+      } else {
+        await this.commentOps.create(markedBody)
+        core.info('Created coverage comment')
+      }
+      return true
+    } catch (error) {
+      if (isCommentError(error)) {
+        core.warning(`Could not post coverage comment: ${(error as Error).message}`)
+        return false
+      }
+      throw error
+    }
+  }
+}
+
+// isCommentError checks if an error is a recoverable comment API error.
+// These include PR closed/merged, no permissions, not found, etc.
+function isCommentError(error: unknown): boolean {
+  if (error && typeof error === 'object' && 'status' in error) {
+    const status = (error as {status: number}).status
+    // 403 = forbidden, 404 = not found (PR closed), 422 = unprocessable
+    return status === 403 || status === 404 || status === 422
+  }
+  return false
 }
 
 // isDiffTooLarge checks if an error indicates the PR diff is too large.

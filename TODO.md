@@ -14,7 +14,7 @@ Future improvements for the codecoverage action.
 - [x] Limit annotations to 10 per run (GitHub's reported limit)
 - [x] Add switch to disable debug output (debug_output input)
 - [x] Suppress debug output for large diffs (limit to 10 files, 1KB per line, compact ranges)
-- [ ] Optionally post summary as PR comment
+- [x] Optionally post summary as PR comment
   - Update existing comment on future runs
   - Handle PR being closed while action is running
 

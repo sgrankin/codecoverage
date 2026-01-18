@@ -22,6 +22,10 @@ inputs:
     required: false
     description: "Write a summary to the GitHub Actions step summary. Set to 'false' to disable."
     default: 'true'
+  pr_comment:
+    required: false
+    description: "Post coverage summary as a PR comment. Updates existing comment on re-runs. Set to 'true' to enable."
+    default: 'false'
   mode:
     required: false
     description: "Operating mode: 'pr-check' (calculate delta against baseline) or 'store-baseline' (store coverage as baseline). Auto-detected if not specified."

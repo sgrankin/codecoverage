@@ -51,6 +51,7 @@ export interface GitHubOps {
     coverageFiles: coverage.File[],
     pullRequestFiles: github.PullRequestFiles
   ): github.Annotation[]
+  upsertComment(body: string): Promise<boolean>
 }
 
 // BaselineOps defines baseline storage and retrieval operations.
@@ -86,6 +87,34 @@ function defaultDeps(): Dependencies {
       load: baseline.load
     }
   }
+}
+
+// generateSummary creates the coverage summary markdown.
+function generateSummary(
+  parsedCov: coverage.Parsed,
+  coveragePercentage: string,
+  totalLines: number,
+  coveredLines: number,
+  annotationCount: number,
+  coverageDelta: string,
+  baselinePercentage: string
+): string {
+  const fileStats: summary.FileCoverage[] = parsedCov.map(entry => ({
+    file: entry.file,
+    totalLines: entry.lines.found,
+    coveredLines: entry.lines.hit,
+    package: entry.package ?? ''
+  }))
+  return summary.generate({
+    coveragePercentage,
+    totalLines,
+    coveredLines,
+    filesAnalyzed: parsedCov.length,
+    annotationCount,
+    files: fileStats,
+    coverageDelta,
+    baselinePercentage
+  })
 }
 
 // parseCoverageFiles parses coverage files and computes aggregate statistics.
@@ -312,6 +341,21 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
         )
       }
       core.info('Annotations emitted')
+
+      // Post PR comment if enabled
+      const prComment = core.getInput('pr_comment')
+      if (prComment === 'true') {
+        const summaryText = generateSummary(
+          parsedCov,
+          coveragePercentage,
+          totalLines,
+          coveredLines,
+          annotationCount,
+          coverageDelta,
+          baselinePercentage
+        )
+        await gh.upsertComment(summaryText)
+      }
     } else {
       core.setOutput('annotation_count', 0)
     }
@@ -319,22 +363,15 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
     // Write step summary
     const stepSummary = core.getInput('step_summary')
     if (stepSummary !== 'false') {
-      const fileStats: summary.FileCoverage[] = parsedCov.map(entry => ({
-        file: entry.file,
-        totalLines: entry.lines.found,
-        coveredLines: entry.lines.hit,
-        package: entry.package ?? ''
-      }))
-      const summaryText = summary.generate({
+      const summaryText = generateSummary(
+        parsedCov,
         coveragePercentage,
         totalLines,
         coveredLines,
-        filesAnalyzed: parsedCov.length,
         annotationCount,
-        files: fileStats,
         coverageDelta,
         baselinePercentage
-      })
+      )
       await core.summary.addRaw(summaryText).write()
       core.info('Step summary written')
     }

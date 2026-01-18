@@ -38,6 +38,35 @@ function createFakeFetchDiff(options: {
   }
 }
 
+// createFakeCommentOps creates a fake CommentOps implementation for testing.
+function createFakeCommentOps(
+  options: {
+    initialComments?: github.Comment[]
+    createError?: {status: number; message: string}
+    updateError?: {status: number; message: string}
+    listError?: {status: number; message: string}
+  } = {}
+): github.CommentOps & {comments: github.Comment[]} {
+  const comments = [...(options.initialComments ?? [])]
+  let nextId = comments.reduce((max, c) => Math.max(max, c.id), 0) + 1
+  return {
+    comments,
+    async list() {
+      if (options.listError) throw options.listError
+      return [...comments]
+    },
+    async create(body: string) {
+      if (options.createError) throw options.createError
+      comments.push({id: nextId++, body})
+    },
+    async update(id: number, body: string) {
+      if (options.updateError) throw options.updateError
+      const comment = comments.find(c => c.id === id)
+      if (comment) comment.body = body
+    }
+  }
+}
+
 test('Client init successfully', async () => {
   const client = new github.Client('1234', 'https://api.github.com')
   expect(client).toBeInstanceOf(github.Client)
@@ -317,6 +346,91 @@ test('getPullRequestDiff throws for other errors', async () => {
   const client = new github.Client('1234', 'https://api.github.com', fakeFetchDiff)
 
   await expect(client.getPullRequestDiff()).rejects.toEqual({
+    status: 500,
+    message: 'Server error'
+  })
+})
+
+// upsertComment tests
+test('upsertComment creates new comment when none exists', async () => {
+  const capture = captureStdout()
+  const fakeComments = createFakeCommentOps()
+  const client = new github.Client(
+    '1234',
+    'https://api.github.com',
+    createFakeFetchDiff({}),
+    fakeComments
+  )
+
+  const result = await client.upsertComment('## Coverage Report')
+
+  expect(result).toBe(true)
+  expect(fakeComments.comments).toHaveLength(1)
+  expect(fakeComments.comments[0]!.body).toContain('<!-- codecoverage-action -->')
+  expect(fakeComments.comments[0]!.body).toContain('## Coverage Report')
+  expect(capture.output()).toContain('Created coverage comment')
+})
+
+test('upsertComment updates existing comment', async () => {
+  const capture = captureStdout()
+  const fakeComments = createFakeCommentOps({
+    initialComments: [
+      {id: 100, body: 'Some other comment'},
+      {id: 200, body: '<!-- codecoverage-action -->\n## Old Report'}
+    ]
+  })
+  const client = new github.Client(
+    '1234',
+    'https://api.github.com',
+    createFakeFetchDiff({}),
+    fakeComments
+  )
+
+  const result = await client.upsertComment('## New Report')
+
+  expect(result).toBe(true)
+  expect(fakeComments.comments).toHaveLength(2)
+  expect(fakeComments.comments[1]!.body).toContain('## New Report')
+  expect(fakeComments.comments[0]!.body).toBe('Some other comment') // unchanged
+  expect(capture.output()).toContain('Updated existing coverage comment')
+})
+
+const commentErrorTestCases = [
+  {name: '403 forbidden', error: {status: 403, message: 'Forbidden'}},
+  {name: '404 not found (PR closed)', error: {status: 404, message: 'Not Found'}},
+  {name: '422 unprocessable', error: {status: 422, message: 'Validation failed'}}
+]
+
+test.each(commentErrorTestCases)('upsertComment handles error gracefully: $name', async ({
+  error
+}) => {
+  const capture = captureStdout()
+  const fakeComments = createFakeCommentOps({createError: error})
+  const client = new github.Client(
+    '1234',
+    'https://api.github.com',
+    createFakeFetchDiff({}),
+    fakeComments
+  )
+
+  const result = await client.upsertComment('## Report')
+
+  expect(result).toBe(false)
+  expect(capture.output()).toContain('::warning::Could not post coverage comment')
+})
+
+test('upsertComment throws for unexpected errors', async () => {
+  const fakeComments = createFakeCommentOps({
+    listError: {status: 500, message: 'Server error'}
+  })
+  const client = new github.Client(
+    '1234',
+    'https://api.github.com',
+    createFakeFetchDiff({}),
+    fakeComments
+  )
+
+  await expect(client.upsertComment('## Report')).rejects.toEqual({
     status: 500,
     message: 'Server error'
   })

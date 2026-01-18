@@ -62,12 +62,20 @@ function createFakeDeps(
     onStore?: (data: unknown, opts: unknown) => void
     // onLoad tracks calls to baseline.load.
     onLoad?: (branch: string, opts: unknown) => void
+    // onUpsertComment tracks calls to upsertComment.
+    onUpsertComment?: (body: string) => void
+    // upsertCommentResult is the return value for upsertComment.
+    upsertCommentResult?: boolean
   } = {}
 ): Dependencies {
   return {
     createGitHub: (): GitHubOps => ({
       getPullRequestDiff: async () => options.diffResponse ?? {},
-      buildAnnotations: () => options.annotations ?? []
+      buildAnnotations: () => options.annotations ?? [],
+      upsertComment: async (body: string) => {
+        options.onUpsertComment?.(body)
+        return options.upsertCommentResult ?? true
+      }
     }),
     baseline: {
       store: async (data, opts) => {
@@ -490,4 +498,83 @@ test('does not show limit message when annotations are within limit', async () =
   const output = capture.output()
   expect(mockSetOutput).toHaveBeenCalledWith('annotation_count', 2)
   expect(output).not.toContain('limited by max_annotations')
+})
+
+test('posts PR comment when pr_comment is true', async () => {
+  const capture = captureStdout()
+  const lcovPath = getFixturePath('lcov.info')
+
+  setInputs({
+    github_token: 'test-token',
+    coverage_file_path: lcovPath,
+    coverage_format: 'lcov',
+    github_base_url: 'https://api.github.com',
+    step_summary: 'false',
+    pr_comment: 'true'
+  })
+
+  let commentBody = ''
+  const fakeDeps = createFakeDeps({
+    onUpsertComment: body => {
+      commentBody = body
+    }
+  })
+
+  await play(fakeDeps)
+  expect(commentBody).toContain('Code Coverage Report')
+  expect(commentBody).toContain('Coverage by Package')
+  // Suppress unused capture warning
+  void capture
+})
+
+test('does not post PR comment when pr_comment is false', async () => {
+  const capture = captureStdout()
+  const lcovPath = getFixturePath('lcov.info')
+
+  setInputs({
+    github_token: 'test-token',
+    coverage_file_path: lcovPath,
+    coverage_format: 'lcov',
+    github_base_url: 'https://api.github.com',
+    step_summary: 'false',
+    pr_comment: 'false'
+  })
+
+  let commentCalled = false
+  const fakeDeps = createFakeDeps({
+    onUpsertComment: () => {
+      commentCalled = true
+    }
+  })
+
+  await play(fakeDeps)
+  expect(commentCalled).toBe(false)
+  // Suppress unused capture warning
+  void capture
+})
+
+test('does not post PR comment in store-baseline mode', async () => {
+  const capture = captureStdout()
+  const lcovPath = getFixturePath('lcov.info')
+  ;(github.context as any).eventName = 'push'
+  ;(github.context as any).ref = 'refs/heads/main'
+
+  setInputs({
+    github_token: 'test-token',
+    coverage_file_path: lcovPath,
+    coverage_format: 'lcov',
+    step_summary: 'false',
+    pr_comment: 'true'
+  })
+
+  let commentCalled = false
+  const fakeDeps = createFakeDeps({
+    onUpsertComment: () => {
+      commentCalled = true
+    }
+  })
+
+  await play(fakeDeps)
+  expect(commentCalled).toBe(false)
+  expect(capture.output()).toContain('Mode: store-baseline')
 })

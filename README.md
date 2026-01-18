@@ -21,6 +21,7 @@ All processing is done within Github Actions, no data is sent to an external ser
 | `coverage_file_path` | **yes**  | -                        | Path to coverage file(s). Supports glob patterns (including `**`) and multiple paths separated by newlines. |
 | `coverage_format`    | **no**   | `lcov`                   | Format of coverage file. May be `lcov`, `cobertura`, or `go`                                          |
 | `step_summary`       | **no**   | `true`                   | Write a summary to the GitHub Actions step summary. Set to `false` to disable.                        |
+| `pr_comment`         | **no**   | `false`                  | Post coverage summary as a PR comment. Updates existing comment on re-runs.                           |
 | `mode`               | **no**   | auto-detected            | Operating mode: `pr-check` or `store-baseline`. See [Coverage Delta](#coverage-delta) for details.    |
 | `calculate_delta`    | **no**   | `true`                   | Enable coverage delta calculation. Set to `false` to disable.                                         |
 | `note_namespace`     | **no**   | `coverage`               | Custom namespace for git notes storage.                                                               |
