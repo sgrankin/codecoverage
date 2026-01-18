@@ -21,7 +21,7 @@ interface CoberturaPackage {
   classes?: {class?: CoberturaClass | CoberturaClass[]}
 }
 
-interface CoberturaXml {
+interface CoberturaXML {
   coverage: {
     packages?: {package?: CoberturaPackage | CoberturaPackage[]}
   }
@@ -43,7 +43,7 @@ export async function parse(
 
   const fileRaw = fs.readFileSync(coberturaPath, 'utf8')
   const parser = new XMLParser({ignoreAttributes: false})
-  const parsed = parser.parse(fileRaw) as CoberturaXml
+  const parsed = parser.parse(fileRaw) as CoberturaXML
 
   const result: coverage.Parsed = []
 

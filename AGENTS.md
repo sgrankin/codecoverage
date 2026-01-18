@@ -22,6 +22,7 @@ Use `jj` (Jujutsu) for version control. Key workflow:
 - **Interfaces belong to consumers** - Define interfaces in the code that uses them, not the code that implements them. Don't define interfaces before they're needed.
 - **Happy path at minimum indent** - Handle errors/edge cases first and return early; keep the main logic at the lowest nesting level.
 - **Variable names** - Short for local scope (`i`, `err`), descriptive for wider scope or exports.
+- **Initialisms** - Use consistent capitalization for initialisms (URL, XML, HTTP, ID, API): all caps in PascalCase (`baseURL`, `XMLParser`), all lowercase if starting a camelCase name (`urlString`). See [Go style guide](https://google.github.io/styleguide/go/decisions#initialisms).
 - **The bigger the interface, the weaker the abstraction** - Small, focused interfaces (or just functions).
 - **Clear is better than clever** - Prefer readable code over clever one-liners.
 - **A little copying is better than a little dependency** - Don't add a dependency for trivial code.

@@ -41,7 +41,7 @@ export interface BaselineOps {
 // Dependencies defines injectable dependencies for the action.
 export interface Dependencies {
   // createGitHub is a factory to create GitHubOps instance.
-  createGitHub: (token: string, baseUrl: string) => GitHubOps
+  createGitHub: (token: string, baseURL: string) => GitHubOps
   // baseline provides baseline storage/retrieval operations.
   baseline: BaselineOps
 }
@@ -49,7 +49,7 @@ export interface Dependencies {
 // defaultDeps returns the production dependencies.
 function defaultDeps(): Dependencies {
   return {
-    createGitHub: (token, baseUrl) => new github.Client(token, baseUrl),
+    createGitHub: (token, baseURL) => new github.Client(token, baseURL),
     baseline: {
       store: baseline.store,
       load: baseline.load

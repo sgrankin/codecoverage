@@ -22,14 +22,14 @@ export type FetchDiff = () => Promise<string>
 export class Client {
   private fetchDiff: FetchDiff
 
-  constructor(token: string, baseUrl: string, fetchDiff?: FetchDiff) {
+  constructor(token: string, baseURL: string, fetchDiff?: FetchDiff) {
     if (!token) {
       throw new Error('GITHUB_TOKEN is missing')
     }
     this.fetchDiff =
       fetchDiff ??
       (async () => {
-        const client = github.getOctokit(token, {baseUrl})
+        const client = github.getOctokit(token, {baseUrl: baseURL})
         const response = await client.rest.pulls.get({
           ...github.context.repo,
           pull_number: github.context.issue.number,
