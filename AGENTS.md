@@ -23,6 +23,7 @@ Use `jj` (Jujutsu) for version control. Key workflow:
 - **Happy path at minimum indent** - Handle errors/edge cases first and return early; keep the main logic at the lowest nesting level.
 - **Variable names** - Short for local scope (`i`, `err`), descriptive for wider scope or exports.
 - **Initialisms** - Use consistent capitalization for initialisms (URL, XML, HTTP, ID, API): all caps in PascalCase (`baseURL`, `XMLParser`), all lowercase if starting a camelCase name (`urlString`). See [Go style guide](https://google.github.io/styleguide/go/decisions#initialisms).
+- **Zero values over undefined/null** - Prefer type-appropriate zero values (`''`, `0`, `[]`) over `undefined` or `null`. Normalize at boundaries. This eliminates optional properties, simplifies types, and follows Go's "zero value is usable" philosophy. Example: `baseBranch: string` (empty = none) instead of `baseBranch?: string`.
 - **The bigger the interface, the weaker the abstraction** - Small, focused interfaces (or just functions).
 - **Clear is better than clever** - Prefer readable code over clever one-liners.
 - **A little copying is better than a little dependency** - Don't add a dependency for trivial code.

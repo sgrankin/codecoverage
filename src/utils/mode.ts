@@ -7,8 +7,8 @@ export type Mode = 'pr-check' | 'store-baseline'
 export interface Context {
   // mode is the mode the action is running in.
   mode: Mode
-  // baseBranch is the target branch for PR mode (e.g., 'main').
-  baseBranch?: string
+  // baseBranch is the target branch for PR mode (empty string = none).
+  baseBranch: string
   // isPullRequest indicates whether this is a pull request event.
   isPullRequest: boolean
   // eventName is the event name that triggered the action.
@@ -54,28 +54,15 @@ export function detect(
     }
 
     const isPullRequest = eventName === 'pull_request'
-    const baseBranch = isPullRequest ? ctx.payload.pull_request?.base?.ref : undefined
+    const baseBranch = isPullRequest ? (ctx.payload.pull_request?.base?.ref ?? '') : ''
 
-    return {
-      mode,
-      ...(baseBranch && {baseBranch}),
-      isPullRequest,
-      eventName,
-      ref
-    }
+    return {mode, baseBranch, isPullRequest, eventName, ref}
   }
 
   // Auto-detect based on event type
   if (eventName === 'pull_request') {
-    const baseBranch = ctx.payload.pull_request?.base?.ref
-
-    return {
-      mode: 'pr-check',
-      ...(baseBranch && {baseBranch}),
-      isPullRequest: true,
-      eventName,
-      ref
-    }
+    const baseBranch = ctx.payload.pull_request?.base?.ref ?? ''
+    return {mode: 'pr-check', baseBranch, isPullRequest: true, eventName, ref}
   }
 
   // For push events or other triggers
@@ -84,7 +71,7 @@ export function detect(
 
   return {
     mode: 'store-baseline',
-    ...(isPushToMain && {baseBranch: mainBranch}),
+    baseBranch: isPushToMain ? mainBranch : '',
     isPullRequest: false,
     eventName,
     ref

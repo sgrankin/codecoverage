@@ -55,7 +55,7 @@ describe('mode detection', () => {
         }),
         expected: {
           mode: 'store-baseline',
-          baseBranch: undefined,
+          baseBranch: '',
           isPullRequest: false,
           eventName: 'push'
         }
@@ -68,7 +68,7 @@ describe('mode detection', () => {
         }),
         expected: {
           mode: 'store-baseline',
-          baseBranch: undefined, // only push events set baseBranch
+          baseBranch: '', // only push events set baseBranch
           isPullRequest: false,
           eventName: 'workflow_dispatch'
         }
@@ -81,7 +81,7 @@ describe('mode detection', () => {
         }),
         expected: {
           mode: 'store-baseline',
-          baseBranch: undefined, // only push events set baseBranch
+          baseBranch: '', // only push events set baseBranch
           isPullRequest: false,
           eventName: 'schedule'
         }

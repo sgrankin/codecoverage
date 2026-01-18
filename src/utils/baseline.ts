@@ -56,7 +56,7 @@ export function format(data: Data): string {
 // store stores coverage baseline for the current commit.
 export async function store(
   data: Omit<Data, 'timestamp' | 'commit'>,
-  options: gitnotes.Options = {}
+  options: Partial<gitnotes.Options> = {}
 ): Promise<boolean> {
   try {
     const commit = await gitnotes.headCommit(options)
@@ -90,7 +90,10 @@ export async function store(
 }
 
 // load loads baseline coverage from the merge-base commit with a target branch.
-export async function load(targetBranch: string, options: gitnotes.Options = {}): Promise<Result> {
+export async function load(
+  targetBranch: string,
+  options: Partial<gitnotes.Options> = {}
+): Promise<Result> {
   try {
     // Fetch latest notes from origin
     const fetched = await gitnotes.fetch(options)

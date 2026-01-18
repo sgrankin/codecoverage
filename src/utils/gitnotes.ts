@@ -13,11 +13,25 @@ const MAX_PUSH_RETRIES = 3
 const RETRY_DELAY_MS = 1000
 
 // Options configures git notes operations.
+// Empty string values are treated as defaults (cwd=current dir, namespace='coverage').
 export interface Options {
-  // cwd is the git working directory.
-  cwd?: string
-  // namespace is the notes namespace (default: 'coverage').
-  namespace?: string
+  // cwd is the git working directory (empty string = current directory).
+  cwd: string
+  // namespace is the notes namespace (empty string = 'coverage').
+  namespace: string
+}
+
+// defaults returns Options with zero values.
+export function defaults(): Options {
+  return {cwd: '', namespace: ''}
+}
+
+// withDefaults fills in zero values with defaults.
+function withDefaults(options: Partial<Options>): Options {
+  return {
+    cwd: options.cwd ?? '',
+    namespace: options.namespace || DEFAULT_NAMESPACE
+  }
 }
 
 // ExecResult is the result of a git command execution.
@@ -27,10 +41,10 @@ export interface ExecResult {
 }
 
 // exec runs a git command and returns stdout/stderr.
-export async function exec(args: string[], cwd?: string): Promise<ExecResult> {
+export async function exec(args: string[], cwd: string): Promise<ExecResult> {
   const cmd = `git ${args.map(a => `'${a.replace(/'/g, "'\\''")}'`).join(' ')}`
   try {
-    const result = await execAsync(cmd, {cwd})
+    const result = await execAsync(cmd, cwd ? {cwd} : undefined)
     return {
       stdout: result.stdout?.toString() ?? '',
       stderr: result.stderr?.toString() ?? ''
@@ -54,8 +68,9 @@ export function ref(namespace: string): string {
 
 // fetch fetches git notes from origin.
 // Returns true if notes were fetched successfully, false if the ref doesn't exist.
-export async function fetch(options: Options & {force?: boolean} = {}): Promise<boolean> {
-  const {cwd, namespace = DEFAULT_NAMESPACE, force = false} = options
+export async function fetch(options: Partial<Options> & {force?: boolean} = {}): Promise<boolean> {
+  const {cwd, namespace} = withDefaults(options)
+  const force = options.force ?? false
   const notesRef = ref(namespace)
 
   try {
@@ -78,8 +93,8 @@ export async function fetch(options: Options & {force?: boolean} = {}): Promise<
 
 // read reads notes for a specific commit.
 // Returns null if no notes exist for the commit.
-export async function read(commit: string, options: Options = {}): Promise<string | null> {
-  const {cwd, namespace = DEFAULT_NAMESPACE} = options
+export async function read(commit: string, options: Partial<Options> = {}): Promise<string | null> {
+  const {cwd, namespace} = withDefaults(options)
   const notesRef = ref(namespace)
 
   try {
@@ -100,9 +115,10 @@ export async function read(commit: string, options: Options = {}): Promise<strin
 export async function write(
   commit: string,
   content: string,
-  options: Options & {force?: boolean} = {}
+  options: Partial<Options> & {force?: boolean} = {}
 ): Promise<void> {
-  const {cwd, namespace = DEFAULT_NAMESPACE, force = false} = options
+  const {cwd, namespace} = withDefaults(options)
+  const force = options.force ?? false
   const notesRef = ref(namespace)
 
   const args = ['notes', '--ref', notesRef]
@@ -121,7 +137,7 @@ export async function write(
 export async function append(
   commit: string,
   content: string,
-  options: Options = {}
+  options: Partial<Options> = {}
 ): Promise<void> {
   // Read existing notes
   const existing = await read(commit, options)
@@ -140,8 +156,11 @@ async function sleep(ms: number): Promise<void> {
 
 // push pushes git notes to origin with retry logic for concurrent updates.
 // Returns true if push succeeded, false if it failed after all retries.
-export async function push(options: Options & {maxRetries?: number} = {}): Promise<boolean> {
-  const {cwd, namespace = DEFAULT_NAMESPACE, maxRetries = MAX_PUSH_RETRIES} = options
+export async function push(
+  options: Partial<Options> & {maxRetries?: number} = {}
+): Promise<boolean> {
+  const {cwd, namespace} = withDefaults(options)
+  const maxRetries = options.maxRetries ?? MAX_PUSH_RETRIES
   const notesRef = ref(namespace)
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -158,7 +177,7 @@ export async function push(options: Options & {maxRetries?: number} = {}): Promi
 
       if (isConflict && attempt < maxRetries) {
         // Fetch latest notes (force to handle diverged refs) and retry
-        await fetch(cwd ? {cwd, namespace, force: true} : {namespace, force: true})
+        await fetch({cwd, namespace, force: true})
         await sleep(RETRY_DELAY_MS * attempt) // Exponential backoff
         continue
       }
@@ -177,9 +196,9 @@ export async function push(options: Options & {maxRetries?: number} = {}): Promi
 // findMergeBase finds the merge-base commit between HEAD and a target ref.
 export async function findMergeBase(
   targetRef: string,
-  options: Options = {}
+  options: Partial<Options> = {}
 ): Promise<string | null> {
-  const {cwd} = options
+  const {cwd} = withDefaults(options)
 
   try {
     const result = await exec(['merge-base', 'HEAD', targetRef], cwd)
@@ -201,8 +220,8 @@ export async function findMergeBase(
 }
 
 // headCommit returns the current HEAD commit SHA.
-export async function headCommit(options: Options = {}): Promise<string> {
-  const {cwd} = options
+export async function headCommit(options: Partial<Options> = {}): Promise<string> {
+  const {cwd} = withDefaults(options)
   const result = await exec(['rev-parse', 'HEAD'], cwd)
   return result.stdout.trim()
 }

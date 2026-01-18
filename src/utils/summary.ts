@@ -5,7 +5,8 @@ export interface FileCoverage {
   file: string
   totalLines: number
   coveredLines: number
-  package?: string
+  // package is the package name (empty string = derive from path).
+  package: string
 }
 
 // PackageCoverage is the aggregate coverage data for a package.
@@ -24,10 +25,10 @@ export interface Params {
   filesAnalyzed: number
   annotationCount: number
   files: FileCoverage[]
-  // coverageDelta is the coverage delta string (e.g., "+2.50" or "-1.25").
-  coverageDelta?: string
-  // baselinePercentage is the baseline coverage percentage.
-  baselinePercentage?: string
+  // coverageDelta is the coverage delta string (empty = not computed).
+  coverageDelta: string
+  // baselinePercentage is the baseline coverage percentage (empty = no baseline).
+  baselinePercentage: string
 }
 
 // getPackageFromPath extracts the package name from a file path (directory path, or '.' for root).
@@ -45,7 +46,7 @@ function groupByPackage(files: FileCoverage[]): PackageCoverage[] {
 
   for (const file of files) {
     // Use explicit package if available, otherwise derive from path
-    const pkg = file.package ?? getPackageFromPath(file.file)
+    const pkg = file.package || getPackageFromPath(file.file)
     let pkgFiles = packageMap.get(pkg)
     if (!pkgFiles) {
       pkgFiles = []

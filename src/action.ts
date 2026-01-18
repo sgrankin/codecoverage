@@ -31,11 +31,11 @@ export interface BaselineOps {
       totalLines: number
       coveredLines: number
     },
-    options: gitnotes.Options
+    options: Partial<gitnotes.Options>
   ): Promise<boolean>
   load(
     baseBranch: string,
-    options: gitnotes.Options
+    options: Partial<gitnotes.Options>
   ): Promise<{baseline: baseline.Data | null; commit: string | null}>
 }
 
@@ -114,7 +114,7 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
     const COVERAGE_FILE_PATH = core.getInput('COVERAGE_FILE_PATH', {
       required: true
     })
-    const modeOverride = core.getInput('mode') || undefined
+    const modeOverride = core.getInput('mode')
     const calculateDeltaInput = core.getInput('calculate_delta') !== 'false'
     const noteNamespace = core.getInput('note_namespace') || 'coverage'
     const deltaPrecision = parseInt(core.getInput('delta_precision') || '2', 10)
@@ -147,9 +147,9 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
     core.setOutput('coverage_percentage', coveragePercentage)
     core.setOutput('files_analyzed', parsedCov.length)
 
-    // Variables for delta calculation
-    let coverageDelta: string | undefined
-    let baselinePercentage: string | undefined
+    // Variables for delta calculation (empty = not computed)
+    let coverageDelta = ''
+    let baselinePercentage = ''
 
     // Handle mode-specific logic
     if (ctx.mode === 'store-baseline') {
@@ -159,12 +159,8 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
         core.info(`Storing baseline with namespace: ${namespace}`)
 
         await deps.baseline.store(
-          {
-            coveragePercentage,
-            totalLines,
-            coveredLines
-          },
-          workspacePath ? {cwd: workspacePath, namespace} : {namespace}
+          {coveragePercentage, totalLines, coveredLines},
+          {cwd: workspacePath, namespace}
         )
       } else {
         core.info('Skipping baseline storage (not on main branch)')
@@ -179,7 +175,7 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
             file: entry.file,
             totalLines: entry.lines.found,
             coveredLines: entry.lines.hit,
-            ...(entry.package && {package: entry.package})
+            package: entry.package ?? ''
           }))
           const summaryText = summary.generate({
             coveragePercentage,
@@ -187,7 +183,9 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
             coveredLines,
             filesAnalyzed: parsedCov.length,
             annotationCount: 0,
-            files: fileStats
+            files: fileStats,
+            coverageDelta: '',
+            baselinePercentage: ''
           })
           await core.summary.addRaw(summaryText).write()
           core.info('Step summary written')
@@ -201,10 +199,10 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
       const namespace = mode.namespaceForBranch(ctx.baseBranch, noteNamespace)
       core.info(`Loading baseline from namespace: ${namespace}`)
 
-      const baselineResult = await deps.baseline.load(
-        ctx.baseBranch,
-        workspacePath ? {cwd: workspacePath, namespace} : {namespace}
-      )
+      const baselineResult = await deps.baseline.load(ctx.baseBranch, {
+        cwd: workspacePath,
+        namespace
+      })
 
       if (baselineResult.baseline) {
         baselinePercentage = baselineResult.baseline.coveragePercentage
@@ -283,7 +281,7 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
         file: entry.file,
         totalLines: entry.lines.found,
         coveredLines: entry.lines.hit,
-        ...(entry.package && {package: entry.package})
+        package: entry.package ?? ''
       }))
       const summaryText = summary.generate({
         coveragePercentage,
@@ -292,8 +290,8 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
         filesAnalyzed: parsedCov.length,
         annotationCount,
         files: fileStats,
-        ...(coverageDelta && {coverageDelta}),
-        ...(baselinePercentage && {baselinePercentage})
+        coverageDelta,
+        baselinePercentage
       })
       await core.summary.addRaw(summaryText).write()
       core.info('Step summary written')
