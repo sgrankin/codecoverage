@@ -23,12 +23,15 @@ export interface Params {
   totalLines: number
   coveredLines: number
   filesAnalyzed: number
-  annotationCount: number
   files: FileCoverage[]
   // coverageDelta is the coverage delta string (empty = not computed).
   coverageDelta: string
   // baselinePercentage is the baseline coverage percentage (empty = no baseline).
   baselinePercentage: string
+  // diffCoveredLines is the number of covered lines in the PR diff (0 = not computed).
+  diffCoveredLines: number
+  // diffTotalLines is the total executable lines in the PR diff (0 = not computed).
+  diffTotalLines: number
 }
 
 // getPackageFromPath extracts the package name from a file path (directory path, or '.' for root).
@@ -77,10 +80,11 @@ export function generate(params: Params): string {
     totalLines,
     coveredLines,
     filesAnalyzed,
-    annotationCount,
     files,
     coverageDelta,
-    baselinePercentage
+    baselinePercentage,
+    diffCoveredLines,
+    diffTotalLines
   } = params
   const uncoveredLines = totalLines - coveredLines
 
@@ -116,10 +120,15 @@ export function generate(params: Params): string {
     })
     .join('\n')
 
-  // Build horizontal header row with optional baseline column
+  // Compute diff coverage percentage if we have diff data
+  const diffCoverageDisplay =
+    diffTotalLines > 0 ? ((diffCoveredLines / diffTotalLines) * 100).toFixed(1) + '%' : ''
+
+  // Build horizontal header row with optional columns
   const headerCols = [
     'Coverage',
     ...(baselinePercentage ? ['Baseline'] : []),
+    ...(diffCoverageDisplay ? ['Diff'] : []),
     'Covered',
     'Uncovered',
     'Total',
@@ -128,6 +137,7 @@ export function generate(params: Params): string {
   const dataCols = [
     coverageDisplay,
     ...(baselinePercentage ? [`${baselinePercentage}%`] : []),
+    ...(diffCoverageDisplay ? [diffCoverageDisplay] : []),
     coveredLines.toLocaleString(),
     uncoveredLines.toLocaleString(),
     totalLines.toLocaleString(),
@@ -140,8 +150,6 @@ export function generate(params: Params): string {
 | ${headerCols.join(' | ')} |
 | ${alignRow} |
 | ${dataCols.join(' | ')} |
-
-${annotationCount > 0 ? `⚠️ **${annotationCount} annotation${annotationCount === 1 ? '' : 's'}** added for uncovered lines in this PR.` : '✅ No new uncovered lines detected in this PR.'}
 
 <details>
 <summary>Coverage by Package</summary>

@@ -89,15 +89,51 @@ function defaultDeps(): Dependencies {
   }
 }
 
+// DiffStats contains coverage statistics for the PR diff.
+interface DiffStats {
+  coveredLines: number
+  totalLines: number
+}
+
+// calculateDiffStats computes coverage statistics for lines in the PR diff.
+function calculateDiffStats(
+  coverageByFile: coverage.File[],
+  pullRequestFiles: github.PullRequestFiles
+): DiffStats {
+  let coveredLines = 0
+  let totalLines = 0
+
+  const coverageByFileName = new Map(coverageByFile.map(item => [item.fileName, item]))
+
+  for (const [file, diffLines] of Object.entries(pullRequestFiles)) {
+    const cov = coverageByFileName.get(file)
+    if (!cov || diffLines.length === 0) continue
+
+    // Only count executable lines in the diff
+    const executableDiffLines = diffLines.filter(line => cov.executableLines.has(line))
+    totalLines += executableDiffLines.length
+
+    // Count covered lines (executable lines not in missing)
+    const missingSet = new Set(cov.missingLineNumbers)
+    for (const line of executableDiffLines) {
+      if (!missingSet.has(line)) {
+        coveredLines++
+      }
+    }
+  }
+
+  return {coveredLines, totalLines}
+}
+
 // generateSummary creates the coverage summary markdown.
 function generateSummary(
   parsedCov: coverage.Parsed,
   coveragePercentage: string,
   totalLines: number,
   coveredLines: number,
-  annotationCount: number,
   coverageDelta: string,
-  baselinePercentage: string
+  baselinePercentage: string,
+  diffStats: DiffStats
 ): string {
   const fileStats: summary.FileCoverage[] = parsedCov.map(entry => ({
     file: entry.file,
@@ -110,10 +146,11 @@ function generateSummary(
     totalLines,
     coveredLines,
     filesAnalyzed: parsedCov.length,
-    annotationCount,
     files: fileStats,
     coverageDelta,
-    baselinePercentage
+    baselinePercentage,
+    diffCoveredLines: diffStats.coveredLines,
+    diffTotalLines: diffStats.totalLines
   })
 }
 
@@ -243,10 +280,11 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
             totalLines,
             coveredLines,
             filesAnalyzed: parsedCov.length,
-            annotationCount: 0,
             files: fileStats,
             coverageDelta: '',
-            baselinePercentage: ''
+            baselinePercentage: '',
+            diffCoveredLines: 0,
+            diffTotalLines: 0
           })
           await core.summary.addRaw(summaryText).write()
           core.info('Step summary written')
@@ -278,12 +316,16 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
 
     // Only create annotations for PR events
     let annotationCount = 0
+    let diffStats: DiffStats = {coveredLines: 0, totalLines: 0}
     if (ctx.isPullRequest) {
       const coverageByFile = coverage.filterByFile(parsedCov)
       core.info('Filter done')
 
       const gh = deps.createGitHub(githubToken, githubBaseURL)
       const pullRequestFiles = await gh.getPullRequestDiff()
+
+      diffStats = calculateDiffStats(coverageByFile, pullRequestFiles)
+      core.info(`Diff coverage: ${diffStats.coveredLines}/${diffStats.totalLines}`)
 
       const annotations = gh.buildAnnotations(coverageByFile, pullRequestFiles)
       annotationCount = annotations.length
@@ -350,9 +392,9 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
           coveragePercentage,
           totalLines,
           coveredLines,
-          annotationCount,
           coverageDelta,
-          baselinePercentage
+          baselinePercentage,
+          diffStats
         )
         await gh.upsertComment(summaryText)
       }
@@ -368,9 +410,9 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
         coveragePercentage,
         totalLines,
         coveredLines,
-        annotationCount,
         coverageDelta,
-        baselinePercentage
+        baselinePercentage,
+        diffStats
       )
       await core.summary.addRaw(summaryText).write()
       core.info('Step summary written')

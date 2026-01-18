@@ -29,19 +29,14 @@ Without baseline (no delta):
 
 A single-row table with all key metrics:
 
-| Coverage | Baseline | Covered | Uncovered | Total | Files |
-| ----: | ----: | ----: | ----: | ----: | ----: |
-| 85.50% (↑2.50%) | 83.00% | 855 | 145 | 1,000 | 10 |
+| Coverage | Baseline | Diff | Covered | Uncovered | Total | Files |
+| ----: | ----: | ----: | ----: | ----: | ----: | ----: |
+| 85.50% (↑2.50%) | 83.00% | 92.5% | 855 | 145 | 1,000 | 10 |
 
-The Baseline column is omitted when no baseline is available.
+- **Baseline**: Omitted when no baseline is available
+- **Diff**: Coverage of lines changed in the PR (omitted on non-PR events)
 
-### 3. Annotation Status
-
-One of:
-- "✅ No new uncovered lines detected in this PR."
-- "⚠️ **N annotation(s)** added for uncovered lines in this PR."
-
-### 4. Coverage by Package (Collapsible)
+### 3. Coverage by Package (Collapsible)
 
 Wrapped in `<details>` for a compact display:
 
@@ -73,13 +68,11 @@ Package is derived from the file's directory path:
 ## Example Output
 
 ```markdown
-## 🟢 Code Coverage Report
+## 📈 Code Coverage Report
 
-| Coverage | Baseline | Covered | Uncovered | Total | Files |
-| ----: | ----: | ----: | ----: | ----: | ----: |
-| 85.50% (↑2.50%) | 83.00% | 855 | 145 | 1,000 | 10 |
-
-✅ No new uncovered lines detected in this PR.
+| Coverage | Baseline | Diff | Covered | Uncovered | Total | Files |
+| ----: | ----: | ----: | ----: | ----: | ----: | ----: |
+| 85.50% (↑2.50%) | 83.00% | 92.5% | 855 | 145 | 1,000 | 10 |
 
 <details>
 <summary>Coverage by Package</summary>
