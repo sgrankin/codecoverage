@@ -348,21 +348,23 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
 if (import.meta.vitest) {
   const {test, expect} = import.meta.vitest
 
-  test('linesToRanges converts line numbers to compact ranges', () => {
-    expect(linesToRanges([])).toBe('')
-    expect(linesToRanges([5])).toBe('5')
-    expect(linesToRanges([1, 2, 3])).toBe('1-3')
-    expect(linesToRanges([1, 2, 3, 5, 7, 8, 9])).toBe('1-3,5,7-9')
-    expect(linesToRanges([10, 20, 30])).toBe('10,20,30')
-    // Handles unsorted input
-    expect(linesToRanges([3, 1, 2])).toBe('1-3')
+  test.each([
+    {lines: [], expected: ''},
+    {lines: [5], expected: '5'},
+    {lines: [1, 2, 3], expected: '1-3'},
+    {lines: [1, 2, 3, 5, 7, 8, 9], expected: '1-3,5,7-9'},
+    {lines: [10, 20, 30], expected: '10,20,30'},
+    {lines: [3, 1, 2], expected: '1-3'} // unsorted input
+  ])('linesToRanges($lines) = $expected', ({lines, expected}) => {
+    expect(linesToRanges(lines)).toBe(expected)
   })
 
-  test('truncate limits string length', () => {
-    expect(truncate('short', 10)).toBe('short')
-    expect(truncate('exactly10!', 10)).toBe('exactly10!')
-    expect(truncate('this is too long', 10)).toBe('this is...')
-    // Edge case: when string equals maxLen, no truncation
-    expect(truncate('abc', 3)).toBe('abc')
+  test.each([
+    {input: 'short', maxLen: 10, expected: 'short'},
+    {input: 'exactly10!', maxLen: 10, expected: 'exactly10!'},
+    {input: 'this is too long', maxLen: 10, expected: 'this is...'},
+    {input: 'abc', maxLen: 3, expected: 'abc'} // at limit, no truncation
+  ])('truncate($input, $maxLen) = $expected', ({input, maxLen, expected}) => {
+    expect(truncate(input, maxLen)).toBe(expected)
   })
 }

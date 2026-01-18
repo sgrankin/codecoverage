@@ -77,33 +77,23 @@ function getLineInfoFromHeaderLine(line: string): {
 if (import.meta.vitest) {
   const {test, expect} = import.meta.vitest
 
-  test('getFilenameFromDiffHeader extracts filename', () => {
-    expect(getFilenameFromDiffHeader('diff --git a/foo.ts b/foo.ts')).toBe('foo.ts')
-    expect(getFilenameFromDiffHeader('diff --git a/path/to/file.txt b/path/to/file.txt')).toBe(
-      'path/to/file.txt'
-    )
+  test.each([
+    {input: 'diff --git a/foo.ts b/foo.ts', expected: 'foo.ts'},
+    {input: 'diff --git a/path/to/file.txt b/path/to/file.txt', expected: 'path/to/file.txt'}
     // Note: filenames with spaces are ambiguous in git diff format
+  ])('getFilenameFromDiffHeader($input) = $expected', ({input, expected}) => {
+    expect(getFilenameFromDiffHeader(input)).toBe(expected)
   })
 
-  test('getLineInfoFromHeaderLine parses hunk headers', () => {
-    expect(getLineInfoFromHeaderLine('@@ -1,3 +1,5 @@')).toEqual({
-      deletionStartingLineNumber: 1,
-      additionStartingLineNumber: 1
-    })
-    expect(getLineInfoFromHeaderLine('@@ -10,2 +15,4 @@ function foo()')).toEqual({
-      deletionStartingLineNumber: 10,
-      additionStartingLineNumber: 15
-    })
-    expect(getLineInfoFromHeaderLine('@@ -5 +5 @@')).toEqual({
-      deletionStartingLineNumber: 5,
-      additionStartingLineNumber: 5
-    })
-  })
-
-  test('getLineInfoFromHeaderLine returns zeros for malformed input', () => {
-    expect(getLineInfoFromHeaderLine('not a header')).toEqual({
-      deletionStartingLineNumber: 0,
-      additionStartingLineNumber: 0
+  test.each([
+    {input: '@@ -1,3 +1,5 @@', del: 1, add: 1},
+    {input: '@@ -10,2 +15,4 @@ function foo()', del: 10, add: 15},
+    {input: '@@ -5 +5 @@', del: 5, add: 5},
+    {input: 'not a header', del: 0, add: 0}
+  ])('getLineInfoFromHeaderLine($input) = {del: $del, add: $add}', ({input, del, add}) => {
+    expect(getLineInfoFromHeaderLine(input)).toEqual({
+      deletionStartingLineNumber: del,
+      additionStartingLineNumber: add
     })
   })
 }

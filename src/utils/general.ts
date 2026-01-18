@@ -182,21 +182,11 @@ export type Range = {
 if (import.meta.vitest) {
   const {test, expect} = import.meta.vitest
 
-  test('canBridgeGap returns true when gap has no executable lines', () => {
-    const executableLines = new Set([1, 2, 5, 6])
-    // Gap from 2 to 5 contains lines 3, 4 which are not executable
-    expect(canBridgeGap(2, 5, executableLines)).toBe(true)
-  })
-
-  test('canBridgeGap returns false when gap contains executable lines', () => {
-    const executableLines = new Set([1, 2, 3, 4, 5])
-    // Gap from 2 to 5 contains lines 3, 4 which are executable
-    expect(canBridgeGap(2, 5, executableLines)).toBe(false)
-  })
-
-  test('canBridgeGap returns true for adjacent lines (no gap)', () => {
-    const executableLines = new Set([1, 2, 3])
-    // No lines between 2 and 3
-    expect(canBridgeGap(2, 3, executableLines)).toBe(true)
+  test.each([
+    {from: 2, to: 5, exec: [1, 2, 5, 6], expected: true}, // gap has no executable lines
+    {from: 2, to: 5, exec: [1, 2, 3, 4, 5], expected: false}, // gap contains executable lines
+    {from: 2, to: 3, exec: [1, 2, 3], expected: true} // adjacent, no gap
+  ])('canBridgeGap($from, $to) = $expected', ({from, to, exec, expected}) => {
+    expect(canBridgeGap(from, to, new Set(exec))).toBe(expected)
   })
 }
