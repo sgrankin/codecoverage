@@ -172,8 +172,8 @@ async function parseCoverageFiles(
   }
   core.info(`Found ${coverageFiles.length} coverage file(s)`)
 
-  // Parse all coverage files and merge results
-  let parsedCov: coverage.Parsed = []
+  // Parse all coverage files and collect entries
+  const allEntries: coverage.Entry[] = []
   for (const covFile of coverageFiles) {
     let fileCov: coverage.Parsed
     if (coverageFormat === 'cobertura') {
@@ -183,8 +183,11 @@ async function parseCoverageFiles(
     } else {
       fileCov = await lcov.parse(covFile, workspacePath)
     }
-    parsedCov = parsedCov.concat(fileCov)
+    for (const entry of fileCov) {
+      allEntries.push(entry)
+    }
   }
+  let parsedCov = allEntries
 
   // Merge coverage from multiple test runs
   parsedCov = coverage.mergeByFile(parsedCov)

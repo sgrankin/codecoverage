@@ -3,10 +3,17 @@ import * as path from 'node:path'
 import * as readline from 'node:readline'
 import type * as coverage from './general.js'
 
+// FileAccumulator collects line coverage data efficiently using a Map.
+interface FileAccumulator {
+  title: string
+  file: string
+  lineHits: Map<number, number>
+}
+
 // parseContent parses Go coverage file content.
 // Inlined from golang-cover-parse to avoid its problematic mocha dependency.
 function parseContent(text: string): coverage.Parsed {
-  const files: coverage.Entry[] = []
+  const files: FileAccumulator[] = []
   const modes = text.split('mode:')
 
   if (!modes.length) {
@@ -27,14 +34,14 @@ function parseContent(text: string): coverage.Parsed {
       const values = parts[1]
       if (!filePath || !values) continue
 
-      // Get or create file entry
+      // Get or create file accumulator
       let file = files[files.length - 1]
       if (!file || file.file !== filePath) {
         const nameParts = filePath.split('/')
         file = {
           title: nameParts.at(-1) ?? filePath,
           file: filePath,
-          lines: {found: 0, hit: 0, details: []}
+          lineHits: new Map()
         }
         files.push(file)
       }
@@ -44,25 +51,29 @@ function parseContent(text: string): coverage.Parsed {
       const endLine = Number(values.split(',')[1]?.split('.')[0])
       const hit = Number(values.split(' ')[2])
 
-      file.lines.found += endLine - startLine + 1
-
+      // Accumulate hits using Map for O(1) lookup instead of O(n) array.find()
       for (let lineNumber = startLine; lineNumber <= endLine; lineNumber++) {
-        const existing = file.lines.details.find(d => d.line === lineNumber)
-        if (existing) {
-          existing.hit += hit
-        } else {
-          file.lines.details.push({line: lineNumber, hit})
-        }
+        const existing = file.lineHits.get(lineNumber) ?? 0
+        file.lineHits.set(lineNumber, existing + hit)
       }
     }
   }
 
-  // Calculate hit counts
-  for (const file of files) {
-    file.lines.hit = file.lines.details.reduce((acc, val) => acc + (val.hit > 0 ? 1 : 0), 0)
-  }
-
-  return files
+  // Convert accumulators to Entry format
+  return files.map(file => {
+    const details = Array.from(file.lineHits.entries())
+      .map(([line, hit]) => ({line, hit}))
+      .sort((a, b) => a.line - b.line)
+    return {
+      title: file.title,
+      file: file.file,
+      lines: {
+        found: details.length,
+        hit: details.filter(d => d.hit > 0).length,
+        details
+      }
+    }
+  })
 }
 
 // parse parses a Go coverage file and returns coverage data.

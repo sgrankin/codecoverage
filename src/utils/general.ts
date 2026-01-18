@@ -1,50 +1,81 @@
+// FileAccumulator holds coverage data during merging, using a Map for efficient updates.
+interface FileAccumulator {
+  file: string
+  title: string
+  package: string
+  lineHits: Map<number, number>
+}
+
 // mergeByFile merges coverage entries for the same file from multiple test runs.
 // A line is considered covered if it was hit in any test run.
 export function mergeByFile(coverage: Parsed): Parsed {
-  const byFile = new Map<string, Entry>()
+  const byFile = new Map<string, FileAccumulator>()
 
   for (const entry of coverage) {
     const existing = byFile.get(entry.file)
-    if (!existing) {
-      // Clone the entry to avoid mutating the original
-      byFile.set(entry.file, {
-        ...entry,
-        lines: {
-          ...entry.lines,
-          details: entry.lines.details.map(d => ({...d}))
-        }
-      })
-    } else {
+    if (existing) {
       // Merge line details: take max hit count for each line
-      const lineHits = new Map<number, number>()
-      for (const detail of existing.lines.details) {
-        lineHits.set(detail.line, detail.hit)
+      for (const detail of entry.lines.details) {
+        const currentHit = existing.lineHits.get(detail.line) ?? 0
+        existing.lineHits.set(detail.line, Math.max(currentHit, detail.hit))
+      }
+    } else {
+      const acc: FileAccumulator = {
+        file: entry.file,
+        title: entry.title,
+        package: entry.package ?? '',
+        lineHits: new Map()
       }
       for (const detail of entry.lines.details) {
-        const currentHit = lineHits.get(detail.line) ?? 0
-        lineHits.set(detail.line, Math.max(currentHit, detail.hit))
+        acc.lineHits.set(detail.line, detail.hit)
       }
-      // Rebuild details array
-      existing.lines.details = Array.from(lineHits.entries())
-        .map(([line, hit]) => ({line, hit}))
-        .sort((a, b) => a.line - b.line)
+      byFile.set(entry.file, acc)
     }
   }
 
-  return Array.from(byFile.values())
+  // Convert accumulators to Entry format
+  const result: Parsed = []
+  for (const acc of byFile.values()) {
+    const details = Array.from(acc.lineHits.entries())
+      .map(([line, hit]) => ({line, hit}))
+      .sort((a, b) => a.line - b.line)
+    const entry: Entry = {
+      file: acc.file,
+      title: acc.title,
+      lines: {
+        found: details.length,
+        hit: 0, // Will be corrected by correctTotals
+        details
+      }
+    }
+    if (acc.package) {
+      entry.package = acc.package
+    }
+    result.push(entry)
+  }
+  return result
 }
 
 export function filterByFile(coverage: Parsed): File[] {
   return coverage.map(item => {
-    const allExecutableLines = new Set(item?.lines?.details.map(line => line.line) || [])
-    const missingLineNumbers =
-      item?.lines?.details.filter(line => line.hit === 0).map(line => line.line) || []
-    const coveredLineCount = item?.lines?.details.filter(line => line.hit > 0).length || 0
+    const details = item?.lines?.details || []
+    const executableLines = new Set<number>()
+    const missingLineNumbers: number[] = []
+    let coveredLineCount = 0
+
+    for (const detail of details) {
+      executableLines.add(detail.line)
+      if (detail.hit > 0) {
+        coveredLineCount++
+      } else {
+        missingLineNumbers.push(detail.line)
+      }
+    }
 
     return {
       fileName: item.file,
       missingLineNumbers,
-      executableLines: allExecutableLines,
+      executableLines,
       coveredLineCount
     }
   })
@@ -139,14 +170,20 @@ export function intersectRanges(a: Range[], b: Range[]): Range[] {
 }
 
 export function correctTotals(coverage: Parsed): Parsed {
-  return coverage.map(item => ({
-    ...item,
-    lines: {
-      ...item.lines,
-      found: item.lines.details.length,
-      hit: item.lines.details.filter(line => line.hit > 0).length
+  return coverage.map(item => {
+    let hit = 0
+    for (const detail of item.lines.details) {
+      if (detail.hit > 0) hit++
     }
-  }))
+    return {
+      ...item,
+      lines: {
+        ...item.lines,
+        found: item.lines.details.length,
+        hit
+      }
+    }
+  })
 }
 
 export type Entry = {

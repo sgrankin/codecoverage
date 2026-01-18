@@ -8,7 +8,7 @@ function parseContent(str: string): coverage.Parsed {
   const data: coverage.Entry[] = []
   let item: coverage.Entry = emptyEntry()
 
-  for (const line of ['end_of_record', ...str.split('\n')]) {
+  for (const line of str.split('\n')) {
     const trimmed = line.trim()
     const allparts = trimmed.split(':')
     const key = allparts.shift()?.toUpperCase() ?? ''
@@ -35,16 +35,20 @@ function parseContent(str: string): coverage.Parsed {
         })
         break
       }
-    }
-
-    if (trimmed.includes('end_of_record')) {
-      data.push(item)
-      item = emptyEntry()
+      case 'END_OF_RECORD': {
+        if (item.file) {
+          data.push(item)
+        }
+        item = emptyEntry()
+        break
+      }
     }
   }
 
-  // Remove the first empty entry (from prepended end_of_record)
-  data.shift()
+  // Handle file without trailing end_of_record
+  if (item.file) {
+    data.push(item)
+  }
 
   if (!data.length) {
     throw new Error('Failed to parse lcov string')

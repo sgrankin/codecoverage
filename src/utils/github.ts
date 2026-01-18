@@ -107,11 +107,15 @@ export class Client {
     coverageFiles: coverage.File[],
     pullRequestFiles: PullRequestFiles
   ): Annotation[] {
+    // Build lookup for O(1) access to coverage data
+    const coverageByFile = new Map(coverageFiles.map(f => [f.fileName, f]))
     const annotations: Annotation[] = []
-    for (const current of coverageFiles) {
-      // Only annotate relevant files
-      const prFileLines = pullRequestFiles[current.fileName]
-      if (prFileLines && prFileLines.length > 0) {
+
+    // Only iterate files that are in the PR diff
+    for (const [fileName, prFileLines] of Object.entries(pullRequestFiles)) {
+      const current = coverageByFile.get(fileName)
+      if (!current || prFileLines.length === 0) continue
+      {
         // If file has zero coverage, just add a single notice on line 1
         if (current.coveredLineCount === 0) {
           annotations.push({
