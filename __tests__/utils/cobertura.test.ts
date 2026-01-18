@@ -90,3 +90,24 @@ test.each(parseCoberturaTestCases)('parse: $name', async ({fixture, workspace, e
     expect(output[i].lines.details).toHaveLength(expected[i].detailsLength)
   }
 })
+
+test('parse with detailsFor only keeps details for specified files', async () => {
+  const path = getFixturePath('cobertura.xml')
+  const output = await cobertura.parse(path, '', {detailsFor: new Set(['src/example.ts'])})
+
+  expect(output).toHaveLength(2)
+
+  // src/example.ts should have full details
+  const example = output.find(e => e.file === 'src/example.ts')!
+  expect(example).toBeDefined()
+  expect(example.lines.found).toBe(5)
+  expect(example.lines.hit).toBe(3)
+  expect(example.lines.details).toHaveLength(5)
+
+  // src/utils/utils.ts should have summary only (empty details)
+  const utils = output.find(e => e.file === 'src/utils/utils.ts')!
+  expect(utils).toBeDefined()
+  expect(utils.lines.found).toBe(4)
+  expect(utils.lines.hit).toBe(3)
+  expect(utils.lines.details).toHaveLength(0) // No details for files not in detailsFor
+})
