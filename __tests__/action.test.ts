@@ -418,7 +418,7 @@ test('writes step summary to temp file', async () => {
   // Check the file was written
   const content = fs.readFileSync(summaryFile, 'utf8')
   expect(content).toContain('Code Coverage Report')
-  expect(content).toContain('### Coverage by Package')
+  expect(content).toContain('Coverage by Package')
 
   // Clean up temp file
   if (fs.existsSync(summaryFile)) {

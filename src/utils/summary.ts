@@ -109,25 +109,40 @@ export function generate(params: Params): string {
     })
     .join('\n')
 
-  // Build baseline row if available
-  const baselineRow = baselinePercentage ? `| **Baseline** | ${baselinePercentage}% |\n` : ''
+  // Build horizontal header row with optional baseline column
+  const headerCols = [
+    'Coverage',
+    ...(baselinePercentage ? ['Baseline'] : []),
+    'Covered',
+    'Uncovered',
+    'Total',
+    'Files'
+  ]
+  const dataCols = [
+    coverageDisplay,
+    ...(baselinePercentage ? [`${baselinePercentage}%`] : []),
+    coveredLines.toLocaleString(),
+    uncoveredLines.toLocaleString(),
+    totalLines.toLocaleString(),
+    filesAnalyzed.toLocaleString()
+  ]
+  const alignRow = headerCols.map(() => '----:').join(' | ')
 
   return `## ${statusEmoji} Code Coverage Report
 
-| Metric | Value |
-| ------ | ----: |
-| **Coverage** | ${coverageDisplay} |
-${baselineRow}| **Covered Lines** | ${coveredLines.toLocaleString()} |
-| **Uncovered Lines** | ${uncoveredLines.toLocaleString()} |
-| **Total Lines** | ${totalLines.toLocaleString()} |
-| **Files Analyzed** | ${filesAnalyzed.toLocaleString()} |
+| ${headerCols.join(' | ')} |
+| ${alignRow} |
+| ${dataCols.join(' | ')} |
 
 ${annotationCount > 0 ? `⚠️ **${annotationCount} annotation${annotationCount === 1 ? '' : 's'}** added for uncovered lines in this PR.` : '✅ No new uncovered lines detected in this PR.'}
 
-### Coverage by Package
+<details>
+<summary>Coverage by Package</summary>
 
 | Package | Files | Total Lines | Covered | Coverage |
 | ------- | ----: | ----------: | ------: | -------: |
 ${packageRows}
+
+</details>
 `
 }

@@ -17,21 +17,20 @@ const testCases = [
     },
     expected: `## 🟢 Code Coverage Report
 
-| Metric | Value |
-| ------ | ----: |
-| **Coverage** | 85.50% |
-| **Covered Lines** | 855 |
-| **Uncovered Lines** | 145 |
-| **Total Lines** | 1,000 |
-| **Files Analyzed** | 2 |
+| Coverage | Covered | Uncovered | Total | Files |
+| ----: | ----: | ----: | ----: | ----: |
+| 85.50% | 855 | 145 | 1,000 | 2 |
 
 ✅ No new uncovered lines detected in this PR.
 
-### Coverage by Package
+<details>
+<summary>Coverage by Package</summary>
 
 | Package | Files | Total Lines | Covered | Coverage |
 | ------- | ----: | ----------: | ------: | -------: |
 | src | 2 | 1,000 | 855 | 85.5% |
+
+</details>
 `
   },
   {
@@ -46,21 +45,20 @@ const testCases = [
     },
     expected: `## 🟡 Code Coverage Report
 
-| Metric | Value |
-| ------ | ----: |
-| **Coverage** | 65.00% |
-| **Covered Lines** | 65 |
-| **Uncovered Lines** | 35 |
-| **Total Lines** | 100 |
-| **Files Analyzed** | 1 |
+| Coverage | Covered | Uncovered | Total | Files |
+| ----: | ----: | ----: | ----: | ----: |
+| 65.00% | 65 | 35 | 100 | 1 |
 
 ⚠️ **3 annotations** added for uncovered lines in this PR.
 
-### Coverage by Package
+<details>
+<summary>Coverage by Package</summary>
 
 | Package | Files | Total Lines | Covered | Coverage |
 | ------- | ----: | ----------: | ------: | -------: |
 | src | 1 | 100 | 65 | 65.0% |
+
+</details>
 `
   },
   {
@@ -75,21 +73,20 @@ const testCases = [
     },
     expected: `## 🔴 Code Coverage Report
 
-| Metric | Value |
-| ------ | ----: |
-| **Coverage** | 45.00% |
-| **Covered Lines** | 45 |
-| **Uncovered Lines** | 55 |
-| **Total Lines** | 100 |
-| **Files Analyzed** | 1 |
+| Coverage | Covered | Uncovered | Total | Files |
+| ----: | ----: | ----: | ----: | ----: |
+| 45.00% | 45 | 55 | 100 | 1 |
 
 ⚠️ **1 annotation** added for uncovered lines in this PR.
 
-### Coverage by Package
+<details>
+<summary>Coverage by Package</summary>
 
 | Package | Files | Total Lines | Covered | Coverage |
 | ------- | ----: | ----------: | ------: | -------: |
 | src | 1 | 100 | 45 | 45.0% |
+
+</details>
 `
   },
   {
@@ -108,23 +105,22 @@ const testCases = [
     },
     expected: `## 🟢 Code Coverage Report
 
-| Metric | Value |
-| ------ | ----: |
-| **Coverage** | 80.00% |
-| **Covered Lines** | 240 |
-| **Uncovered Lines** | 60 |
-| **Total Lines** | 300 |
-| **Files Analyzed** | 3 |
+| Coverage | Covered | Uncovered | Total | Files |
+| ----: | ----: | ----: | ----: | ----: |
+| 80.00% | 240 | 60 | 300 | 3 |
 
 ✅ No new uncovered lines detected in this PR.
 
-### Coverage by Package
+<details>
+<summary>Coverage by Package</summary>
 
 | Package | Files | Total Lines | Covered | Coverage |
 | ------- | ----: | ----------: | ------: | -------: |
 | lib | 1 | 100 | 80 | 80.0% |
 | src | 1 | 100 | 80 | 80.0% |
 | src/utils | 1 | 100 | 80 | 80.0% |
+
+</details>
 `
   },
   {
@@ -142,22 +138,21 @@ const testCases = [
     },
     expected: `## 🟡 Code Coverage Report
 
-| Metric | Value |
-| ------ | ----: |
-| **Coverage** | 75.00% |
-| **Covered Lines** | 150 |
-| **Uncovered Lines** | 50 |
-| **Total Lines** | 200 |
-| **Files Analyzed** | 2 |
+| Coverage | Covered | Uncovered | Total | Files |
+| ----: | ----: | ----: | ----: | ----: |
+| 75.00% | 150 | 50 | 200 | 2 |
 
 ✅ No new uncovered lines detected in this PR.
 
-### Coverage by Package
+<details>
+<summary>Coverage by Package</summary>
 
 | Package | Files | Total Lines | Covered | Coverage |
 | ------- | ----: | ----------: | ------: | -------: |
 | com.example.bar | 1 | 100 | 70 | 70.0% |
 | com.example.foo | 1 | 100 | 80 | 80.0% |
+
+</details>
 `
   },
   {
@@ -174,22 +169,20 @@ const testCases = [
     },
     expected: `## 🟢 Code Coverage Report
 
-| Metric | Value |
-| ------ | ----: |
-| **Coverage** | 85.50% (↑2.50%) |
-| **Baseline** | 83.00% |
-| **Covered Lines** | 855 |
-| **Uncovered Lines** | 145 |
-| **Total Lines** | 1,000 |
-| **Files Analyzed** | 1 |
+| Coverage | Baseline | Covered | Uncovered | Total | Files |
+| ----: | ----: | ----: | ----: | ----: | ----: |
+| 85.50% (↑2.50%) | 83.00% | 855 | 145 | 1,000 | 1 |
 
 ✅ No new uncovered lines detected in this PR.
 
-### Coverage by Package
+<details>
+<summary>Coverage by Package</summary>
 
 | Package | Files | Total Lines | Covered | Coverage |
 | ------- | ----: | ----------: | ------: | -------: |
 | src | 1 | 1,000 | 855 | 85.5% |
+
+</details>
 `
   },
   {
@@ -206,22 +199,20 @@ const testCases = [
     },
     expected: `## 🟡 Code Coverage Report
 
-| Metric | Value |
-| ------ | ----: |
-| **Coverage** | 78.00% (↓2.00%) |
-| **Baseline** | 80.00% |
-| **Covered Lines** | 780 |
-| **Uncovered Lines** | 220 |
-| **Total Lines** | 1,000 |
-| **Files Analyzed** | 1 |
+| Coverage | Baseline | Covered | Uncovered | Total | Files |
+| ----: | ----: | ----: | ----: | ----: | ----: |
+| 78.00% (↓2.00%) | 80.00% | 780 | 220 | 1,000 | 1 |
 
 ⚠️ **3 annotations** added for uncovered lines in this PR.
 
-### Coverage by Package
+<details>
+<summary>Coverage by Package</summary>
 
 | Package | Files | Total Lines | Covered | Coverage |
 | ------- | ----: | ----------: | ------: | -------: |
 | src | 1 | 1,000 | 780 | 78.0% |
+
+</details>
 `
   }
 ]
