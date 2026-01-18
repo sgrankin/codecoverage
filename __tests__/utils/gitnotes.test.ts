@@ -2,7 +2,7 @@ import {writeFile} from 'node:fs/promises'
 import {join} from 'node:path'
 import {afterEach, beforeEach, describe, expect, test} from 'vitest'
 import * as gitnotes from '../../src/utils/gitnotes'
-import {type TestRepo, cloneRepo, createTestRepo} from '../fixtures/git-repo'
+import {cloneRepo, createTestRepo, type TestRepo} from '../fixtures/git-repo'
 
 describe('gitnotes', () => {
   let repo: TestRepo
@@ -171,7 +171,10 @@ describe('gitnotes', () => {
       const commit = await gitnotes.headCommit({cwd: repo.repoDir})
       const content = 'test note content'
 
-      const success = await gitnotes.writeAndPush({commit, content, force: true}, {cwd: repo.repoDir})
+      const success = await gitnotes.writeAndPush(
+        {commit, content, force: true},
+        {cwd: repo.repoDir}
+      )
 
       expect(success).toBe(true)
 

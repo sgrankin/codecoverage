@@ -177,3 +177,26 @@ export type Range = {
   start_line: number
   end_line: number
 }
+
+// In-source tests for private helper functions
+if (import.meta.vitest) {
+  const {test, expect} = import.meta.vitest
+
+  test('canBridgeGap returns true when gap has no executable lines', () => {
+    const executableLines = new Set([1, 2, 5, 6])
+    // Gap from 2 to 5 contains lines 3, 4 which are not executable
+    expect(canBridgeGap(2, 5, executableLines)).toBe(true)
+  })
+
+  test('canBridgeGap returns false when gap contains executable lines', () => {
+    const executableLines = new Set([1, 2, 3, 4, 5])
+    // Gap from 2 to 5 contains lines 3, 4 which are executable
+    expect(canBridgeGap(2, 5, executableLines)).toBe(false)
+  })
+
+  test('canBridgeGap returns true for adjacent lines (no gap)', () => {
+    const executableLines = new Set([1, 2, 3])
+    // No lines between 2 and 3
+    expect(canBridgeGap(2, 3, executableLines)).toBe(true)
+  })
+}

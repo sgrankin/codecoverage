@@ -3,7 +3,7 @@ import {join} from 'node:path'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import * as baseline from '../../src/utils/baseline'
 import * as gitnotes from '../../src/utils/gitnotes'
-import {type TestRepo, createTestRepo} from '../fixtures/git-repo'
+import {createTestRepo, type TestRepo} from '../fixtures/git-repo'
 
 describe('baseline', () => {
   describe('parse', () => {
@@ -151,7 +151,10 @@ describe('baseline', () => {
     test('handles corrupted baseline data gracefully', async () => {
       // Store invalid JSON as baseline
       const commit = await gitnotes.headCommit({cwd: repo.repoDir})
-      await gitnotes.writeAndPush({commit, content: 'not valid json', force: true}, {cwd: repo.repoDir})
+      await gitnotes.writeAndPush(
+        {commit, content: 'not valid json', force: true},
+        {cwd: repo.repoDir}
+      )
 
       // Create feature branch
       await gitnotes.exec(['checkout', '-b', 'feature'], repo.repoDir)

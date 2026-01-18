@@ -8,7 +8,7 @@
   "scripts": {
     "typecheck": "tsgo --noEmit",
     "check": "biome check --write",
-    "package": "esbuild src/main.ts --bundle --platform=node --target=node24 --format=cjs --minify --outfile=dist/index.cjs --sourcemap --legal-comments=linked",
+    "package": "esbuild src/main.ts --bundle --platform=node --target=node24 --format=cjs --minify --outfile=dist/index.cjs --sourcemap --legal-comments=linked --define:import.meta.vitest=undefined",
     "test": "NO_COLOR=1 vitest",
     "test:cov": "NO_COLOR=1 vitest run --coverage",
     "all": "npm run typecheck && npm run check && npm run package && npm run test:cov"

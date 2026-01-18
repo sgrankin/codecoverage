@@ -76,3 +76,58 @@ export async function parse(lcovPath: string, workspacePath: string): Promise<co
 
   return parsed
 }
+
+// In-source tests for private helper functions
+if (import.meta.vitest) {
+  const {test, expect} = import.meta.vitest
+
+  test('parseContent parses basic lcov format', () => {
+    const input = `TN:Test
+SF:/path/to/file.ts
+DA:1,1
+DA:2,0
+DA:3,5
+LF:3
+LH:2
+end_of_record`
+
+    const result = parseContent(input)
+    expect(result).toHaveLength(1)
+    expect(result[0]!.title).toBe('Test')
+    expect(result[0]!.file).toBe('/path/to/file.ts')
+    expect(result[0]!.lines.found).toBe(3)
+    expect(result[0]!.lines.hit).toBe(2)
+    expect(result[0]!.lines.details).toEqual([
+      {line: 1, hit: 1},
+      {line: 2, hit: 0},
+      {line: 3, hit: 5}
+    ])
+  })
+
+  test('parseContent handles multiple files', () => {
+    const input = `SF:file1.ts
+DA:1,1
+end_of_record
+SF:file2.ts
+DA:1,0
+end_of_record`
+
+    const result = parseContent(input)
+    expect(result).toHaveLength(2)
+    expect(result[0]!.file).toBe('file1.ts')
+    expect(result[1]!.file).toBe('file2.ts')
+  })
+
+  test('parseContent throws on empty input', () => {
+    expect(() => parseContent('')).toThrow('Failed to parse lcov string')
+  })
+
+  test('emptyEntry returns correct structure', () => {
+    const entry = emptyEntry()
+    expect(entry).toEqual({
+      title: '',
+      file: '',
+      lines: {found: 0, hit: 0, details: []}
+    })
+  })
+}

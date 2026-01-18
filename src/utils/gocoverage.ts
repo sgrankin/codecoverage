@@ -104,3 +104,55 @@ async function parseGoModFile(filePath: string): Promise<string> {
   /* istanbul ignore next */
   return ''
 }
+
+// In-source tests for private helper functions
+if (import.meta.vitest) {
+  const {test, expect} = import.meta.vitest
+
+  test('parseContent parses basic go coverage format', () => {
+    const input = `mode: set
+example.com/pkg/file.go:10.1,12.1 3 1
+example.com/pkg/file.go:15.1,15.1 1 0`
+
+    const result = parseContent(input)
+    expect(result).toHaveLength(1)
+    expect(result[0]!.file).toBe('example.com/pkg/file.go')
+    expect(result[0]!.lines.details).toContainEqual({line: 10, hit: 1})
+    expect(result[0]!.lines.details).toContainEqual({line: 11, hit: 1})
+    expect(result[0]!.lines.details).toContainEqual({line: 12, hit: 1})
+    expect(result[0]!.lines.details).toContainEqual({line: 15, hit: 0})
+  })
+
+  test('parseContent handles multiple files', () => {
+    const input = `mode: count
+example.com/a.go:1.1,1.1 1 1
+example.com/b.go:1.1,1.1 1 0`
+
+    const result = parseContent(input)
+    expect(result).toHaveLength(2)
+    expect(result[0]!.file).toBe('example.com/a.go')
+    expect(result[1]!.file).toBe('example.com/b.go')
+  })
+
+  test('parseContent accumulates hits for same line', () => {
+    const input = `mode: count
+example.com/file.go:5.1,5.1 1 2
+example.com/file.go:5.1,5.1 1 3`
+
+    const result = parseContent(input)
+    expect(result[0]!.lines.details.find(d => d.line === 5)?.hit).toBe(5)
+  })
+
+  test('parseContent returns empty for empty input', () => {
+    // Note: the throw in parseContent is dead code - split always returns at least ['']
+    expect(parseContent('')).toEqual([])
+  })
+
+  test('filterModulePaths strips module prefix', () => {
+    const entries = [
+      {file: 'example.com/pkg/file.go', title: '', lines: {found: 0, hit: 0, details: []}}
+    ]
+    filterModulePaths(entries, 'example.com')
+    expect(entries[0]!.file).toBe('pkg/file.go')
+  })
+}

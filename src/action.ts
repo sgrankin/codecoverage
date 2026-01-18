@@ -343,3 +343,26 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
     core.info(JSON.stringify(error))
   }
 }
+
+// In-source tests for private helper functions
+if (import.meta.vitest) {
+  const {test, expect} = import.meta.vitest
+
+  test('linesToRanges converts line numbers to compact ranges', () => {
+    expect(linesToRanges([])).toBe('')
+    expect(linesToRanges([5])).toBe('5')
+    expect(linesToRanges([1, 2, 3])).toBe('1-3')
+    expect(linesToRanges([1, 2, 3, 5, 7, 8, 9])).toBe('1-3,5,7-9')
+    expect(linesToRanges([10, 20, 30])).toBe('10,20,30')
+    // Handles unsorted input
+    expect(linesToRanges([3, 1, 2])).toBe('1-3')
+  })
+
+  test('truncate limits string length', () => {
+    expect(truncate('short', 10)).toBe('short')
+    expect(truncate('exactly10!', 10)).toBe('exactly10!')
+    expect(truncate('this is too long', 10)).toBe('this is...')
+    // Edge case: when string equals maxLen, no truncation
+    expect(truncate('abc', 3)).toBe('abc')
+  })
+}

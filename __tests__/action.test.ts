@@ -232,26 +232,27 @@ const coverageFormatTestCases = [
   {format: '', fixture: 'lcov.info', shouldSucceed: true} // defaults to lcov
 ]
 
-test.each(coverageFormatTestCases)(
-  'processes $format coverage file',
-  async ({format, fixture, shouldSucceed}) => {
-    const capture = captureStdout()
+test.each(coverageFormatTestCases)('processes $format coverage file', async ({
+  format,
+  fixture,
+  shouldSucceed
+}) => {
+  const capture = captureStdout()
 
-    setInputs({
-      github_token: 'test-token',
-      coverage_file_path: getFixturePath(fixture),
-      coverage_format: format,
-      github_base_url: 'https://api.github.com',
-      step_summary: 'false'
-    })
+  setInputs({
+    github_token: 'test-token',
+    coverage_file_path: getFixturePath(fixture),
+    coverage_format: format,
+    github_base_url: 'https://api.github.com',
+    step_summary: 'false'
+  })
 
-    await play(createFakeDeps())
-    expect(capture.output()).toContain('Performing Code Coverage Analysis')
-    if (shouldSucceed) {
-      expect(mockSetFailed).not.toHaveBeenCalled()
-    }
+  await play(createFakeDeps())
+  expect(capture.output()).toContain('Performing Code Coverage Analysis')
+  if (shouldSucceed) {
+    expect(mockSetFailed).not.toHaveBeenCalled()
   }
-)
+})
 
 test('outputs diagnostic dump for files in PR diff', async () => {
   const capture = captureStdout()
