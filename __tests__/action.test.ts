@@ -579,10 +579,9 @@ test('does not post PR comment in store-baseline mode', async () => {
   expect(capture.output()).toContain('Mode: store-baseline')
 })
 
-test('summary stats include all files, not just PR diff files (detailsFor optimization)', async () => {
-  // This test validates that when detailsFor optimization is used (PR mode),
-  // the summary statistics include coverage from ALL files, not just the ones
-  // in the PR diff. This was a regression in the zorrlxrl commit.
+test('summary stats include all files, not just PR diff files', async () => {
+  // This test validates that summary statistics include coverage from ALL files,
+  // not just the ones in the PR diff.
   const capture = captureStdout()
   const coberturaPath = getFixturePath('cobertura.xml')
 
