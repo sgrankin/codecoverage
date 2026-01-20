@@ -128,7 +128,7 @@ export function generate(params: Params): string {
   const headerCols = [
     'Coverage',
     ...(baselinePercentage ? ['Baseline'] : []),
-    ...(diffCoverageDisplay ? ['Diff'] : []),
+    ...(diffCoverageDisplay ? ['Diff Only'] : []),
     'Covered',
     'Uncovered',
     'Total',
