@@ -24,10 +24,10 @@ export function mergeByFile(coverage: Parsed): Parsed {
         const currentHit = existing.lineHits.get(detail.line) ?? 0
         existing.lineHits.set(detail.line, Math.max(currentHit, detail.hit))
       }
-      // If this entry has no details but has found/hit, accumulate them
+      // If this entry has no details but has found/hit, take max (same file from multiple runs)
       if (entry.lines.details.length === 0) {
-        existing.preservedFound += entry.lines.found
-        existing.preservedHit += entry.lines.hit
+        existing.preservedFound = Math.max(existing.preservedFound, entry.lines.found)
+        existing.preservedHit = Math.max(existing.preservedHit, entry.lines.hit)
       }
     } else {
       const acc: FileAccumulator = {
