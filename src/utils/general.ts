@@ -4,15 +4,10 @@ interface FileAccumulator {
   title: string
   package: string
   lineHits: Map<number, number>
-  // found/hit are preserved from input when details are empty (detailsFor optimization)
-  preservedFound: number
-  preservedHit: number
 }
 
 // mergeByFile merges coverage entries for the same file from multiple test runs.
 // A line is considered covered if it was hit in any test run.
-// When entries have empty details but valid found/hit (detailsFor optimization),
-// those values are preserved.
 export function mergeByFile(coverage: Parsed): Parsed {
   const byFile = new Map<string, FileAccumulator>()
 
@@ -24,20 +19,12 @@ export function mergeByFile(coverage: Parsed): Parsed {
         const currentHit = existing.lineHits.get(detail.line) ?? 0
         existing.lineHits.set(detail.line, Math.max(currentHit, detail.hit))
       }
-      // If this entry has no details but has found/hit, take max (same file from multiple runs)
-      if (entry.lines.details.length === 0) {
-        existing.preservedFound = Math.max(existing.preservedFound, entry.lines.found)
-        existing.preservedHit = Math.max(existing.preservedHit, entry.lines.hit)
-      }
     } else {
       const acc: FileAccumulator = {
         file: entry.file,
         title: entry.title,
         package: entry.package ?? '',
-        lineHits: new Map(),
-        // Preserve found/hit when details are empty (detailsFor optimization)
-        preservedFound: entry.lines.details.length === 0 ? entry.lines.found : 0,
-        preservedHit: entry.lines.details.length === 0 ? entry.lines.hit : 0
+        lineHits: new Map()
       }
       for (const detail of entry.lines.details) {
         acc.lineHits.set(detail.line, detail.hit)
@@ -52,14 +39,12 @@ export function mergeByFile(coverage: Parsed): Parsed {
     const details = Array.from(acc.lineHits.entries())
       .map(([line, hit]) => ({line, hit}))
       .sort((a, b) => a.line - b.line)
-    // Use details-based counts if we have details, otherwise use preserved values
-    const found = details.length > 0 ? details.length : acc.preservedFound
     const entry: Entry = {
       file: acc.file,
       title: acc.title,
       lines: {
-        found,
-        hit: acc.preservedHit, // Will be corrected by correctTotals if we have details
+        found: details.length,
+        hit: 0, // Will be corrected by correctTotals
         details
       }
     }
@@ -184,15 +169,9 @@ export function intersectRanges(a: Range[], b: Range[]): Range[] {
   return result
 }
 
-// correctTotals recalculates found/hit from details when details are present.
-// When details are empty (detailsFor optimization), preserves the existing found/hit values.
+// correctTotals recalculates found/hit from details.
 export function correctTotals(coverage: Parsed): Parsed {
   return coverage.map(item => {
-    // If no details, preserve the existing found/hit values
-    if (item.lines.details.length === 0) {
-      return item
-    }
-    // Recalculate from details
     let hit = 0
     for (const detail of item.lines.details) {
       if (detail.hit > 0) hit++
