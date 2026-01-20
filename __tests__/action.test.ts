@@ -578,3 +578,39 @@ test('does not post PR comment in store-baseline mode', async () => {
   expect(commentCalled).toBe(false)
   expect(capture.output()).toContain('Mode: store-baseline')
 })
+
+test('summary stats include all files, not just PR diff files (detailsFor optimization)', async () => {
+  // This test validates that when detailsFor optimization is used (PR mode),
+  // the summary statistics include coverage from ALL files, not just the ones
+  // in the PR diff. This was a regression in the zorrlxrl commit.
+  const capture = captureStdout()
+  const coberturaPath = getFixturePath('cobertura.xml')
+
+  setInputs({
+    github_token: 'test-token',
+    coverage_file_path: coberturaPath,
+    coverage_format: 'cobertura',
+    github_base_url: 'https://api.github.com',
+    step_summary: 'false'
+  })
+
+  // PR diff only contains one file, but coverage file has two files
+  // cobertura.xml has:
+  //   src/example.ts: 5 lines, 3 hit
+  //   src/utils/utils.ts: 4 lines, 3 hit
+  // Total: 9 lines, 6 hit = 66.67%
+  const fakeDeps = createFakeDeps({
+    diffResponse: {'src/example.ts': [1, 2, 3]} // Only one file in diff
+  })
+
+  await play(fakeDeps)
+
+  // Verify total lines includes BOTH files (9 total), not just diff file (5)
+  expect(mockSetOutput).toHaveBeenCalledWith('coverage_percentage', '66.67')
+  expect(mockSetOutput).toHaveBeenCalledWith('files_analyzed', 2)
+
+  // The output should mention both files' worth of lines
+  const output = capture.output()
+  expect(output).toContain('Total lines: 9')
+  expect(output).toContain('Covered lines: 6')
+})

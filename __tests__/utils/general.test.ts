@@ -281,3 +281,62 @@ test('correctTotals', () => {
   expect(multiResult[1].lines.found).toBe(3)
   expect(multiResult[1].lines.hit).toBe(1)
 })
+
+test('mergeByFile preserves found/hit when details are empty (detailsFor optimization)', () => {
+  // When detailsFor is used, files not in the diff have empty details but valid found/hit
+  const cov = [
+    {
+      file: 'src/changed.ts', // In diff - has details
+      title: 'changed',
+      lines: {
+        found: 3,
+        hit: 2,
+        details: [
+          {line: 1, hit: 1},
+          {line: 2, hit: 1},
+          {line: 3, hit: 0}
+        ]
+      }
+    },
+    {
+      file: 'src/unchanged.ts', // Not in diff - has found/hit but empty details
+      title: 'unchanged',
+      lines: {
+        found: 100,
+        hit: 80,
+        details: [] // Empty because file wasn't in detailsFor
+      }
+    }
+  ]
+
+  const merged = coverage.mergeByFile(cov)
+
+  expect(merged).toHaveLength(2)
+
+  const changed = merged.find(e => e.file === 'src/changed.ts')!
+  expect(changed.lines.found).toBe(3)
+
+  const unchanged = merged.find(e => e.file === 'src/unchanged.ts')!
+  expect(unchanged.lines.found).toBe(100) // Should preserve, not become 0
+  expect(unchanged.lines.hit).toBe(80) // Should preserve, not become 0
+})
+
+test('correctTotals preserves found/hit when details are empty (detailsFor optimization)', () => {
+  // When detailsFor is used, files not in the diff have empty details but valid found/hit
+  const cov = [
+    {
+      file: 'src/unchanged.ts',
+      title: 'unchanged',
+      lines: {
+        found: 100,
+        hit: 80,
+        details: [] // Empty because file wasn't in detailsFor
+      }
+    }
+  ]
+
+  const result = coverage.correctTotals(cov)
+
+  expect(result[0].lines.found).toBe(100) // Should preserve, not become 0
+  expect(result[0].lines.hit).toBe(80) // Should preserve, not become 0
+})
