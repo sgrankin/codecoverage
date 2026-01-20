@@ -321,6 +321,39 @@ test('mergeByFile preserves found/hit when details are empty (detailsFor optimiz
   expect(unchanged.lines.hit).toBe(80) // Should preserve, not become 0
 })
 
+test('mergeByFile does not double-count when same file appears twice without details', () => {
+  // When multiple coverage files are merged, the same file may appear multiple times
+  // with different coverage from different test runs. Files without details (detailsFor
+  // optimization) should take max, not sum their counts.
+  const cov = [
+    {
+      file: 'src/unchanged.ts',
+      title: 'unchanged',
+      lines: {
+        found: 100,
+        hit: 60, // First test run: 60% coverage
+        details: [] // Empty - not in detailsFor
+      }
+    },
+    {
+      file: 'src/unchanged.ts', // Same file from second test run
+      title: 'unchanged',
+      lines: {
+        found: 100,
+        hit: 80, // Second test run: 80% coverage (different tests hit different lines)
+        details: [] // Empty - not in detailsFor
+      }
+    }
+  ]
+
+  const merged = coverage.mergeByFile(cov)
+
+  expect(merged).toHaveLength(1)
+  const unchanged = merged[0]!
+  expect(unchanged.lines.found).toBe(100) // Should be 100, not 200
+  expect(unchanged.lines.hit).toBe(80) // Should be max(60, 80) = 80, not 140
+})
+
 test('correctTotals preserves found/hit when details are empty (detailsFor optimization)', () => {
   // When detailsFor is used, files not in the diff have empty details but valid found/hit
   const cov = [
