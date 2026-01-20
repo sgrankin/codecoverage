@@ -279,7 +279,7 @@ const testCases = [
     },
     expected: `## 🟢 Code Coverage Report
 
-| Coverage | Diff | Covered | Uncovered | Total | Files |
+| Coverage | Diff Only | Covered | Uncovered | Total | Files |
 | ----: | ----: | ----: | ----: | ----: | ----: |
 | 80.00% | 90.0% | 800 | 200 | 1,000 | 1 |
 
@@ -309,7 +309,7 @@ const testCases = [
     },
     expected: `## 📈 Code Coverage Report
 
-| Coverage | Baseline | Diff | Covered | Uncovered | Total | Files |
+| Coverage | Baseline | Diff Only | Covered | Uncovered | Total | Files |
 | ----: | ----: | ----: | ----: | ----: | ----: | ----: |
 | 85.00% (↑5.00%) | 80.00% | 100.0% | 850 | 150 | 1,000 | 1 |
 
