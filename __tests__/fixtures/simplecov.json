@@ -1,0 +1,20 @@
+{
+  "meta": {
+    "simplecov_version": "0.22.0"
+  },
+  "coverage": {
+    "/workspace/app/models/user.rb": {
+      "lines": [null, 1, 1, 1, 0, 0, null, 1, null],
+      "branches": {}
+    },
+    "/workspace/app/models/post.rb": {
+      "lines": [null, 1, 1, 1, 1, null],
+      "branches": {}
+    },
+    "/workspace/lib/utils.rb": {
+      "lines": [null, 0, 0, 0, null],
+      "branches": {}
+    }
+  },
+  "groups": {}
+}

@@ -10,9 +10,10 @@ import type * as gitnotes from './utils/gitnotes.js'
 import * as gocov from './utils/gocoverage.js'
 import * as lcov from './utils/lcov.js'
 import * as mode from './utils/mode.js'
+import * as simplecov from './utils/simplecov.js'
 import * as summary from './utils/summary.js'
 
-const SUPPORTED_FORMATS = ['lcov', 'cobertura', 'go']
+const SUPPORTED_FORMATS = ['lcov', 'cobertura', 'go', 'simplecov']
 const DEBUG_MAX_FILES = 10
 const DEBUG_MAX_LINE_LENGTH = 1024
 
@@ -180,6 +181,8 @@ async function parseCoverageFiles(
       fileCov = await cobertura.parse(covFile, workspacePath)
     } else if (coverageFormat === 'go') {
       fileCov = await gocov.parse(covFile, 'go.mod')
+    } else if (coverageFormat === 'simplecov') {
+      fileCov = await simplecov.parse(covFile, workspacePath)
     } else {
       fileCov = await lcov.parse(covFile, workspacePath)
     }

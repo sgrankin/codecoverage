@@ -230,13 +230,16 @@ test('throws error for unsupported coverage format', async () => {
 
   await play(createFakeDeps())
 
-  expect(mockSetFailed).toHaveBeenCalledWith('coverage_format must be one of lcov,cobertura,go')
+  expect(mockSetFailed).toHaveBeenCalledWith(
+    'coverage_format must be one of lcov,cobertura,go,simplecov'
+  )
 })
 
 const coverageFormatTestCases = [
   {format: 'lcov', fixture: 'lcov.info', shouldSucceed: true},
   {format: 'cobertura', fixture: 'cobertura.xml', shouldSucceed: true},
   {format: 'go', fixture: 'gocoverage.out', shouldSucceed: false}, // fails: no go.mod in cwd
+  {format: 'simplecov', fixture: 'simplecov.json', shouldSucceed: true},
   {format: '', fixture: 'lcov.info', shouldSucceed: true} // defaults to lcov
 ]
 
