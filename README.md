@@ -6,7 +6,9 @@ Annotate pull requests with lines missing test coverage. Catch gaps as they're i
 
 All processing runs within GitHub Actions—no data is sent to external servers.
 
-![Sample annotation](https://user-images.githubusercontent.com/23582455/175847244-dbed2fb3-70be-4bcd-a7d0-64197951c517.png)
+![Inline annotation showing uncovered lines](docs/images/annotation.png)
+
+![Coverage summary comment](docs/images/summary-comment.png)
 
 ## Quick Start
 
