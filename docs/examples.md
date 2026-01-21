@@ -77,7 +77,36 @@ GCC Gcov can output lcov format. See [this blog post](https://shenxianpeng.githu
 
 ### Ruby (SimpleCov)
 
-Add [`simplecov-lcov`](https://github.com/fortissimo1997/simplecov-lcov) to your Gemfile:
+SimpleCov JSON output is supported directly:
+
+```ruby
+# test_helper.rb
+require 'simplecov'
+require 'simplecov_json_formatter'
+SimpleCov.formatter = SimpleCov::Formatter::JSONFormatter
+SimpleCov.start
+```
+
+```yaml
+- name: Run tests
+  run: bundle exec rspec
+
+- name: Code Coverage
+  uses: sgrankin/codecoverage@v1
+  with:
+    github_token: ${{secrets.GITHUB_TOKEN}}
+    coverage_file_path: coverage/coverage.json
+    coverage_format: simplecov
+```
+
+Alternatively, you can use SimpleCov's internal `.resultset.json` directly (useful when merging coverage from parallel test runs):
+
+```yaml
+coverage_file_path: coverage/.resultset.json
+coverage_format: simplecov
+```
+
+Or convert to LCOV format with [`simplecov-lcov`](https://github.com/fortissimo1997/simplecov-lcov):
 
 ```ruby
 # test_helper.rb
