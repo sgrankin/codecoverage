@@ -166,6 +166,40 @@ describe('gitnotes', () => {
     })
   })
 
+  describe('listAncestors', () => {
+    test('returns ancestor commits', async () => {
+      // Create a few commits
+      await repo.createCommit('commit 2')
+      await repo.createCommit('commit 3')
+      const head = await gitnotes.headCommit({cwd: repo.repoDir})
+
+      const ancestors = await gitnotes.listAncestors(head, 10, {cwd: repo.repoDir})
+
+      // Should include HEAD and at least the initial commit
+      expect(ancestors.length).toBeGreaterThanOrEqual(3) // initial + 2 new commits
+      expect(ancestors[0]).toBe(head)
+      // All should be valid SHAs
+      for (const sha of ancestors) {
+        expect(sha).toMatch(/^[a-f0-9]{40}$/)
+      }
+    })
+
+    test('respects maxCount limit', async () => {
+      const head = await gitnotes.headCommit({cwd: repo.repoDir})
+      const ancestors = await gitnotes.listAncestors(head, 1, {cwd: repo.repoDir})
+
+      expect(ancestors).toHaveLength(1)
+      expect(ancestors[0]).toBe(head)
+    })
+
+    test('returns empty array for invalid commit', async () => {
+      const ancestors = await gitnotes.listAncestors('invalid-ref', 10, {
+        cwd: repo.repoDir
+      })
+      expect(ancestors).toEqual([])
+    })
+  })
+
   describe('writeAndPush', () => {
     test('writes and pushes notes successfully', async () => {
       const commit = await gitnotes.headCommit({cwd: repo.repoDir})

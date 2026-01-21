@@ -2,15 +2,9 @@
 
 Feature ideas from brainstorming session.
 
-## Baseline Lookback
+## ~~Baseline Lookback~~ ✅ DONE
 
-When the merge-base commit has no coverage notes, walk back through ancestors to find the most recent commit that does. Useful for repos where coverage is only generated occasionally (nightly builds, releases, expensive test suites).
-
-**Implementation:**
-- `git rev-list --max-count=N $merge_base` to get ancestor commits
-- Iterate checking for notes on each
-- Stop at first hit
-- New input: `max_lookback: 50` (default)
+Implemented in baseline.ts with `max_lookback` input (default 50).
 
 ## ~~SimpleCov JSON Support~~ ✅ DONE
 

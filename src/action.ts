@@ -65,10 +65,7 @@ export interface BaselineOps {
     },
     options: Partial<gitnotes.Options>
   ): Promise<boolean>
-  load(
-    baseBranch: string,
-    options: Partial<gitnotes.Options>
-  ): Promise<{baseline: baseline.Data | null; commit: string | null}>
+  load(baseBranch: string, options: baseline.LoadOptions): Promise<baseline.Result>
 }
 
 // Dependencies defines injectable dependencies for the action.
@@ -221,6 +218,7 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
     const noteNamespace = core.getInput('note_namespace') || 'coverage'
     const deltaPrecision = parseInt(core.getInput('delta_precision') || '2', 10)
     const maxAnnotations = parseInt(core.getInput('max_annotations') || '10', 10)
+    const maxLookback = parseInt(core.getInput('max_lookback') || '50', 10)
     const debugOutput = core.getInput('debug_output') !== 'false'
 
     const coverageFormat = core.getInput('coverage_format') || 'lcov'
@@ -316,7 +314,8 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
 
       const baselineResult = await deps.baseline.load(ctx.baseBranch, {
         cwd: workspacePath,
-        namespace
+        namespace,
+        maxLookback
       })
 
       if (baselineResult.baseline) {

@@ -30,6 +30,7 @@ See [docs/examples.md](docs/examples.md) for language-specific setup and advance
 | `pr_comment` | no | `false` | Post coverage summary as PR comment |
 | `step_summary` | no | `true` | Write summary to GitHub Actions step summary |
 | `max_annotations` | no | `10` | Maximum annotations to emit |
+| `max_lookback` | no | `50` | Max ancestor commits to search for baseline |
 | `mode` | no | auto | `pr-check` or `store-baseline` (see below) |
 | `calculate_delta` | no | `true` | Calculate coverage delta against baseline |
 | `github_base_url` | no | `https://api.github.com` | API URL for GitHub Enterprise |

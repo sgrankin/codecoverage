@@ -256,3 +256,28 @@ export async function headCommit(options: Partial<Options> = {}): Promise<string
   const result = await exec(['rev-parse', 'HEAD'], cwd)
   return result.stdout.trim()
 }
+
+// listAncestors returns up to maxCount ancestor commits starting from the given commit.
+// Returns commits in reverse chronological order (newest first).
+export async function listAncestors(
+  commit: string,
+  maxCount: number,
+  options: Partial<Options> = {}
+): Promise<string[]> {
+  const {cwd} = withDefaults(options)
+
+  try {
+    const result = await exec(['rev-list', '--max-count', String(maxCount), commit], cwd)
+    return result.stdout
+      .trim()
+      .split('\n')
+      .filter(line => line.length > 0)
+  } catch (error) {
+    const err = error as Error & {stderr?: string}
+    // Handle invalid commit refs gracefully
+    if (err.stderr?.includes('bad revision') || err.stderr?.includes('unknown revision')) {
+      return []
+    }
+    throw error
+  }
+}

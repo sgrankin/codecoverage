@@ -193,7 +193,7 @@ describe('baseline', () => {
       expect(customResult.baseline?.coveragePercentage).toBe('90.00')
     })
 
-    test('returns null when merge-base exists but has no notes', async () => {
+    test('looks back through ancestors when merge-base has no notes', async () => {
       // Store baseline on initial commit
       await baseline.store(
         {
@@ -212,13 +212,69 @@ describe('baseline', () => {
       await gitnotes.exec(['checkout', '-b', 'feature'], repo.repoDir)
       await repo.createCommit('Feature commit')
 
-      // Load baseline - merge-base is the second main commit which has no notes
+      // Load baseline - merge-base is the second main commit which has no notes,
+      // but lookback should find the baseline on the initial commit
       const result = await baseline.load('main', {cwd: repo.repoDir})
+
+      expect(result.baseline).not.toBeNull()
+      expect(result.baseline?.coveragePercentage).toBe('85.00')
+      expect(result.searchedCommits).toBe(2) // merge-base + 1 ancestor
+    })
+
+    test('returns null when lookback is disabled and merge-base has no notes', async () => {
+      // Store baseline on initial commit
+      await baseline.store(
+        {
+          coveragePercentage: '85.00',
+          totalLines: 1000,
+          coveredLines: 850
+        },
+        {cwd: repo.repoDir}
+      )
+
+      // Create another commit on main (this commit has no notes)
+      await repo.createCommit('Second main commit')
+      await gitnotes.exec(['push', 'origin', 'main'], repo.repoDir)
+
+      // Create feature branch from the second commit
+      await gitnotes.exec(['checkout', '-b', 'feature'], repo.repoDir)
+      await repo.createCommit('Feature commit')
+
+      // Load baseline with lookback disabled
+      const result = await baseline.load('main', {cwd: repo.repoDir, maxLookback: 0})
 
       // Should find merge-base but no baseline data for it
       expect(result.baseline).toBeNull()
       expect(result.commit).not.toBeNull()
-      expect(result.parseError).toBeUndefined()
+      expect(result.searchedCommits).toBe(1)
+    })
+
+    test('respects maxLookback limit', async () => {
+      // Store baseline on initial commit
+      await baseline.store(
+        {
+          coveragePercentage: '85.00',
+          totalLines: 1000,
+          coveredLines: 850
+        },
+        {cwd: repo.repoDir}
+      )
+
+      // Create several commits on main without notes
+      for (let i = 0; i < 5; i++) {
+        await repo.createCommit(`Main commit ${i + 2}`)
+      }
+      await gitnotes.exec(['push', 'origin', 'main'], repo.repoDir)
+
+      // Create feature branch
+      await gitnotes.exec(['checkout', '-b', 'feature'], repo.repoDir)
+      await repo.createCommit('Feature commit')
+
+      // Load with maxLookback=2 (not enough to find baseline 5 commits back)
+      const result = await baseline.load('main', {cwd: repo.repoDir, maxLookback: 2})
+
+      expect(result.baseline).toBeNull()
+      expect(result.searchedCommits).toBe(2)
     })
 
     test('store returns false when cwd is invalid', async () => {
