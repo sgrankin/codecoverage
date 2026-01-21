@@ -329,3 +329,58 @@ test.each(testCases)('generate: $name', ({input, expected}) => {
   const result = summary.generate(input)
   expect(result).toBe(expected)
 })
+
+const sparklineTestCases = [
+  {
+    name: 'increasing coverage',
+    coverageHistory: [80, 82, 83, 84, 85],
+    expectedSparkline: '▁▄▅▇█' // 5% range, values spread across
+  },
+  {
+    name: 'decreasing coverage',
+    coverageHistory: [90, 88, 86, 84, 82],
+    expectedSparkline: '█▆▄▂▁' // 8% range > 5% min, full spread
+  },
+  {
+    name: 'stable coverage (flat)',
+    coverageHistory: [85, 85, 85],
+    expectedSparkline: '▄▄▄' // All at midpoint due to minRange
+  },
+  {
+    name: 'empty history',
+    coverageHistory: [],
+    expectedSparkline: ''
+  },
+  {
+    name: 'single point (no sparkline)',
+    coverageHistory: [85],
+    expectedSparkline: ''
+  },
+  {
+    name: 'undefined history',
+    coverageHistory: undefined,
+    expectedSparkline: ''
+  }
+]
+
+test.each(sparklineTestCases)('sparkline: $name', ({coverageHistory, expectedSparkline}) => {
+  const result = summary.generate({
+    coveragePercentage: '85.00',
+    totalLines: 1000,
+    coveredLines: 850,
+    filesAnalyzed: 1,
+    files: [{file: 'src/main.ts', totalLines: 1000, coveredLines: 850, package: ''}],
+    coverageDelta: '+5.00',
+    baselinePercentage: '80.00',
+    diffCoveredLines: 0,
+    diffTotalLines: 0,
+    coverageHistory: coverageHistory as number[]
+  })
+
+  if (expectedSparkline) {
+    expect(result).toContain(expectedSparkline)
+  } else {
+    expect(result).not.toMatch(/[▁▂▃▄▅▆▇█]/)
+  }
+  expect(result).toContain('85.00%')
+})

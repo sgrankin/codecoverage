@@ -66,6 +66,11 @@ export interface BaselineOps {
     options: Partial<gitnotes.Options>
   ): Promise<boolean>
   load(baseBranch: string, options: baseline.LoadOptions): Promise<baseline.Result>
+  collectHistory(
+    startCommit: string,
+    maxCount: number,
+    options: Partial<gitnotes.Options>
+  ): Promise<baseline.HistoryEntry[]>
 }
 
 // Dependencies defines injectable dependencies for the action.
@@ -82,7 +87,8 @@ function defaultDeps(): Dependencies {
     createGitHub: (token, baseURL) => new github.Client(token, baseURL),
     baseline: {
       store: baseline.store,
-      load: baseline.load
+      load: baseline.load,
+      collectHistory: baseline.collectHistory
     }
   }
 }
@@ -131,7 +137,8 @@ function generateSummary(
   coveredLines: number,
   coverageDelta: string,
   baselinePercentage: string,
-  diffStats: DiffStats
+  diffStats: DiffStats,
+  coverageHistory: number[] = []
 ): string {
   const fileStats: summary.FileCoverage[] = parsedCov.map(entry => ({
     file: entry.file,
@@ -148,7 +155,8 @@ function generateSummary(
     coverageDelta,
     baselinePercentage,
     diffCoveredLines: diffStats.coveredLines,
-    diffTotalLines: diffStats.totalLines
+    diffTotalLines: diffStats.totalLines,
+    coverageHistory
   })
 }
 
@@ -219,6 +227,7 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
     const deltaPrecision = parseInt(core.getInput('delta_precision') || '2', 10)
     const maxAnnotations = parseInt(core.getInput('max_annotations') || '10', 10)
     const maxLookback = parseInt(core.getInput('max_lookback') || '50', 10)
+    const sparklineCount = parseInt(core.getInput('sparkline_count') || '10', 10)
     const debugOutput = core.getInput('debug_output') !== 'false'
 
     const coverageFormat = core.getInput('coverage_format') || 'lcov'
@@ -262,6 +271,7 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
     // Variables for delta calculation (empty = not computed)
     let coverageDelta = ''
     let baselinePercentage = ''
+    let coverageHistory: number[] = []
 
     // Handle mode-specific logic
     if (ctx.mode === 'store-baseline') {
@@ -298,7 +308,8 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
             coverageDelta: '',
             baselinePercentage: '',
             diffCoveredLines: 0,
-            diffTotalLines: 0
+            diffTotalLines: 0,
+            coverageHistory: []
           })
           await core.summary.addRaw(summaryText).write()
           core.info('Step summary written')
@@ -324,6 +335,22 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
         core.info(`Coverage delta: ${coverageDelta}`)
         core.setOutput('coverage_delta', coverageDelta)
         core.setOutput('baseline_percentage', baselinePercentage)
+
+        // Collect coverage history for sparkline
+        if (sparklineCount > 0 && baselineResult.commit) {
+          const history = await deps.baseline.collectHistory(
+            baselineResult.commit,
+            sparklineCount,
+            {
+              cwd: workspacePath,
+              namespace
+            }
+          )
+          coverageHistory = history.map(h => parseFloat(h.coveragePercentage))
+          // Add current coverage as the newest point
+          coverageHistory.push(parseFloat(coveragePercentage))
+          core.info(`Collected ${coverageHistory.length} data points for sparkline`)
+        }
       } else {
         core.info('No baseline found, showing absolute coverage only')
       }
@@ -407,7 +434,8 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
           coveredLines,
           coverageDelta,
           baselinePercentage,
-          diffStats
+          diffStats,
+          coverageHistory
         )
         await gh.upsertComment(summaryText)
       }
@@ -425,7 +453,8 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
         coveredLines,
         coverageDelta,
         baselinePercentage,
-        diffStats
+        diffStats,
+        coverageHistory
       )
       await core.summary.addRaw(summaryText).write()
       core.info('Step summary written')

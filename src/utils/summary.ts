@@ -1,4 +1,5 @@
 import * as baseline from './baseline.js'
+import * as sparkline from './sparkline.js'
 
 // FileCoverage is the coverage data for a single file.
 export interface FileCoverage {
@@ -32,6 +33,9 @@ export interface Params {
   diffCoveredLines: number
   // diffTotalLines is the total executable lines in the PR diff (0 = not computed).
   diffTotalLines: number
+  // coverageHistory is an array of historical coverage percentages for sparkline.
+  // Empty array = no sparkline.
+  coverageHistory: number[]
 }
 
 // getPackageFromPath extracts the package name from a file path (directory path, or '.' for root).
@@ -84,7 +88,8 @@ export function generate(params: Params): string {
     coverageDelta,
     baselinePercentage,
     diffCoveredLines,
-    diffTotalLines
+    diffTotalLines,
+    coverageHistory
   } = params
   const uncoveredLines = totalLines - coveredLines
 
@@ -102,10 +107,13 @@ export function generate(params: Params): string {
     statusEmoji = '🔴'
   }
 
-  // Format coverage display with delta if available
+  // Format coverage display with delta and sparkline if available
   let coverageDisplay = `${coveragePercentage}%`
   if (coverageDelta) {
     coverageDisplay = baseline.formatWithDelta(coveragePercentage, coverageDelta)
+  }
+  if (coverageHistory && coverageHistory.length >= 2) {
+    coverageDisplay += ` ${sparkline.render(coverageHistory)}`
   }
 
   // Group files by package

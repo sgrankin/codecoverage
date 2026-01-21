@@ -49,6 +49,10 @@ inputs:
     required: false
     description: "Maximum number of ancestor commits to search for baseline. Set to 0 to disable lookback."
     default: '50'
+  sparkline_count:
+    required: false
+    description: "Number of historical data points to show in coverage sparkline. Set to 0 to disable."
+    default: '10'
   debug_output:
     required: false
     description: "Enable debug output showing PR diff and coverage data."
