@@ -113,7 +113,7 @@ export function generate(params: Params): string {
     coverageDisplay = baseline.formatWithDelta(coveragePercentage, coverageDelta)
   }
   if (coverageHistory && coverageHistory.length >= 2) {
-    coverageDisplay += ` ${sparkline.render(coverageHistory)}`
+    coverageDisplay = `\`${sparkline.render(coverageHistory)}\` ${coverageDisplay}`
   }
 
   // Group files by package
