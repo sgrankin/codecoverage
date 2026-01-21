@@ -23,6 +23,15 @@ export interface Result {
   commit: string | null
   // parseError indicates notes exist but couldn't be parsed.
   parseError?: string
+  // searchedCommits is the number of commits searched during lookback.
+  searchedCommits?: number
+}
+
+// LoadOptions configures baseline loading behavior.
+export interface LoadOptions extends Partial<gitnotes.Options> {
+  // maxLookback is the maximum number of ancestor commits to search for a baseline.
+  // Default is 50. Set to 0 to disable lookback (only check merge-base).
+  maxLookback?: number
 }
 
 // parse parses baseline data from JSONL content, using the first line.
@@ -86,11 +95,14 @@ export async function store(
   }
 }
 
+// DEFAULT_MAX_LOOKBACK is the default number of ancestor commits to search.
+const DEFAULT_MAX_LOOKBACK = 50
+
 // load loads baseline coverage from the merge-base commit with a target branch.
-export async function load(
-  targetBranch: string,
-  options: Partial<gitnotes.Options> = {}
-): Promise<Result> {
+// If no baseline is found on the merge-base, it searches up to maxLookback ancestors.
+export async function load(targetBranch: string, options: LoadOptions = {}): Promise<Result> {
+  const maxLookback = options.maxLookback ?? DEFAULT_MAX_LOOKBACK
+
   try {
     // Fetch latest notes from origin
     const fetched = await gitnotes.fetch(options)
@@ -108,27 +120,67 @@ export async function load(
 
     core.info(`Found merge-base: ${mergeBase.substring(0, 8)}`)
 
-    // Read notes from merge-base
-    const content = await gitnotes.read(mergeBase, options)
-    if (!content) {
+    // Try merge-base first
+    const result = await tryReadBaseline(mergeBase, options)
+    if (result.baseline) {
+      core.info(`Loaded baseline: ${result.baseline.coveragePercentage}%`)
+      return {...result, searchedCommits: 1}
+    }
+    if (result.parseError) {
+      return {...result, searchedCommits: 1}
+    }
+
+    // No baseline on merge-base, search ancestors if lookback is enabled
+    if (maxLookback <= 0) {
       core.info('No baseline coverage found for merge-base commit')
-      return {baseline: null, commit: mergeBase}
+      return {baseline: null, commit: mergeBase, searchedCommits: 1}
     }
 
-    // Parse the baseline data
-    const baseline = parse(content)
-    if (!baseline) {
-      core.warning('Failed to parse baseline coverage data')
-      return {baseline: null, commit: mergeBase, parseError: 'Invalid format'}
+    core.info(`Searching up to ${maxLookback} ancestors for baseline...`)
+    const ancestors = await gitnotes.listAncestors(mergeBase, maxLookback, options)
+
+    // Skip first commit (it's the merge-base we already checked)
+    for (let i = 1; i < ancestors.length; i++) {
+      const commit = ancestors[i]!
+      const ancestorResult = await tryReadBaseline(commit, options)
+      if (ancestorResult.baseline) {
+        core.info(
+          `Found baseline at ancestor ${commit.substring(0, 8)} (${i} commits back): ${ancestorResult.baseline.coveragePercentage}%`
+        )
+        return {...ancestorResult, searchedCommits: i + 1}
+      }
+      if (ancestorResult.parseError) {
+        // Found notes but couldn't parse - stop searching
+        return {...ancestorResult, searchedCommits: i + 1}
+      }
     }
 
-    core.info(`Loaded baseline: ${baseline.coveragePercentage}%`)
-    return {baseline, commit: mergeBase}
+    core.info(`No baseline found in ${ancestors.length} ancestors`)
+    return {baseline: null, commit: mergeBase, searchedCommits: ancestors.length}
   } catch (error) {
     const err = error as Error
     core.warning(`Failed to load baseline: ${err.message}`)
     return {baseline: null, commit: null}
   }
+}
+
+// tryReadBaseline attempts to read and parse baseline from a commit.
+async function tryReadBaseline(
+  commit: string,
+  options: Partial<gitnotes.Options>
+): Promise<Result> {
+  const content = await gitnotes.read(commit, options)
+  if (!content) {
+    return {baseline: null, commit}
+  }
+
+  const baseline = parse(content)
+  if (!baseline) {
+    core.warning(`Failed to parse baseline at ${commit.substring(0, 8)}`)
+    return {baseline: null, commit, parseError: 'Invalid format'}
+  }
+
+  return {baseline, commit}
 }
 
 // delta calculates the coverage delta between current and baseline.

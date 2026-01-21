@@ -17,7 +17,7 @@ inputs:
     description: 'Path to coverage file(s). Supports glob patterns (including **) and multiple paths separated by newlines.'
   coverage_format:
     required: false
-    description: 'Format of coverage file. May be `lcov`, `cobertura`, or `go`.'
+    description: 'Format of coverage file. May be `lcov`, `cobertura`, `go`, or `simplecov`.'
   step_summary:
     required: false
     description: "Write a summary to the GitHub Actions step summary. Set to 'false' to disable."
@@ -45,6 +45,10 @@ inputs:
     required: false
     description: "Maximum number of annotations to emit. GitHub limits annotations to 10 per run."
     default: '10'
+  max_lookback:
+    required: false
+    description: "Maximum number of ancestor commits to search for baseline. Set to 0 to disable lookback."
+    default: '50'
   debug_output:
     required: false
     description: "Enable debug output showing PR diff and coverage data."

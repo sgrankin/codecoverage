@@ -55,9 +55,10 @@ The action automatically detects which mode to run in:
 2. Fetch notes from origin: `git fetch origin refs/notes/coverage/main:refs/notes/coverage/main`
 3. Find merge-base: `git merge-base HEAD origin/main`
 4. Read baseline from merge-base commit
-5. Calculate delta: `current - baseline`
-6. Display in summary: `Coverage: 85.5% (↑2.1%)`
-7. Create PR annotations for uncovered lines
+5. If no baseline on merge-base, search up to `max_lookback` ancestors
+6. Calculate delta: `current - baseline`
+7. Display in summary: `Coverage: 85.5% (↑2.1%)`
+8. Create PR annotations for uncovered lines
 
 ### Store Baseline Mode (`store-baseline`)
 
@@ -76,15 +77,27 @@ Concurrent pushes to the notes ref can cause conflicts. The action handles this 
 3. Retry push (up to 3 attempts)
 4. Exponential backoff between retries
 
+## Baseline Lookback
+
+When the merge-base commit has no coverage notes (e.g., coverage is only generated on nightly builds or releases), the action searches up to `max_lookback` ancestor commits to find the most recent baseline.
+
+This is useful for:
+- Repositories where coverage is expensive to compute
+- Nightly or weekly coverage runs
+- Release-only coverage tracking
+
+Set `max_lookback: 0` to disable lookback and only check the merge-base.
+
 ## Edge Cases
 
 | Scenario | Behavior |
 |----------|----------|
 | No baseline exists | Show absolute coverage only |
 | Notes ref doesn't exist | Create on first push |
-| Corrupted/invalid JSON | Treat as missing baseline |
+| Corrupted/invalid JSON | Treat as missing baseline, stop search |
 | Network error on push | Warning, continue without storage |
 | No merge-base found | Show absolute coverage only |
+| Merge-base has no notes | Search ancestors up to max_lookback |
 
 ## Configuration
 
@@ -92,6 +105,7 @@ Concurrent pushes to the notes ref can cause conflicts. The action handles this 
 |-------|---------|-------------|
 | `mode` | auto | Force `pr-check` or `store-baseline` |
 | `calculate_delta` | `true` | Enable/disable delta calculation |
+| `max_lookback` | `50` | Max ancestors to search for baseline |
 | `note_namespace` | `coverage` | Base namespace for notes |
 | `delta_precision` | `2` | Decimal places in delta display |
 
