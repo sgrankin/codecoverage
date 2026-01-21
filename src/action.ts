@@ -338,9 +338,10 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
 
         // Collect coverage history for sparkline
         if (sparklineCount > 0 && baselineResult.commit) {
+          // Collect sparklineCount-1 historical entries, then add current = sparklineCount total
           const history = await deps.baseline.collectHistory(
             baselineResult.commit,
-            sparklineCount,
+            sparklineCount - 1,
             {
               cwd: workspacePath,
               namespace

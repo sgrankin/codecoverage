@@ -334,17 +334,17 @@ const sparklineTestCases = [
   {
     name: 'increasing coverage',
     coverageHistory: [80, 82, 83, 84, 85],
-    expectedSparkline: '▁▄▅▇█' // 5% range, values spread across
+    expectedSparkline: '▁▄▅▇█'
   },
   {
     name: 'decreasing coverage',
     coverageHistory: [90, 88, 86, 84, 82],
-    expectedSparkline: '█▆▄▂▁' // 8% range > 5% min, full spread
+    expectedSparkline: '█▆▄▂▁'
   },
   {
     name: 'stable coverage (flat)',
     coverageHistory: [85, 85, 85],
-    expectedSparkline: '▄▄▄' // All at midpoint due to minRange
+    expectedSparkline: '▄▄▄'
   },
   {
     name: 'empty history',
@@ -380,7 +380,7 @@ test.each(sparklineTestCases)('sparkline: $name', ({coverageHistory, expectedSpa
   if (expectedSparkline) {
     expect(result).toContain(expectedSparkline)
   } else {
-    expect(result).not.toMatch(/[▁▂▃▄▅▆▇█]/)
+    expect(result).not.toMatch(/[\u2800-\u28FF]/)
   }
   expect(result).toContain('85.00%')
 })

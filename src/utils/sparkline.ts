@@ -1,5 +1,5 @@
 // BLOCKS are sparkline characters representing 8 levels of height.
-export const BLOCKS = ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█'] as const
+const BLOCKS = ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█'] as const
 
 // RenderOptions configures sparkline rendering.
 export interface RenderOptions {
@@ -8,7 +8,7 @@ export interface RenderOptions {
   minRange?: number
 }
 
-// render converts an array of values to a sparkline string.
+// render converts an array of values to a sparkline string using block characters.
 // Values should be in chronological order (oldest first).
 // Returns empty string if fewer than 2 values.
 export function render(values: number[], options: RenderOptions = {}): string {
@@ -60,12 +60,11 @@ if (import.meta.vitest) {
     expect(render([100, 75, 50, 25, 0])).toBe('█▆▄▂▁')
   })
 
-  test('renders flat values at minimum height', () => {
-    // All same values with minRange applied should map to middle
-    const result = render([50, 50, 50])
-    expect(result).toHaveLength(3)
-    // With minRange=5, range becomes 5, values are at midpoint = 0.5 normalized
-    expect(result).toBe('▄▄▄')
+  test('renders flat values at middle height', () => {
+    const result = render([50, 50, 50, 50])
+    expect(result).toHaveLength(4)
+    // All values at midpoint of minRange -> middle block
+    expect(result).toBe('▄▄▄▄')
   })
 
   test('returns empty string for single value', () => {
@@ -77,12 +76,10 @@ if (import.meta.vitest) {
   })
 
   test('applies minimum range to small fluctuations', () => {
-    // Data range is 0.5%, minRange is 5% by default
-    // Values 95.0 and 95.5 with 5% range (92.5-97.5)
-    // 95.0 maps to (95-92.5)/5 = 0.5 → index 3-4 (▄)
-    // 95.5 maps to (95.5-92.5)/5 = 0.6 → index 4-5 (▅)
+    // 95.0 and 95.5 with 5% minRange (92.5-97.5)
+    // 95.0 -> (95-92.5)/5 = 0.5 -> index 3-4 (▄)
+    // 95.5 -> (95.5-92.5)/5 = 0.6 -> index 4-5 (▅)
     const result = render([95.0, 95.5])
-    expect(result).not.toBe('▁█') // Would be this without minRange
     expect(result).toBe('▄▅')
   })
 
