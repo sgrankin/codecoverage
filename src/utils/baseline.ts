@@ -209,3 +209,52 @@ export function formatWithDelta(currentPercentage: string, deltaValue: string): 
   }
   return `${currentPercentage}% (${arrow}${absDelta}%)`
 }
+
+// HistoryEntry represents a single coverage data point in history.
+export interface HistoryEntry {
+  commit: string
+  coveragePercentage: string
+  timestamp: string
+}
+
+// collectHistory walks ancestors from startCommit and collects coverage data.
+// Returns entries in chronological order (oldest first) for sparkline rendering.
+// Stops when maxCount entries are found or no more ancestors exist.
+export async function collectHistory(
+  startCommit: string,
+  maxCount: number,
+  options: Partial<gitnotes.Options> = {}
+): Promise<HistoryEntry[]> {
+  if (maxCount <= 0) {
+    return []
+  }
+
+  // Over-fetch ancestors since not all commits will have notes
+  const ancestors = await gitnotes.listAncestors(startCommit, maxCount * 3, options)
+  const entries: HistoryEntry[] = []
+
+  for (const commit of ancestors) {
+    if (entries.length >= maxCount) {
+      break
+    }
+
+    const content = await gitnotes.read(commit, options)
+    if (!content) {
+      continue
+    }
+
+    const data = parse(content)
+    if (!data) {
+      continue
+    }
+
+    entries.push({
+      commit,
+      coveragePercentage: data.coveragePercentage,
+      timestamp: data.timestamp
+    })
+  }
+
+  // listAncestors returns newest-first, reverse for chronological order
+  return entries.reverse()
+}

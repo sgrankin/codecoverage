@@ -353,4 +353,107 @@ describe('baseline', () => {
       expect(result).toBe(false)
     })
   })
+
+  describe('collectHistory', () => {
+    let repo: TestRepo
+
+    beforeEach(async () => {
+      repo = await createTestRepo('history-test-')
+    })
+
+    afterEach(async () => {
+      await repo.cleanup()
+    })
+
+    test('collects coverage from multiple commits', async () => {
+      // Create commits with coverage notes
+      await baseline.store(
+        {coveragePercentage: '80.00', totalLines: 100, coveredLines: 80},
+        {cwd: repo.repoDir}
+      )
+
+      await repo.createCommit('Second commit')
+      await baseline.store(
+        {coveragePercentage: '82.00', totalLines: 100, coveredLines: 82},
+        {cwd: repo.repoDir}
+      )
+
+      await repo.createCommit('Third commit')
+      await baseline.store(
+        {coveragePercentage: '85.00', totalLines: 100, coveredLines: 85},
+        {cwd: repo.repoDir}
+      )
+
+      const head = await gitnotes.headCommit({cwd: repo.repoDir})
+      const history = await baseline.collectHistory(head, 10, {cwd: repo.repoDir})
+
+      // Should return in chronological order (oldest first)
+      expect(history).toHaveLength(3)
+      expect(history[0]!.coveragePercentage).toBe('80.00')
+      expect(history[1]!.coveragePercentage).toBe('82.00')
+      expect(history[2]!.coveragePercentage).toBe('85.00')
+    })
+
+    test('skips commits without notes', async () => {
+      // First commit with notes
+      await baseline.store(
+        {coveragePercentage: '80.00', totalLines: 100, coveredLines: 80},
+        {cwd: repo.repoDir}
+      )
+
+      // Second commit without notes
+      await repo.createCommit('No coverage commit')
+
+      // Third commit with notes
+      await repo.createCommit('Third commit')
+      await baseline.store(
+        {coveragePercentage: '85.00', totalLines: 100, coveredLines: 85},
+        {cwd: repo.repoDir}
+      )
+
+      const head = await gitnotes.headCommit({cwd: repo.repoDir})
+      const history = await baseline.collectHistory(head, 10, {cwd: repo.repoDir})
+
+      // Should only include commits with notes
+      expect(history).toHaveLength(2)
+      expect(history[0]!.coveragePercentage).toBe('80.00')
+      expect(history[1]!.coveragePercentage).toBe('85.00')
+    })
+
+    test('limits to maxCount entries', async () => {
+      // Create 5 commits with notes
+      for (let i = 0; i < 5; i++) {
+        if (i > 0) await repo.createCommit(`Commit ${i + 1}`)
+        await baseline.store(
+          {coveragePercentage: `${80 + i}.00`, totalLines: 100, coveredLines: 80 + i},
+          {cwd: repo.repoDir}
+        )
+      }
+
+      const head = await gitnotes.headCommit({cwd: repo.repoDir})
+      const history = await baseline.collectHistory(head, 3, {cwd: repo.repoDir})
+
+      // Should only return 3 most recent
+      expect(history).toHaveLength(3)
+    })
+
+    test('returns empty array when maxCount is 0', async () => {
+      await baseline.store(
+        {coveragePercentage: '80.00', totalLines: 100, coveredLines: 80},
+        {cwd: repo.repoDir}
+      )
+
+      const head = await gitnotes.headCommit({cwd: repo.repoDir})
+      const history = await baseline.collectHistory(head, 0, {cwd: repo.repoDir})
+
+      expect(history).toEqual([])
+    })
+
+    test('returns empty array when no notes exist', async () => {
+      const head = await gitnotes.headCommit({cwd: repo.repoDir})
+      const history = await baseline.collectHistory(head, 10, {cwd: repo.repoDir})
+
+      expect(history).toEqual([])
+    })
+  })
 })
