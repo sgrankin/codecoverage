@@ -151,3 +151,36 @@ gh release create v1.6.0 --title "v1.6.0" --notes "..."
 ```
 
 Users can reference `@v1` to always get the latest v1.x release.
+
+## Updating README Screenshots
+
+The README includes screenshots showing annotations and the coverage summary comment. To update them:
+
+1. **Create a demo PR** with intentionally uncovered code:
+   ```bash
+   jj new main -m "Demo: uncovered code for screenshots"
+   ```
+   Add a new file (e.g., `src/utils/demo.ts`) with some functions and partial test coverage. Push and create a PR.
+
+2. **Wait for CI** to complete - it will create annotations and post a coverage comment.
+
+3. **Take screenshots** using a browser:
+   - Navigate to the PR's Files tab, find an annotation inline in the diff
+   - Navigate to the PR's Conversation tab, find the coverage comment
+
+4. **Crop the screenshots** to focus on the important parts:
+   ```bash
+   # Annotation: crop to show code context + annotation box
+   convert annotation-full.png -crop 900x280+355+450 +repage docs/images/annotation.png
+   
+   # Summary comment: crop to show just the coverage table
+   convert summary-full.png -crop 800x250+95+305 +repage docs/images/summary-comment.png
+   ```
+   Adjust coordinates based on actual screenshot dimensions.
+
+5. **Update README** if image paths changed, commit, and push.
+
+6. **Close the demo PR** without merging:
+   ```bash
+   gh pr close <PR_NUMBER> --delete-branch
+   ```
