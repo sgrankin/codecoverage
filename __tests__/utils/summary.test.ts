@@ -1,21 +1,44 @@
 import {expect, test} from 'vitest'
+import type {BaselineInfo, CoverageStats, DiffStats, FileCoverage} from '../../src/utils/summary.ts'
 import * as summary from '../../src/utils/summary.ts'
 
-// Default values for optional fields
-const defaults = {
-  coverageDelta: '',
-  baselinePercentage: '',
-  diffCoveredLines: 0,
-  diffTotalLines: 0,
-  coverageHistory: [],
-  headerText: ''
+// Helper to build Params from flat test data
+function makeParams(opts: {
+  coveragePercentage: string
+  totalLines: number
+  coveredLines: number
+  filesAnalyzed: number
+  files: Omit<FileCoverage, 'package'>[]
+  coverageDelta?: string
+  baselinePercentage?: string
+  diffCoveredLines?: number
+  diffTotalLines?: number
+  coverageHistory?: number[]
+  headerText?: string
+}): summary.Params {
+  const coverage: CoverageStats = {
+    percentage: opts.coveragePercentage,
+    totalLines: opts.totalLines,
+    coveredLines: opts.coveredLines,
+    filesAnalyzed: opts.filesAnalyzed,
+    files: opts.files.map(f => ({...f, package: (f as FileCoverage).package ?? ''}))
+  }
+  const baseline: BaselineInfo = {
+    delta: opts.coverageDelta ?? '',
+    percentage: opts.baselinePercentage ?? '',
+    history: opts.coverageHistory ?? []
+  }
+  const diff: DiffStats = {
+    coveredLines: opts.diffCoveredLines ?? 0,
+    totalLines: opts.diffTotalLines ?? 0
+  }
+  return {coverage, baseline, diff, headerText: opts.headerText ?? ''}
 }
 
 const testCases = [
   {
     name: 'high coverage',
     input: {
-      ...defaults,
       coveragePercentage: '85.50',
       totalLines: 1000,
       coveredLines: 855,
@@ -44,7 +67,6 @@ const testCases = [
   {
     name: 'medium coverage',
     input: {
-      ...defaults,
       coveragePercentage: '65.00',
       totalLines: 100,
       coveredLines: 65,
@@ -70,7 +92,6 @@ const testCases = [
   {
     name: 'low coverage',
     input: {
-      ...defaults,
       coveragePercentage: '45.00',
       totalLines: 100,
       coveredLines: 45,
@@ -96,7 +117,6 @@ const testCases = [
   {
     name: 'files grouped by package and sorted',
     input: {
-      ...defaults,
       coveragePercentage: '80.00',
       totalLines: 300,
       coveredLines: 240,
@@ -128,7 +148,6 @@ const testCases = [
   {
     name: 'uses explicit package when provided (cobertura)',
     input: {
-      ...defaults,
       coveragePercentage: '75.00',
       totalLines: 200,
       coveredLines: 150,
@@ -158,7 +177,6 @@ const testCases = [
   {
     name: 'coverage with positive delta',
     input: {
-      ...defaults,
       coveragePercentage: '85.50',
       totalLines: 1000,
       coveredLines: 855,
@@ -186,7 +204,6 @@ const testCases = [
   {
     name: 'coverage with negative delta',
     input: {
-      ...defaults,
       coveragePercentage: '78.00',
       totalLines: 1000,
       coveredLines: 780,
@@ -214,7 +231,6 @@ const testCases = [
   {
     name: 'coverage with zero delta',
     input: {
-      ...defaults,
       coveragePercentage: '75.00',
       totalLines: 1000,
       coveredLines: 750,
@@ -242,7 +258,6 @@ const testCases = [
   {
     name: 'low coverage but improving (chart up)',
     input: {
-      ...defaults,
       coveragePercentage: '45.00',
       totalLines: 1000,
       coveredLines: 450,
@@ -270,7 +285,6 @@ const testCases = [
   {
     name: 'with diff coverage',
     input: {
-      ...defaults,
       coveragePercentage: '80.00',
       totalLines: 1000,
       coveredLines: 800,
@@ -298,7 +312,6 @@ const testCases = [
   {
     name: 'with baseline and diff coverage',
     input: {
-      ...defaults,
       coveragePercentage: '85.00',
       totalLines: 1000,
       coveredLines: 850,
@@ -328,7 +341,6 @@ const testCases = [
   {
     name: 'custom header text',
     input: {
-      ...defaults,
       coveragePercentage: '85.00',
       totalLines: 1000,
       coveredLines: 850,
@@ -355,7 +367,7 @@ const testCases = [
 ]
 
 test.each(testCases)('generate: $name', ({input, expected}) => {
-  const result = summary.generate(input)
+  const result = summary.generate(makeParams(input))
   expect(result).toBe(expected)
 })
 
@@ -393,19 +405,18 @@ const sparklineTestCases = [
 ]
 
 test.each(sparklineTestCases)('sparkline: $name', ({coverageHistory, expectedSparkline}) => {
-  const result = summary.generate({
-    coveragePercentage: '85.00',
-    totalLines: 1000,
-    coveredLines: 850,
-    filesAnalyzed: 1,
-    files: [{file: 'src/main.ts', totalLines: 1000, coveredLines: 850, package: ''}],
-    coverageDelta: '+5.00',
-    baselinePercentage: '80.00',
-    diffCoveredLines: 0,
-    diffTotalLines: 0,
-    coverageHistory: coverageHistory as number[],
-    headerText: ''
-  })
+  const result = summary.generate(
+    makeParams({
+      coveragePercentage: '85.00',
+      totalLines: 1000,
+      coveredLines: 850,
+      filesAnalyzed: 1,
+      files: [{file: 'src/main.ts', totalLines: 1000, coveredLines: 850}],
+      coverageDelta: '+5.00',
+      baselinePercentage: '80.00',
+      coverageHistory: coverageHistory as number[]
+    })
+  )
 
   if (expectedSparkline) {
     expect(result).toContain(expectedSparkline)
