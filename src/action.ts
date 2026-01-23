@@ -99,6 +99,21 @@ interface DiffStats {
   totalLines: number
 }
 
+// CoverageResult contains parsed coverage data and aggregate statistics.
+interface CoverageResult {
+  parsedCov: coverage.Parsed
+  totalLines: number
+  coveredLines: number
+  coveragePercentage: string
+}
+
+// BaselineInfo contains baseline comparison data.
+interface BaselineInfo {
+  delta: string
+  percentage: string
+  history: number[]
+}
+
 // calculateDiffStats computes coverage statistics for lines in the PR diff.
 function calculateDiffStats(
   coverageByFile: coverage.File[],
@@ -131,33 +146,28 @@ function calculateDiffStats(
 
 // generateSummary creates the coverage summary markdown.
 function generateSummary(
-  parsedCov: coverage.Parsed,
-  coveragePercentage: string,
-  totalLines: number,
-  coveredLines: number,
-  coverageDelta: string,
-  baselinePercentage: string,
+  cov: CoverageResult,
+  baseline: BaselineInfo,
   diffStats: DiffStats,
-  coverageHistory: number[] = [],
-  headerText: string = 'Code Coverage Report'
+  headerText: string
 ): string {
-  const fileStats: summary.FileCoverage[] = parsedCov.map(entry => ({
+  const fileStats: summary.FileCoverage[] = cov.parsedCov.map(entry => ({
     file: entry.file,
     totalLines: entry.lines.found,
     coveredLines: entry.lines.hit,
     package: entry.package ?? ''
   }))
   return summary.generate({
-    coveragePercentage,
-    totalLines,
-    coveredLines,
-    filesAnalyzed: parsedCov.length,
+    coveragePercentage: cov.coveragePercentage,
+    totalLines: cov.totalLines,
+    coveredLines: cov.coveredLines,
+    filesAnalyzed: cov.parsedCov.length,
     files: fileStats,
-    coverageDelta,
-    baselinePercentage,
+    coverageDelta: baseline.delta,
+    baselinePercentage: baseline.percentage,
     diffCoveredLines: diffStats.coveredLines,
     diffTotalLines: diffStats.totalLines,
-    coverageHistory,
+    coverageHistory: baseline.history,
     headerText
   })
 }
@@ -167,12 +177,7 @@ async function parseCoverageFiles(
   coverageFilePath: string,
   coverageFormat: string,
   workspacePath: string
-): Promise<{
-  parsedCov: coverage.Parsed
-  totalLines: number
-  coveredLines: number
-  coveragePercentage: string
-}> {
+): Promise<CoverageResult> {
   // Expand file paths (supports globs and multiple paths)
   const coverageFiles = await files.expand(coverageFilePath)
   if (coverageFiles.length === 0) {
@@ -231,7 +236,7 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
     const maxLookback = parseInt(core.getInput('max_lookback') || '50', 10)
     const sparklineCount = parseInt(core.getInput('sparkline_count') || '10', 10)
     const debugOutput = core.getInput('debug_output') !== 'false'
-    const prCommentHeader: string = core.getInput('pr_comment_header') || 'Code Coverage Report'
+    const reportHeader: string = core.getInput('report_header') || 'Code Coverage Report'
 
     const coverageFormat = core.getInput('coverage_format') || 'lcov'
     if (!SUPPORTED_FORMATS.includes(coverageFormat)) {
@@ -257,24 +262,18 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
     }
 
     // Parse coverage data
-    const {parsedCov, totalLines, coveredLines, coveragePercentage} = await parseCoverageFiles(
-      coverageFilePath,
-      coverageFormat,
-      workspacePath
-    )
+    const cov = await parseCoverageFiles(coverageFilePath, coverageFormat, workspacePath)
 
     core.info(
-      `Parsing done. ${parsedCov.length} files parsed. Total lines: ${totalLines}. Covered lines: ${coveredLines}. Coverage: ${coveragePercentage}%`
+      `Parsing done. ${cov.parsedCov.length} files parsed. Total lines: ${cov.totalLines}. Covered lines: ${cov.coveredLines}. Coverage: ${cov.coveragePercentage}%`
     )
 
     // Set basic outputs
-    core.setOutput('coverage_percentage', coveragePercentage)
-    core.setOutput('files_analyzed', parsedCov.length)
+    core.setOutput('coverage_percentage', cov.coveragePercentage)
+    core.setOutput('files_analyzed', cov.parsedCov.length)
 
-    // Variables for delta calculation (empty = not computed)
-    let coverageDelta = ''
-    let baselinePercentage = ''
-    let coverageHistory: number[] = []
+    // Baseline info for delta calculation (empty = not computed)
+    const baselineInfo: BaselineInfo = {delta: '', percentage: '', history: []}
 
     // Handle mode-specific logic
     if (ctx.mode === 'store-baseline') {
@@ -284,7 +283,11 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
         core.info(`Storing baseline with namespace: ${namespace}`)
 
         await deps.baseline.store(
-          {coveragePercentage, totalLines, coveredLines},
+          {
+            coveragePercentage: cov.coveragePercentage,
+            totalLines: cov.totalLines,
+            coveredLines: cov.coveredLines
+          },
           {cwd: workspacePath, namespace}
         )
       } else {
@@ -296,25 +299,8 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
         // Write summary if enabled
         const stepSummary = core.getInput('step_summary')
         if (stepSummary !== 'false') {
-          const fileStats: summary.FileCoverage[] = parsedCov.map(entry => ({
-            file: entry.file,
-            totalLines: entry.lines.found,
-            coveredLines: entry.lines.hit,
-            package: entry.package ?? ''
-          }))
-          const summaryText = summary.generate({
-            coveragePercentage,
-            totalLines,
-            coveredLines,
-            filesAnalyzed: parsedCov.length,
-            files: fileStats,
-            coverageDelta: '',
-            baselinePercentage: '',
-            diffCoveredLines: 0,
-            diffTotalLines: 0,
-            coverageHistory: [],
-            headerText: prCommentHeader
-          })
+          const emptyDiff: DiffStats = {coveredLines: 0, totalLines: 0}
+          const summaryText = generateSummary(cov, baselineInfo, emptyDiff, reportHeader)
           await core.summary.addRaw(summaryText).write()
           core.info('Step summary written')
         }
@@ -334,11 +320,15 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
       })
 
       if (baselineResult.baseline) {
-        baselinePercentage = baselineResult.baseline.coveragePercentage
-        coverageDelta = baseline.delta(coveragePercentage, baselinePercentage, deltaPrecision)
-        core.info(`Coverage delta: ${coverageDelta}`)
-        core.setOutput('coverage_delta', coverageDelta)
-        core.setOutput('baseline_percentage', baselinePercentage)
+        baselineInfo.percentage = baselineResult.baseline.coveragePercentage
+        baselineInfo.delta = baseline.delta(
+          cov.coveragePercentage,
+          baselineInfo.percentage,
+          deltaPrecision
+        )
+        core.info(`Coverage delta: ${baselineInfo.delta}`)
+        core.setOutput('coverage_delta', baselineInfo.delta)
+        core.setOutput('baseline_percentage', baselineInfo.percentage)
 
         // Collect coverage history for sparkline
         if (sparklineCount > 0 && baselineResult.commit) {
@@ -351,10 +341,10 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
               namespace
             }
           )
-          coverageHistory = history.map(h => parseFloat(h.coveragePercentage))
+          baselineInfo.history = history.map(h => parseFloat(h.coveragePercentage))
           // Add current coverage as the newest point
-          coverageHistory.push(parseFloat(coveragePercentage))
-          core.info(`Collected ${coverageHistory.length} data points for sparkline`)
+          baselineInfo.history.push(parseFloat(cov.coveragePercentage))
+          core.info(`Collected ${baselineInfo.history.length} data points for sparkline`)
         }
       } else {
         core.info('No baseline found, showing absolute coverage only')
@@ -365,7 +355,7 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
     let annotationCount = 0
     let diffStats: DiffStats = {coveredLines: 0, totalLines: 0}
     if (ctx.isPullRequest && gh) {
-      const coverageByFile = coverage.filterByFile(parsedCov)
+      const coverageByFile = coverage.filterByFile(cov.parsedCov)
       core.info('Filter done')
 
       // pullRequestFiles was already fetched above for parse optimization
@@ -432,17 +422,7 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
       // Post PR comment if enabled
       const prComment = core.getInput('pr_comment')
       if (prComment === 'true') {
-        const summaryText = generateSummary(
-          parsedCov,
-          coveragePercentage,
-          totalLines,
-          coveredLines,
-          coverageDelta,
-          baselinePercentage,
-          diffStats,
-          coverageHistory,
-          prCommentHeader
-        )
+        const summaryText = generateSummary(cov, baselineInfo, diffStats, reportHeader)
         await gh.upsertComment(summaryText)
       }
     } else {
@@ -452,17 +432,7 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
     // Write step summary
     const stepSummary = core.getInput('step_summary')
     if (stepSummary !== 'false') {
-      const summaryText = generateSummary(
-        parsedCov,
-        coveragePercentage,
-        totalLines,
-        coveredLines,
-        coverageDelta,
-        baselinePercentage,
-        diffStats,
-        coverageHistory,
-        prCommentHeader
-      )
+      const summaryText = generateSummary(cov, baselineInfo, diffStats, reportHeader)
       await core.summary.addRaw(summaryText).write()
       core.info('Step summary written')
     }
