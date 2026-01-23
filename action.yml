@@ -26,9 +26,9 @@ inputs:
     required: false
     description: "Post coverage summary as a PR comment. Updates existing comment on re-runs. Set to 'true' to enable."
     default: 'false'
-  pr_comment_header:
+  report_header:
     required: false
-    description: "Custom header text for the PR comment. Defaults to 'Code Coverage Report'."
+    description: "Custom header text for coverage reports (PR comments and step summary)."
     default: 'Code Coverage Report'
   mode:
     required: false

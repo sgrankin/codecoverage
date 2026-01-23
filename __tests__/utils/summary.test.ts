@@ -6,7 +6,9 @@ const defaults = {
   coverageDelta: '',
   baselinePercentage: '',
   diffCoveredLines: 0,
-  diffTotalLines: 0
+  diffTotalLines: 0,
+  coverageHistory: [],
+  headerText: ''
 }
 
 const testCases = [
@@ -401,7 +403,8 @@ test.each(sparklineTestCases)('sparkline: $name', ({coverageHistory, expectedSpa
     baselinePercentage: '80.00',
     diffCoveredLines: 0,
     diffTotalLines: 0,
-    coverageHistory: coverageHistory as number[]
+    coverageHistory: coverageHistory as number[],
+    headerText: ''
   })
 
   if (expectedSparkline) {

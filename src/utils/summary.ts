@@ -36,8 +36,8 @@ export interface Params {
   // coverageHistory is an array of historical coverage percentages for sparkline.
   // Empty array = no sparkline.
   coverageHistory: number[]
-  // headerText is the custom header text for the report.
-  headerText?: string
+  // headerText is the custom header text for the report (empty = default).
+  headerText: string
 }
 
 // getPackageFromPath extracts the package name from a file path (directory path, or '.' for root).
@@ -92,8 +92,9 @@ export function generate(params: Params): string {
     diffCoveredLines,
     diffTotalLines,
     coverageHistory,
-    headerText = 'Code Coverage Report'
+    headerText
   } = params
+  const header = headerText || 'Code Coverage Report'
   const uncoveredLines = totalLines - coveredLines
 
   // Status emoji: if we have a delta, use it to determine color (encourage improvement).
@@ -156,7 +157,7 @@ export function generate(params: Params): string {
   ]
   const alignRow = headerCols.map(() => '----:').join(' | ')
 
-  return `## ${statusEmoji} ${headerText}
+  return `## ${statusEmoji} ${header}
 
 | ${headerCols.join(' | ')} |
 | ${alignRow} |
