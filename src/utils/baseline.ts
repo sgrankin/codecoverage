@@ -1,6 +1,9 @@
 import * as core from '@actions/core'
 import * as gitnotes from './gitnotes.ts'
 
+// GitNotes defines the gitnotes operations used by this module.
+type GitNotes = typeof gitnotes
+
 // Data is the coverage baseline stored in git notes.
 export interface Data {
   /** ISO timestamp when baseline was recorded */
@@ -27,8 +30,14 @@ export interface Result {
   searchedCommits?: number
 }
 
+// BaseOptions are common options for baseline operations.
+interface BaseOptions extends Partial<gitnotes.Options> {
+  // git overrides gitnotes functions for testing. Defaults to the real module.
+  git?: Partial<GitNotes>
+}
+
 // LoadOptions configures baseline loading behavior.
-export interface LoadOptions extends Partial<gitnotes.Options> {
+export interface LoadOptions extends BaseOptions {
   // maxLookback is the maximum number of ancestor commits to search for a baseline.
   // Default is 50. Set to 0 to disable lookback (only check merge-base).
   maxLookback?: number
@@ -62,13 +71,17 @@ export function format(data: Data): string {
   return JSON.stringify(data)
 }
 
+// StoreOptions configures baseline storage behavior.
+export type StoreOptions = BaseOptions
+
 // store stores coverage baseline for the current commit.
 export async function store(
   data: Omit<Data, 'timestamp' | 'commit'>,
-  options: Partial<gitnotes.Options> = {}
+  options: StoreOptions = {}
 ): Promise<boolean> {
+  const git = {...gitnotes, ...options.git}
   try {
-    const commit = await gitnotes.headCommit(options)
+    const commit = await git.headCommit(options)
 
     const baseline: Data = {
       ...data,
@@ -80,7 +93,7 @@ export async function store(
     core.info(`Storing baseline coverage: ${data.coveragePercentage}%`)
 
     // Write and push notes atomically with retry
-    const success = await gitnotes.writeAndPush({commit, content, force: true}, options)
+    const success = await git.writeAndPush({commit, content, force: true}, options)
     if (!success) {
       core.warning('Failed to push coverage baseline to origin after retries')
       return false
@@ -101,18 +114,19 @@ const DEFAULT_MAX_LOOKBACK = 50
 // load loads baseline coverage from the merge-base commit with a target branch.
 // If no baseline is found on the merge-base, it searches up to maxLookback ancestors.
 export async function load(targetBranch: string, options: LoadOptions = {}): Promise<Result> {
+  const git = {...gitnotes, ...options.git}
   const maxLookback = options.maxLookback ?? DEFAULT_MAX_LOOKBACK
 
   try {
     // Fetch latest notes from origin
-    const fetched = await gitnotes.fetch(options)
+    const fetched = await git.fetch(options)
     if (!fetched) {
       core.info('No coverage notes found in origin')
       return {baseline: null, commit: null}
     }
 
     // Find merge-base with target branch
-    const mergeBase = await gitnotes.findMergeBase(`origin/${targetBranch}`, options)
+    const mergeBase = await git.findMergeBase(`origin/${targetBranch}`, options)
     if (!mergeBase) {
       core.info(`No merge-base found with origin/${targetBranch}`)
       return {baseline: null, commit: null}
@@ -121,7 +135,7 @@ export async function load(targetBranch: string, options: LoadOptions = {}): Pro
     core.info(`Found merge-base: ${mergeBase.substring(0, 8)}`)
 
     // Try merge-base first
-    const result = await tryReadBaseline(mergeBase, options)
+    const result = await tryReadBaseline(mergeBase, git, options)
     if (result.baseline) {
       core.info(`Loaded baseline: ${result.baseline.coveragePercentage}%`)
       return {...result, searchedCommits: 1}
@@ -137,12 +151,12 @@ export async function load(targetBranch: string, options: LoadOptions = {}): Pro
     }
 
     core.info(`Searching up to ${maxLookback} ancestors for baseline...`)
-    const ancestors = await gitnotes.listAncestors(mergeBase, maxLookback, options)
+    const ancestors = await git.listAncestors(mergeBase, maxLookback, options)
 
     // Skip first commit (it's the merge-base we already checked)
     for (let i = 1; i < ancestors.length; i++) {
       const commit = ancestors[i]!
-      const ancestorResult = await tryReadBaseline(commit, options)
+      const ancestorResult = await tryReadBaseline(commit, git, options)
       if (ancestorResult.baseline) {
         core.info(
           `Found baseline at ancestor ${commit.substring(0, 8)} (${i} commits back): ${ancestorResult.baseline.coveragePercentage}%`
@@ -167,9 +181,10 @@ export async function load(targetBranch: string, options: LoadOptions = {}): Pro
 // tryReadBaseline attempts to read and parse baseline from a commit.
 async function tryReadBaseline(
   commit: string,
+  git: GitNotes,
   options: Partial<gitnotes.Options>
 ): Promise<Result> {
-  const content = await gitnotes.read(commit, options)
+  const content = await git.read(commit, options)
   if (!content) {
     return {baseline: null, commit}
   }
@@ -217,20 +232,24 @@ export interface HistoryEntry {
   timestamp: string
 }
 
+// HistoryOptions configures history collection.
+export type HistoryOptions = BaseOptions
+
 // collectHistory walks ancestors from startCommit and collects coverage data.
 // Returns entries in chronological order (oldest first) for sparkline rendering.
 // Stops when maxCount entries are found or no more ancestors exist.
 export async function collectHistory(
   startCommit: string,
   maxCount: number,
-  options: Partial<gitnotes.Options> = {}
+  options: HistoryOptions = {}
 ): Promise<HistoryEntry[]> {
+  const git = {...gitnotes, ...options.git}
   if (maxCount <= 0) {
     return []
   }
 
   // Over-fetch ancestors since not all commits will have notes
-  const ancestors = await gitnotes.listAncestors(startCommit, maxCount * 3, options)
+  const ancestors = await git.listAncestors(startCommit, maxCount * 3, options)
   const entries: HistoryEntry[] = []
 
   for (const commit of ancestors) {
@@ -238,7 +257,7 @@ export async function collectHistory(
       break
     }
 
-    const content = await gitnotes.read(commit, options)
+    const content = await git.read(commit, options)
     if (!content) {
       continue
     }
