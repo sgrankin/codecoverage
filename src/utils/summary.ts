@@ -36,6 +36,8 @@ export interface Params {
   // coverageHistory is an array of historical coverage percentages for sparkline.
   // Empty array = no sparkline.
   coverageHistory: number[]
+  // headerText is the custom header text for the report.
+  headerText?: string
 }
 
 // getPackageFromPath extracts the package name from a file path (directory path, or '.' for root).
@@ -89,7 +91,8 @@ export function generate(params: Params): string {
     baselinePercentage,
     diffCoveredLines,
     diffTotalLines,
-    coverageHistory
+    coverageHistory,
+    headerText = 'Code Coverage Report'
   } = params
   const uncoveredLines = totalLines - coveredLines
 
@@ -153,7 +156,7 @@ export function generate(params: Params): string {
   ]
   const alignRow = headerCols.map(() => '----:').join(' | ')
 
-  return `## ${statusEmoji} Code Coverage Report
+  return `## ${statusEmoji} ${headerText}
 
 | ${headerCols.join(' | ')} |
 | ${alignRow} |
