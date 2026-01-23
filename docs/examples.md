@@ -167,3 +167,66 @@ Manually control the operating mode:
     mode: store-baseline
     # ...
 ```
+
+## Monorepo: Multiple Coverage Histories
+
+For monorepos with multiple independent codebases, use `note_namespace` to track coverage history separately for each project:
+
+```yaml
+name: Tests
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run frontend tests
+        run: npm test --workspace=frontend -- --coverage
+
+      - name: Frontend Coverage
+        uses: sgrankin/codecoverage@v1
+        with:
+          github_token: ${{secrets.GITHUB_TOKEN}}
+          coverage_file_path: packages/frontend/coverage/lcov.info
+          note_namespace: coverage-frontend
+          report_header: Frontend Coverage
+          pr_comment: "true"
+
+  backend:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run backend tests
+        run: npm test --workspace=backend -- --coverage
+
+      - name: Backend Coverage
+        uses: sgrankin/codecoverage@v1
+        with:
+          github_token: ${{secrets.GITHUB_TOKEN}}
+          coverage_file_path: packages/backend/coverage/lcov.info
+          note_namespace: coverage-backend
+          report_header: Backend Coverage
+          pr_comment: "true"
+```
+
+Each project gets:
+- Separate git notes namespace (`refs/notes/coverage-frontend/main`, etc.)
+- Independent baseline tracking and delta calculation
+- Its own PR comment (with distinct header)
+- Dedicated annotations for uncovered lines
