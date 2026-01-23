@@ -41,3 +41,4 @@ jobs:
           COVERAGE_FILE_PATH: "./coverage/cobertura-coverage.xml"
           COVERAGE_FORMAT: "cobertura"
           pr_comment: "true"
+          report_header: "🧪 Test Coverage"
