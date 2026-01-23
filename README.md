@@ -30,6 +30,7 @@ See [docs/examples.md](docs/examples.md) for language-specific setup and advance
 | `coverage_file_path` | **yes** | - | Path to coverage file(s). Supports globs and newline-separated paths. |
 | `coverage_format` | no | `lcov` | Format: `lcov`, `cobertura`, `go`, or `simplecov` |
 | `pr_comment` | no | `false` | Post coverage summary as PR comment |
+| `report_header` | no | `Code Coverage Report` | Custom header text for coverage reports |
 | `step_summary` | no | `true` | Write summary to GitHub Actions step summary |
 | `max_annotations` | no | `10` | Maximum annotations to emit |
 | `max_lookback` | no | `50` | Max ancestor commits to search for baseline |
