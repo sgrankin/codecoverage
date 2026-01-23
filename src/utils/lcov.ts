@@ -1,4 +1,4 @@
-import * as fs from 'node:fs'
+import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
 import type * as coverage from './general.ts'
 
@@ -70,7 +70,7 @@ export async function parse(lcovPath: string, workspacePath: string): Promise<co
     throw Error('No LCov path provided')
   }
 
-  const fileRaw = fs.readFileSync(lcovPath, 'utf8')
+  const fileRaw = await fs.readFile(lcovPath, 'utf8')
   return parseContent(fileRaw, workspacePath)
 }
 

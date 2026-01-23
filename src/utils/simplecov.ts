@@ -1,4 +1,4 @@
-import * as fs from 'node:fs'
+import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
 import type * as coverage from './general.ts'
 
@@ -140,7 +140,7 @@ export async function parse(jsonPath: string, workspacePath: string): Promise<co
     throw new Error('No SimpleCov JSON path provided')
   }
 
-  const content = fs.readFileSync(jsonPath, 'utf8')
+  const content = await fs.readFile(jsonPath, 'utf8')
   return parseContent(content, workspacePath)
 }
 

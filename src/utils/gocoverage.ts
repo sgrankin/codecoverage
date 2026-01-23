@@ -1,6 +1,5 @@
-import * as fs from 'node:fs'
+import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
-import * as readline from 'node:readline'
 import type * as coverage from './general.ts'
 
 // FileAccumulator collects line coverage data efficiently using a Map.
@@ -87,25 +86,15 @@ export async function parse(coveragePath: string, goModPath: string): Promise<co
   }
 
   const goModule = await parseGoModFile(goModPath)
-  const fileRaw = fs.readFileSync(coveragePath, 'utf8')
+  const fileRaw = await fs.readFile(coveragePath, 'utf8')
   return parseContent(fileRaw, goModule)
 }
 
+// parseGoModFile extracts the module name from a go.mod file.
 async function parseGoModFile(filePath: string): Promise<string> {
-  const fileStream = fs.createReadStream(filePath)
-  const rl = readline.createInterface({
-    input: fileStream,
-    crlfDelay: Infinity
-  })
-
-  for await (const line of rl) {
-    if (line.startsWith('module ')) {
-      return line.slice(7)
-    }
-  }
-
-  /* istanbul ignore next */
-  return ''
+  const content = await fs.readFile(filePath, 'utf8')
+  const match = content.match(/^module\s+(\S+)/m)
+  return match?.[1] ?? ''
 }
 
 // In-source tests for private helper functions

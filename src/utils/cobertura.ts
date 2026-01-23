@@ -1,4 +1,4 @@
-import * as fs from 'node:fs'
+import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
 import {XMLParser} from 'fast-xml-parser'
 import type * as coverage from './general.ts'
@@ -41,7 +41,7 @@ export async function parse(
     throw Error('No Cobertura XML path provided')
   }
 
-  const fileRaw = fs.readFileSync(coberturaPath, 'utf8')
+  const fileRaw = await fs.readFile(coberturaPath, 'utf8')
   const parser = new XMLParser({ignoreAttributes: false})
   const parsed = parser.parse(fileRaw) as CoberturaXML
 
