@@ -26,6 +26,10 @@ inputs:
     required: false
     description: "Post coverage summary as a PR comment. Updates existing comment on re-runs. Set to 'true' to enable."
     default: 'false'
+  pr_comment_header:
+    required: false
+    description: "Custom header text for the PR comment. Defaults to 'Code Coverage Report'."
+    default: 'Code Coverage Report'
   mode:
     required: false
     description: "Operating mode: 'pr-check' (calculate delta against baseline) or 'store-baseline' (store coverage as baseline). Auto-detected if not specified."

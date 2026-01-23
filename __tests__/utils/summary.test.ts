@@ -322,6 +322,33 @@ const testCases = [
 
 </details>
 `
+  },
+  {
+    name: 'custom header text',
+    input: {
+      ...defaults,
+      coveragePercentage: '85.00',
+      totalLines: 1000,
+      coveredLines: 850,
+      filesAnalyzed: 1,
+      files: [{file: 'src/main.ts', totalLines: 1000, coveredLines: 850}],
+      headerText: 'Test Coverage Summary'
+    },
+    expected: `## 🟢 Test Coverage Summary
+
+| Coverage | Covered | Uncovered | Total | Files |
+| ----: | ----: | ----: | ----: | ----: |
+| 85.00% | 850 | 150 | 1,000 | 1 |
+
+<details>
+<summary>Coverage by Package</summary>
+
+| Package | Files | Total Lines | Covered | Coverage |
+| ------- | ----: | ----------: | ------: | -------: |
+| src | 1 | 1,000 | 850 | 85.0% |
+
+</details>
+`
   }
 ]
 

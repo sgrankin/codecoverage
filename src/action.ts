@@ -138,7 +138,8 @@ function generateSummary(
   coverageDelta: string,
   baselinePercentage: string,
   diffStats: DiffStats,
-  coverageHistory: number[] = []
+  coverageHistory: number[] = [],
+  headerText: string = 'Code Coverage Report'
 ): string {
   const fileStats: summary.FileCoverage[] = parsedCov.map(entry => ({
     file: entry.file,
@@ -156,7 +157,8 @@ function generateSummary(
     baselinePercentage,
     diffCoveredLines: diffStats.coveredLines,
     diffTotalLines: diffStats.totalLines,
-    coverageHistory
+    coverageHistory,
+    headerText
   })
 }
 
@@ -229,6 +231,7 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
     const maxLookback = parseInt(core.getInput('max_lookback') || '50', 10)
     const sparklineCount = parseInt(core.getInput('sparkline_count') || '10', 10)
     const debugOutput = core.getInput('debug_output') !== 'false'
+    const prCommentHeader: string = core.getInput('pr_comment_header') || 'Code Coverage Report'
 
     const coverageFormat = core.getInput('coverage_format') || 'lcov'
     if (!SUPPORTED_FORMATS.includes(coverageFormat)) {
@@ -309,7 +312,8 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
             baselinePercentage: '',
             diffCoveredLines: 0,
             diffTotalLines: 0,
-            coverageHistory: []
+            coverageHistory: [],
+            headerText: prCommentHeader
           })
           await core.summary.addRaw(summaryText).write()
           core.info('Step summary written')
@@ -436,7 +440,8 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
           coverageDelta,
           baselinePercentage,
           diffStats,
-          coverageHistory
+          coverageHistory,
+          prCommentHeader
         )
         await gh.upsertComment(summaryText)
       }
@@ -455,7 +460,8 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
         coverageDelta,
         baselinePercentage,
         diffStats,
-        coverageHistory
+        coverageHistory,
+        prCommentHeader
       )
       await core.summary.addRaw(summaryText).write()
       core.info('Step summary written')
