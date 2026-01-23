@@ -1,5 +1,5 @@
-import * as baseline from './baseline.js'
-import * as sparkline from './sparkline.js'
+import * as baseline from './baseline.ts'
+import * as sparkline from './sparkline.ts'
 
 // FileCoverage is the coverage data for a single file.
 export interface FileCoverage {
@@ -130,7 +130,7 @@ export function generate(params: Params): string {
 
   // Compute diff coverage percentage if we have diff data
   const diffCoverageDisplay =
-    diffTotalLines > 0 ? ((diffCoveredLines / diffTotalLines) * 100).toFixed(1) + '%' : ''
+    diffTotalLines > 0 ? `${((diffCoveredLines / diffTotalLines) * 100).toFixed(1)}%` : ''
 
   // Build horizontal header row with optional columns
   const headerCols = [

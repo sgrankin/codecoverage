@@ -1,5 +1,5 @@
 import {expect, test} from 'vitest'
-import * as summary from '../../src/utils/summary'
+import * as summary from '../../src/utils/summary.ts'
 
 // Default values for optional fields
 const defaults = {

@@ -1,5 +1,5 @@
 import {describe, expect, test} from 'vitest'
-import * as mode from '../../src/utils/mode'
+import * as mode from '../../src/utils/mode.ts'
 
 // createFakeContext creates a fake GitHub context for testing.
 // No mocking required - just pass data.

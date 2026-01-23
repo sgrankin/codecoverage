@@ -3,10 +3,10 @@ import * as os from 'node:os'
 import * as path from 'node:path'
 import * as github from '@actions/github'
 import {afterEach, beforeEach, expect, test, vi} from 'vitest'
-import type {Dependencies, GitHubOps} from '../src/action'
-import type * as baseline from '../src/utils/baseline'
-import {captureStdout} from './fixtures/capture-stdout'
-import {getFixturePath} from './fixtures/util'
+import type {Dependencies, GitHubOps} from '../src/action.ts'
+import type * as baseline from '../src/utils/baseline.ts'
+import {captureStdout} from './fixtures/capture-stdout.ts'
+import {getFixturePath} from './fixtures/util.ts'
 
 // We need to mock getInput since it reads from env vars
 // and setOutput/setFailed since they write to special files
@@ -48,7 +48,7 @@ vi.mock('@actions/github', () => ({
 }))
 
 // Import after mocks are set up
-import {play} from '../src/action'
+import {play} from '../src/action.ts'
 
 // createFakeDeps creates fake dependencies for testing.
 // Uses simple objects instead of mocks - "fakes, not mocks".

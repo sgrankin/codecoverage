@@ -1,7 +1,7 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-import * as diff from './diff.js'
-import * as coverage from './general.js'
+import * as diff from './diff.ts'
+import * as coverage from './general.ts'
 
 // COMMENT_MARKER identifies comments created by this action.
 const COMMENT_MARKER = '<!-- codecoverage-action -->'

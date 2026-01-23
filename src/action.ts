@@ -1,17 +1,17 @@
 import {env} from 'node:process'
 
 import * as core from '@actions/core'
-import * as baseline from './utils/baseline.js'
-import * as cobertura from './utils/cobertura.js'
-import * as files from './utils/files.js'
-import * as coverage from './utils/general.js'
-import * as github from './utils/github.js'
-import type * as gitnotes from './utils/gitnotes.js'
-import * as gocov from './utils/gocoverage.js'
-import * as lcov from './utils/lcov.js'
-import * as mode from './utils/mode.js'
-import * as simplecov from './utils/simplecov.js'
-import * as summary from './utils/summary.js'
+import * as baseline from './utils/baseline.ts'
+import * as cobertura from './utils/cobertura.ts'
+import * as files from './utils/files.ts'
+import * as coverage from './utils/general.ts'
+import * as github from './utils/github.ts'
+import type * as gitnotes from './utils/gitnotes.ts'
+import * as gocov from './utils/gocoverage.ts'
+import * as lcov from './utils/lcov.ts'
+import * as mode from './utils/mode.ts'
+import * as simplecov from './utils/simplecov.ts'
+import * as summary from './utils/summary.ts'
 
 const SUPPORTED_FORMATS = ['lcov', 'cobertura', 'go', 'simplecov']
 const DEBUG_MAX_FILES = 10
@@ -42,7 +42,7 @@ function linesToRanges(lines: number[]): string {
 // truncate limits a string to maxLen, appending "..." if truncated.
 function truncate(s: string, maxLen: number): string {
   if (s.length <= maxLen) return s
-  return s.slice(0, maxLen - 3) + '...'
+  return `${s.slice(0, maxLen - 3)}...`
 }
 
 // GitHubOps defines the GitHub API operations needed by the action.

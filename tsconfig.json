@@ -4,6 +4,8 @@
     "types": ["node", "vitest/importMeta"],
     "module": "ESNext",
     "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
     "noEmit": true,
     "strict": true,
     "noImplicitAny": true,

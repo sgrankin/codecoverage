@@ -1,8 +1,6 @@
-import {writeFile} from 'node:fs/promises'
-import {join} from 'node:path'
 import {afterEach, beforeEach, describe, expect, test} from 'vitest'
-import * as gitnotes from '../../src/utils/gitnotes'
-import {cloneRepo, createTestRepo, type TestRepo} from '../fixtures/git-repo'
+import * as gitnotes from '../../src/utils/gitnotes.ts'
+import {cloneRepo, createTestRepo, type TestRepo} from '../fixtures/git-repo.ts'
 
 describe('gitnotes', () => {
   let repo: TestRepo

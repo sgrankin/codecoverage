@@ -1,7 +1,7 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import * as readline from 'node:readline'
-import type * as coverage from './general.js'
+import type * as coverage from './general.ts'
 
 // FileAccumulator collects line coverage data efficiently using a Map.
 interface FileAccumulator {

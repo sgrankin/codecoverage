@@ -1,7 +1,7 @@
 import {mkdtemp, rm, writeFile} from 'node:fs/promises'
 import {tmpdir} from 'node:os'
 import {join} from 'node:path'
-import * as gitnotes from '../../src/utils/gitnotes'
+import * as gitnotes from '../../src/utils/gitnotes.ts'
 
 // TestRepo provides a temporary git repository for testing.
 // Includes a bare "origin" repo and a working clone.

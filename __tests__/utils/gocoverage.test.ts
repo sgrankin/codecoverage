@@ -1,6 +1,6 @@
 import {expect, test} from 'vitest'
-import * as gocov from '../../src/utils/gocoverage'
-import {getFixturePath} from '../fixtures/util'
+import * as gocov from '../../src/utils/gocoverage.ts'
+import {getFixturePath} from '../fixtures/util.ts'
 
 test('parse reads file and strips module prefix from paths', async () => {
   const path = getFixturePath('gocoverage.out')

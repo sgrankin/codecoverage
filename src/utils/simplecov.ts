@@ -1,6 +1,6 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
-import type * as coverage from './general.js'
+import type * as coverage from './general.ts'
 
 // LineValue represents a single line's coverage.
 // null = non-executable, 0 = uncovered, >0 = hit count, "ignored" = skipped.

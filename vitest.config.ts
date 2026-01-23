@@ -2,6 +2,9 @@ import {defineConfig} from 'vitest/config'
 
 export default defineConfig({
   test: {
+    experimental: {
+      viteModuleRunner: false,
+    },
     environment: 'node',
     include: ['**/__tests__/**/*.test.ts'],
     includeSource: ['src/**/*.ts'],
