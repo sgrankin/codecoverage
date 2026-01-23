@@ -1,26 +1,32 @@
 # TODO
 
-Feature ideas from brainstorming session.
+Code review findings from consistency/simplification audit.
 
-## ~~Baseline Lookback~~ ✅ DONE
+## High Priority (inconsistency with guidance)
 
-Implemented in baseline.ts with `max_lookback` input (default 50).
+- [ ] **Unused type-only import** - `action.ts` line 10 imports `type * as gitnotes` but only uses `gitnotes.Options`. Change to `import type {Options as GitNotesOptions} from './utils/gitnotes.ts'`.
 
-## ~~SimpleCov JSON Support~~ ✅ DONE
+- [ ] **Missing doc comments** - Several key types/functions lack doc comments per "full sentences starting with identifier" guidance:
+  - `Client` class in `github.ts`
+  - `calculateDiffStats` in `action.ts`
+  - `DiffStats` interface in `action.ts`
+  - Coverage parsing functions (`lcov.parse`, `cobertura.parse`, etc.)
 
-Implemented in simplecov.ts. Supports both `coverage.json` and `.resultset.json` formats,
-including merging multiple test suites and handling `"ignored"` lines.
+- [ ] **Unusual DI pattern in baseline.ts** - Uses `Partial<typeof gitnotes>` for dependency injection. Since we use 4+ gitnotes functions, an explicit interface is appropriate, but it should be defined explicitly rather than using module type magic.
 
-## ~~Sparklines (Historical Trends)~~ ✅ DONE
+## Medium Priority (simplification)
 
-Implemented in sparkline.ts. Shows coverage trend in summary:
-```
-Coverage: 85.5% (↑2.1%) ▂▃▅▄▆█
-```
+- [ ] **Async functions doing sync I/O** - `lcov.ts`, `cobertura.ts`, `gocoverage.ts`, `simplecov.ts` all have `async function parse()` but use `fs.readFileSync`. Either make them sync or use `fs.promises.readFile`.
 
-Configurable via `sparkline_count` input (default 10, set to 0 to disable).
-Uses relative scaling with 5% minimum range to prevent tiny fluctuations from appearing dramatic.
+- [ ] **Extract helper functions from play()** - `action.ts` `play()` is ~350 lines. Consider extracting:
+  - Input parsing into a separate function
+  - PR comment posting logic
+  - Step summary writing logic
 
-## Not Doing
+- [ ] **Simplify Client constructor** - `github.ts` constructor has complex inline default creation. Could use a static factory method or extract defaults into helper functions.
 
-**Coverage thresholds/gates**: Prefer outputting numbers (`coverage_percentage`, `coverage_delta`, etc.) and letting separate policy tools (policybot, etc.) decide whether they meet quality gates. Separation of concerns.
+## Low Priority (cleanup)
+
+- [ ] **Generalize error-checking functions** - `isCommentError` and `isDiffTooLarge` in `github.ts` share structure. Could generalize to `isApiError(error, statuses, messagePatterns?)`.
+
+- [ ] **Type definitions at bottom of file** - `general.ts` defines types at the bottom. More conventional to define types near the top or in a separate types file.
