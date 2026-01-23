@@ -1,6 +1,6 @@
 import {writeFile} from 'node:fs/promises'
 import {join} from 'node:path'
-import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
+import {afterEach, beforeEach, describe, expect, test} from 'vitest'
 import * as baseline from '../../src/utils/baseline.ts'
 import * as gitnotes from '../../src/utils/gitnotes.ts'
 import {createTestRepo, type TestRepo} from '../fixtures/git-repo.ts'
@@ -333,23 +333,20 @@ describe('baseline', () => {
     })
 
     afterEach(async () => {
-      vi.restoreAllMocks()
       await repo.cleanup()
     })
 
-    // This test requires mocking ESM exports which doesn't work with native module runner.
-    // The error path is simple (just returns false) and tested indirectly via integration tests.
-    test.skip('returns false when push fails', async () => {
-      // Mock push to return false
-      vi.spyOn(await import('../../src/utils/gitnotes.ts'), 'writeAndPush').mockResolvedValue(false)
-
+    test('returns false when push fails', async () => {
       const result = await baseline.store(
         {
           coveragePercentage: '85.00',
           totalLines: 1000,
           coveredLines: 850
         },
-        {cwd: repo.repoDir}
+        {
+          cwd: repo.repoDir,
+          git: {writeAndPush: async () => false}
+        }
       )
 
       expect(result).toBe(false)
