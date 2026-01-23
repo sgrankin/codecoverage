@@ -1,6 +1,6 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
-import type * as coverage from './general.js'
+import type * as coverage from './general.ts'
 
 // parseContent parses LCOV format coverage data.
 function parseContent(str: string, workspacePath: string): coverage.Parsed {

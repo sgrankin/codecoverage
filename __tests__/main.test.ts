@@ -33,7 +33,7 @@ vi.mock('node:process', () => ({
 
 test('main module exports run function', async () => {
   // Import the main module - this will execute run()
-  const _main = await import('../src/main')
+  const _main = await import('../src/main.ts')
 
   // The module should have executed in store-baseline mode (not a PR)
   expect(core.info).toHaveBeenCalledWith('Mode: store-baseline (event: push)')

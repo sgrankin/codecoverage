@@ -1,8 +1,9 @@
 import * as path from 'node:path'
+import {fileURLToPath} from 'node:url'
 import {describe, expect, test} from 'vitest'
-import * as simplecov from '../../src/utils/simplecov.js'
+import * as simplecov from '../../src/utils/simplecov.ts'
 
-const fixturesDir = path.join(__dirname, '..', 'fixtures')
+const fixturesDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'fixtures')
 
 describe('simplecov.parse', () => {
   test('parses simplecov_json_formatter file', async () => {

@@ -1,6 +1,6 @@
 import {expect, test, vi} from 'vitest'
-import * as github from '../../src/utils/github'
-import {captureStdout} from '../fixtures/capture-stdout'
+import * as github from '../../src/utils/github.ts'
+import {captureStdout} from '../fixtures/capture-stdout.ts'
 
 // Mock @actions/github - only for context, not for getOctokit
 vi.mock('@actions/github', () => ({

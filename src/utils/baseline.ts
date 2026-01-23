@@ -1,5 +1,5 @@
 import * as core from '@actions/core'
-import * as gitnotes from './gitnotes.js'
+import * as gitnotes from './gitnotes.ts'
 
 // Data is the coverage baseline stored in git notes.
 export interface Data {

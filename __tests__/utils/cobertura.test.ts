@@ -1,6 +1,6 @@
 import {expect, test} from 'vitest'
-import * as cobertura from '../../src/utils/cobertura'
-import {getFixturePath} from '../fixtures/util'
+import * as cobertura from '../../src/utils/cobertura.ts'
+import {getFixturePath} from '../fixtures/util.ts'
 
 test('should throw error if path is not provided', async () => {
   await expect(cobertura.parse('', '/workspace')).rejects.toThrow('No Cobertura XML path provided')

@@ -1,6 +1,6 @@
 import {expect, test} from 'vitest'
-import * as lcov from '../../src/utils/lcov'
-import {getFixturePath} from '../fixtures/util'
+import * as lcov from '../../src/utils/lcov.ts'
+import {getFixturePath} from '../fixtures/util.ts'
 
 test('parse reads file and relativizes paths', async () => {
   const path = getFixturePath('lcov.info')

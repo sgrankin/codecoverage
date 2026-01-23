@@ -1,5 +1,5 @@
 import {expect, test} from 'vitest'
-import * as coverage from '../../src/utils/general'
+import * as coverage from '../../src/utils/general.ts'
 
 test('filterByFile extracts file coverage info', () => {
   const parsed: coverage.Parsed = [

@@ -1,5 +1,5 @@
 import {expect, test} from 'vitest'
-import * as diff from '../../src/utils/diff'
+import * as diff from '../../src/utils/diff.ts'
 
 const parseGitDiffTestCases = [
   {
