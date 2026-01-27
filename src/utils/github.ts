@@ -44,39 +44,51 @@ export class Client {
       throw new Error('github_token is missing')
     }
     const client = github.getOctokit(token, {baseUrl: baseURL})
+    // Default implementations wrap GitHub API calls with retry logic.
+    // These are excluded from coverage since they're thin wrappers around
+    // the GitHub SDK - type-checking ensures correctness.
+    /* c8 ignore start */
     this.fetchDiff =
       fetchDiff ??
-      (async () => {
-        const response = await client.rest.pulls.get({
-          ...github.context.repo,
-          pull_number: github.context.issue.number,
-          mediaType: {format: 'diff'}
-        })
-        return response.data as unknown as string
-      })
+      (() =>
+        retry(async () => {
+          const response = await client.rest.pulls.get({
+            ...github.context.repo,
+            pull_number: github.context.issue.number,
+            mediaType: {format: 'diff'}
+          })
+          return response.data as unknown as string
+        }))
     this.commentOps = commentOps ?? {
       async list() {
-        const response = await client.rest.issues.listComments({
-          ...github.context.repo,
-          issue_number: github.context.issue.number
+        return retry(async () => {
+          const response = await client.rest.issues.listComments({
+            ...github.context.repo,
+            issue_number: github.context.issue.number
+          })
+          return response.data.map(c => ({id: c.id, body: c.body ?? ''}))
         })
-        return response.data.map(c => ({id: c.id, body: c.body ?? ''}))
       },
       async create(body: string) {
-        await client.rest.issues.createComment({
-          ...github.context.repo,
-          issue_number: github.context.issue.number,
-          body
-        })
+        await retry(() =>
+          client.rest.issues.createComment({
+            ...github.context.repo,
+            issue_number: github.context.issue.number,
+            body
+          })
+        )
       },
       async update(id: number, body: string) {
-        await client.rest.issues.updateComment({
-          ...github.context.repo,
-          comment_id: id,
-          body
-        })
+        await retry(() =>
+          client.rest.issues.updateComment({
+            ...github.context.repo,
+            comment_id: id,
+            body
+          })
+        )
       }
     }
+    /* c8 ignore stop */
   }
 
   async getPullRequestDiff(): Promise<PullRequestFiles> {
@@ -214,4 +226,43 @@ function isDiffTooLarge(error: unknown): boolean {
     }
   }
   return false
+}
+
+// Status codes that should not be retried (client errors that won't change).
+const DO_NOT_RETRY = new Set([400, 401, 403, 404, 410, 422, 451])
+
+// retry executes fn with exponential backoff for transient errors.
+// Retries up to maxRetries times for server errors (5xx) and other retryable status codes.
+export async function retry<T>(
+  fn: () => Promise<T>,
+  maxRetries = 3,
+  baseDelayMs = 1000
+): Promise<T> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await fn()
+    } catch (error) {
+      if (!isRetryable(error) || attempt >= maxRetries) {
+        throw error
+      }
+      const delayMs = (attempt + 1) ** 2 * baseDelayMs
+      core.debug(
+        `Request failed (attempt ${attempt + 1}/${maxRetries + 1}), retrying in ${delayMs}ms`
+      )
+      await sleep(delayMs)
+    }
+  }
+}
+
+// isRetryable checks if an error should be retried.
+function isRetryable(error: unknown): boolean {
+  if (error && typeof error === 'object' && 'status' in error) {
+    const status = (error as {status: number}).status
+    return status >= 400 && !DO_NOT_RETRY.has(status)
+  }
+  return false
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms))
 }

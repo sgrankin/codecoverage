@@ -435,3 +435,106 @@ test('upsertComment throws for unexpected errors', async () => {
     message: 'Server error'
   })
 })
+
+// retry tests
+test('retry succeeds on first attempt', async () => {
+  let calls = 0
+  const result = await github.retry(async () => {
+    calls++
+    return 'success'
+  })
+  expect(result).toBe('success')
+  expect(calls).toBe(1)
+})
+
+test('retry retries on 500 and succeeds', async () => {
+  let calls = 0
+  const result = await github.retry(
+    async () => {
+      calls++
+      if (calls < 3) throw {status: 500, message: 'Server error'}
+      return 'success'
+    },
+    3,
+    1 // 1ms delay for fast tests
+  )
+  expect(result).toBe('success')
+  expect(calls).toBe(3)
+})
+
+test('retry throws after max retries', async () => {
+  let calls = 0
+  await expect(
+    github.retry(
+      async () => {
+        calls++
+        throw {status: 500, message: 'Server error'}
+      },
+      3,
+      1
+    )
+  ).rejects.toEqual({status: 500, message: 'Server error'})
+  expect(calls).toBe(4) // initial + 3 retries
+})
+
+const noRetryTestCases = [
+  {name: '400 bad request', status: 400},
+  {name: '401 unauthorized', status: 401},
+  {name: '403 forbidden', status: 403},
+  {name: '404 not found', status: 404},
+  {name: '410 gone', status: 410},
+  {name: '422 unprocessable', status: 422},
+  {name: '451 legal reasons', status: 451}
+]
+
+test.each(noRetryTestCases)('retry does not retry $name', async ({status}) => {
+  let calls = 0
+  await expect(
+    github.retry(
+      async () => {
+        calls++
+        throw {status, message: 'error'}
+      },
+      3,
+      1
+    )
+  ).rejects.toEqual({status, message: 'error'})
+  expect(calls).toBe(1) // no retries
+})
+
+const retryableTestCases = [
+  {name: '500 internal server error', status: 500},
+  {name: '502 bad gateway', status: 502},
+  {name: '503 service unavailable', status: 503},
+  {name: '504 gateway timeout', status: 504}
+]
+
+test.each(retryableTestCases)('retry retries $name', async ({status}) => {
+  let calls = 0
+  await expect(
+    github.retry(
+      async () => {
+        calls++
+        throw {status, message: 'error'}
+      },
+      2,
+      1
+    )
+  ).rejects.toEqual({status, message: 'error'})
+  expect(calls).toBe(3) // initial + 2 retries
+})
+
+test('retry does not retry non-API errors', async () => {
+  let calls = 0
+  await expect(
+    github.retry(
+      async () => {
+        calls++
+        throw new Error('Network error')
+      },
+      3,
+      1
+    )
+  ).rejects.toThrow('Network error')
+  expect(calls).toBe(1)
+})
