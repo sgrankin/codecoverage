@@ -1,0 +1,38 @@
+name: Update dist/ for Dependabot
+
+on:
+  pull_request_target:
+
+jobs:
+  update-dist:
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+
+      - run: npm ci
+
+      - run: npm run all
+
+      - name: Commit and push dist/ changes
+        run: |
+          if [ "$(git diff --ignore-space-at-eol dist/ | wc -l)" -gt "0" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add dist/
+            git commit -m "chore: rebuild dist/ for dependency update"
+            git push
+            echo "::notice::Committed dist/ changes"
+          else
+            echo "::notice::No dist/ changes needed"
+          fi
