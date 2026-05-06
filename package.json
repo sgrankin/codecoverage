@@ -35,7 +35,7 @@
     "@types/node": "^25.6.0",
     "@typescript/native-preview": "^7.0.0-dev.20260206.1",
     "@vitest/coverage-v8": "^4.1.5",
-    "esbuild": "^0.27.3",
+    "esbuild": "^0.28.0",
     "typescript": "^5.9.3",
     "vitest": "^4.1.5"
   }
