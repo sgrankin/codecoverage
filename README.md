@@ -29,6 +29,7 @@ See [docs/examples.md](docs/examples.md) for language-specific setup and advance
 | `github_token` | **yes** | - | GitHub token from workflow (`${{secrets.GITHUB_TOKEN}}`) |
 | `coverage_file_path` | **yes** | - | Path to coverage file(s). Supports globs and newline-separated paths. |
 | `coverage_format` | no | `lcov` | Format: `lcov`, `cobertura`, `go`, or `simplecov` |
+| `working_directory` | no | `.` | Project directory relative to workspace root. For `go` format, locates `go.mod` and prefixes entry paths to match PR diff paths. |
 | `pr_comment` | no | `false` | Post coverage summary as PR comment |
 | `report_header` | no | `Code Coverage Report` | Custom header text for coverage reports |
 | `step_summary` | no | `true` | Write summary to GitHub Actions step summary |

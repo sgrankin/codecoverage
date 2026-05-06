@@ -18,6 +18,10 @@ inputs:
   coverage_format:
     required: false
     description: 'Format of coverage file. May be `lcov`, `cobertura`, `go`, or `simplecov`.'
+  working_directory:
+    required: false
+    description: 'Directory of the project being covered, relative to the workspace root. For `go` format, `go.mod` is read from here, and entry paths in the parsed coverage are rejoined with this prefix so they match PR diff paths. Defaults to the workspace root.'
+    default: '.'
   step_summary:
     required: false
     description: "Write a summary to the GitHub Actions step summary. Set to 'false' to disable."

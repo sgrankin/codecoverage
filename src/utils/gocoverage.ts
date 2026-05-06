@@ -10,7 +10,9 @@ interface FileAccumulator {
 }
 
 // parseContent parses Go coverage file content.
-function parseContent(text: string, moduleName: string): coverage.Parsed {
+// pathPrefix is prepended to each entry's stripped path so results are
+// relative to the workspace, not the module root.
+function parseContent(text: string, moduleName: string, pathPrefix = ''): coverage.Parsed {
   const files: FileAccumulator[] = []
   const modes = text.split('mode:')
 
@@ -59,7 +61,8 @@ function parseContent(text: string, moduleName: string): coverage.Parsed {
 
   // Convert accumulators to Entry format
   return files.map(file => {
-    const relativeFile = path.relative(moduleName, file.file)
+    const stripped = path.relative(moduleName, file.file)
+    const relativeFile = pathPrefix ? path.join(pathPrefix, stripped) : stripped
     const details = Array.from(file.lineHits.entries())
       .map(([line, hit]) => ({line, hit}))
       .sort((a, b) => a.line - b.line)
@@ -76,7 +79,14 @@ function parseContent(text: string, moduleName: string): coverage.Parsed {
 }
 
 // parse parses a Go coverage file and returns coverage data.
-export async function parse(coveragePath: string, goModPath: string): Promise<coverage.Parsed> {
+// pathPrefix (typically the directory containing go.mod relative to the
+// workspace) is prepended to each entry's path so results are
+// workspace-relative.
+export async function parse(
+  coveragePath: string,
+  goModPath: string,
+  pathPrefix = ''
+): Promise<coverage.Parsed> {
   if (!coveragePath) {
     throw Error('No Go coverage path provided')
   }
@@ -87,7 +97,7 @@ export async function parse(coveragePath: string, goModPath: string): Promise<co
 
   const goModule = await parseGoModFile(goModPath)
   const fileRaw = await fs.readFile(coveragePath, 'utf8')
-  return parseContent(fileRaw, goModule)
+  return parseContent(fileRaw, goModule, pathPrefix)
 }
 
 // parseGoModFile extracts the module name from a go.mod file.
@@ -137,5 +147,21 @@ example.com/file.go:5.1,5.1 1 3`
 
   test('parseContent returns empty for empty input', () => {
     expect(parseContent('', '')).toEqual([])
+  })
+
+  test('parseContent prepends pathPrefix when module is in a subdirectory', () => {
+    const input = `mode: set
+example.com/fulcrum/internal/foo.go:1.1,2.1 1 1`
+
+    const result = parseContent(input, 'example.com/fulcrum', 'fulcrum')
+    expect(result[0]!.file).toBe('fulcrum/internal/foo.go')
+  })
+
+  test('parseContent treats "." pathPrefix as no prefix', () => {
+    const input = `mode: set
+example.com/pkg/file.go:1.1,1.1 1 1`
+
+    const result = parseContent(input, 'example.com', '.')
+    expect(result[0]!.file).toBe('pkg/file.go')
   })
 }

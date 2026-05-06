@@ -1,3 +1,4 @@
+import * as path from 'node:path'
 import {env} from 'node:process'
 
 import * as core from '@actions/core'
@@ -162,7 +163,8 @@ function generateSummary(
 async function parseCoverageFiles(
   coverageFilePath: string,
   coverageFormat: string,
-  workspacePath: string
+  workspacePath: string,
+  workingDirectory: string
 ): Promise<CoverageResult> {
   // Expand file paths (supports globs and multiple paths)
   const coverageFiles = await files.expand(coverageFilePath)
@@ -178,7 +180,8 @@ async function parseCoverageFiles(
     if (coverageFormat === 'cobertura') {
       fileCov = await cobertura.parse(covFile, workspacePath)
     } else if (coverageFormat === 'go') {
-      fileCov = await gocov.parse(covFile, 'go.mod')
+      const goModPath = path.join(workingDirectory, 'go.mod')
+      fileCov = await gocov.parse(covFile, goModPath, workingDirectory)
     } else if (coverageFormat === 'simplecov') {
       fileCov = await simplecov.parse(covFile, workspacePath)
     } else {
@@ -229,6 +232,8 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
       throw new Error(`coverage_format must be one of ${SUPPORTED_FORMATS.join(',')}`)
     }
 
+    const workingDirectory = core.getInput('working_directory') || '.'
+
     const workspacePath = env.GITHUB_WORKSPACE ?? ''
     core.info(`Workspace: ${workspacePath}`)
 
@@ -248,7 +253,12 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
     }
 
     // Parse coverage data
-    const cov = await parseCoverageFiles(coverageFilePath, coverageFormat, workspacePath)
+    const cov = await parseCoverageFiles(
+      coverageFilePath,
+      coverageFormat,
+      workspacePath,
+      workingDirectory
+    )
 
     core.info(
       `Parsing done. ${cov.parsedCov.length} files parsed. Total lines: ${cov.totalLines}. Covered lines: ${cov.coveredLines}. Coverage: ${cov.coveragePercentage}%`

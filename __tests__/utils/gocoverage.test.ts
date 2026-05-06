@@ -31,3 +31,14 @@ test('parse with empty go.mod keeps full paths', async () => {
   // Without module name, paths keep the full module prefix
   expect(output[0]!.file).toContain('github.com')
 })
+
+test('parse prepends pathPrefix to entry paths', async () => {
+  const path = getFixturePath('gocoverage.out')
+  const goModPath = getFixturePath('go.mod')
+  const output = await gocov.parse(path, goModPath, 'fulcrum')
+
+  expect(output.length).toBeGreaterThan(0)
+  for (const entry of output) {
+    expect(entry.file.startsWith('fulcrum/')).toBe(true)
+  }
+})
