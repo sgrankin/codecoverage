@@ -137,6 +137,9 @@ This action uses semantic versioning with floating major version tags:
 When releasing a new version (jj 0.40+ creates tags; push still drops to git, since `jj git push` doesn't push tags):
 
 ```bash
+# Push main (bookmarks go through jj)
+jj git push --bookmark main
+
 # Create the version tag and move the floating v1 tag.
 # In a colocated repo, these export to .git/refs/tags automatically.
 jj tag set v1.6.0 -r <commit>
