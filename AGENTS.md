@@ -134,16 +134,16 @@ This action uses semantic versioning with floating major version tags:
 - **Minor releases**: `v1.4.0`, `v1.5.0`, etc. for new features
 - **Floating tag**: `v1` always points to the latest `v1.x.x` release
 
-When releasing a new version (using raw git, as jj doesn't handle tags):
+When releasing a new version (jj 0.40+ creates tags; push still drops to git, since `jj git push` doesn't push tags):
 
 ```bash
-# Tag the specific version
-jj git export  # ensure commits are in git
-git tag v1.6.0
-git push origin v1.6.0
+# Create the version tag and move the floating v1 tag.
+# In a colocated repo, these export to .git/refs/tags automatically.
+jj tag set v1.6.0 -r <commit>
+jj tag set v1 -r <commit> --allow-move
 
-# Update the floating v1 tag
-git tag -f v1
+# Push both tags (raw git — jj git push only handles bookmarks)
+git push origin v1.6.0
 git push -f origin v1
 
 # Create GitHub release
