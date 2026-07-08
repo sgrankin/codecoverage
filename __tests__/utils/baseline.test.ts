@@ -45,6 +45,28 @@ describe('baseline', () => {
       expect(baseline.parse('{"coveragePercentage": 85}')).toBeNull() // wrong type
       expect(baseline.parse('{"coveragePercentage": "85", "totalLines": "100"}')).toBeNull() // wrong type
     })
+
+    test('parses a note without statement fields as backward-compatible', () => {
+      const content = JSON.stringify(validData)
+      const result = baseline.parse(content)
+      expect(result?.totalStatements).toBeUndefined()
+      expect(result?.coveredStatements).toBeUndefined()
+      expect(result?.statementPercentage).toBeUndefined()
+    })
+
+    test('parses a note with statement fields', () => {
+      const withStatements: baseline.Data = {
+        ...validData,
+        totalStatements: 500,
+        coveredStatements: 361,
+        statementPercentage: '72.20'
+      }
+      const content = JSON.stringify(withStatements)
+      const result = baseline.parse(content)
+      expect(result?.totalStatements).toBe(500)
+      expect(result?.coveredStatements).toBe(361)
+      expect(result?.statementPercentage).toBe('72.20')
+    })
   })
 
   describe('format', () => {
@@ -55,6 +77,22 @@ describe('baseline', () => {
         totalLines: 1000,
         coveredLines: 855,
         commit: 'abc123'
+      }
+
+      const result = baseline.format(data)
+      expect(JSON.parse(result)).toEqual(data)
+    })
+
+    test('round-trips a Data with statement fields', () => {
+      const data: baseline.Data = {
+        timestamp: '2024-01-01T10:00:00Z',
+        coveragePercentage: '72.97',
+        totalLines: 1000,
+        coveredLines: 730,
+        commit: 'abc123',
+        totalStatements: 500,
+        coveredStatements: 361,
+        statementPercentage: '72.20'
       }
 
       const result = baseline.format(data)

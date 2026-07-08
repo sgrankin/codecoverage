@@ -24,6 +24,16 @@ Baseline data is stored as JSONL (JSON Lines), one object per line:
 {"timestamp": "2024-01-01T10:00:00Z", "coveragePercentage": "85.50", "totalLines": 1000, "coveredLines": 855, "commit": "abc123"}
 ```
 
+For Go coverage, three optional statement fields are added:
+
+```jsonl
+{"timestamp": "2024-01-01T10:00:00Z", "coveragePercentage": "85.97", "totalLines": 1000, "coveredLines": 860, "commit": "abc123", "totalStatements": 500, "coveredStatements": 361, "statementPercentage": "72.20"}
+```
+
+`totalStatements`/`coveredStatements`/`statementPercentage` are only present for Go coverage
+runs. Older notes (and notes from non-Go formats) omit them entirely; `parse` treats their
+absence as backward compatible — no fabricated values, the fields simply come back `undefined`.
+
 The first line is used for delta calculation. Additional lines are reserved for future use (e.g., historical tracking).
 
 ### Namespace Strategy
@@ -109,12 +119,22 @@ Set `max_lookback: 0` to disable lookback and only check the merge-base.
 | `note_namespace` | `coverage` | Base namespace for notes |
 | `delta_precision` | `2` | Decimal places in delta display |
 
+## Primary Metric
+
+The delta and sparkline are pinned to the **primary metric**: statement coverage for Go
+(matching `go tool cover -func`), line coverage for every other format. When a baseline
+predates statement tracking (no `statementPercentage` in its note), the current PR's statement
+percentage is compared against that baseline's line percentage instead — a one-time step of
+roughly 0.7 percentage points in the coverage history, accepted as the cost of switching to
+statements-primary.
+
 ## Outputs
 
 | Output | Example | Description |
 |--------|---------|-------------|
-| `coverage_delta` | `+2.50` | Signed delta string |
-| `baseline_percentage` | `83.00` | Baseline coverage |
+| `coverage_delta` | `+2.50` | Signed delta for the primary metric (statements for Go, lines otherwise) |
+| `baseline_percentage` | `83.00` | Baseline for the primary metric |
+| `statement_percentage` | `72.26` | Current statement coverage (Go only; empty otherwise) |
 | `mode` | `pr-check` | Actual mode used |
 
 ## Required Permissions

@@ -44,12 +44,15 @@ See [docs/examples.md](docs/examples.md) for language-specific setup and advance
 
 | Output | Description |
 | ------ | ----------- |
-| `coverage_percentage` | Overall coverage (e.g., `85.50`) |
-| `coverage_delta` | Change vs baseline (e.g., `+2.50`) |
-| `baseline_percentage` | Baseline coverage from git notes |
+| `coverage_percentage` | Overall line coverage (e.g., `85.50`) |
+| `statement_percentage` | Overall statement coverage (Go only; empty for other formats) |
+| `coverage_delta` | Change vs baseline for the primary metric (e.g., `+2.50`) |
+| `baseline_percentage` | Baseline for the primary metric, from git notes |
 | `files_analyzed` | Number of files with coverage data |
 | `annotation_count` | Annotations created for uncovered lines |
 | `mode` | Operating mode used |
+
+For Go coverage, the headline/delta/sparkline use **statement coverage** (matching `go tool cover -func`), while line coverage is still reported via `coverage_percentage` and shown as secondary text.
 
 ## Coverage Delta
 

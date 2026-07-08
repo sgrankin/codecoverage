@@ -16,6 +16,12 @@ export interface Data {
   coveredLines: number
   /** Commit SHA this baseline was recorded for */
   commit: string
+  /** Total statements (Go only; absent in older/non-Go notes). */
+  totalStatements?: number
+  /** Statements covered by tests (Go only). */
+  coveredStatements?: number
+  /** Statement coverage percentage as string, e.g. "72.26" (Go only). */
+  statementPercentage?: string
 }
 
 // Result is the result of loading baseline data.
@@ -230,6 +236,8 @@ export interface HistoryEntry {
   commit: string
   coveragePercentage: string
   timestamp: string
+  /** Statement coverage percentage, when the note carried one (Go only). */
+  statementPercentage?: string
 }
 
 // HistoryOptions configures history collection.
@@ -270,7 +278,10 @@ export async function collectHistory(
     entries.push({
       commit,
       coveragePercentage: data.coveragePercentage,
-      timestamp: data.timestamp
+      timestamp: data.timestamp,
+      ...(data.statementPercentage !== undefined
+        ? {statementPercentage: data.statementPercentage}
+        : {})
     })
   }
 

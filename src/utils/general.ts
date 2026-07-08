@@ -4,6 +4,8 @@ interface FileAccumulator {
   title: string
   package: string
   lineHits: Map<number, number>
+  // stmtBlocks holds per-block statement coverage, keyed by block coordinate string.
+  stmtBlocks: Map<string, {count: number; hit: number}>
 }
 
 // mergeByFile merges coverage entries for the same file from multiple test runs.
@@ -19,16 +21,19 @@ export function mergeByFile(coverage: Parsed): Parsed {
         const currentHit = existing.lineHits.get(detail.line) ?? 0
         existing.lineHits.set(detail.line, Math.max(currentHit, detail.hit))
       }
+      mergeStmtBlocks(existing.stmtBlocks, entry)
     } else {
       const acc: FileAccumulator = {
         file: entry.file,
         title: entry.title,
         package: entry.package ?? '',
-        lineHits: new Map()
+        lineHits: new Map(),
+        stmtBlocks: new Map()
       }
       for (const detail of entry.lines.details) {
         acc.lineHits.set(detail.line, detail.hit)
       }
+      mergeStmtBlocks(acc.stmtBlocks, entry)
       byFile.set(entry.file, acc)
     }
   }
@@ -51,9 +56,42 @@ export function mergeByFile(coverage: Parsed): Parsed {
     if (acc.package) {
       entry.package = acc.package
     }
+    if (acc.stmtBlocks.size > 0) {
+      entry.statements = statementsFromBlocks(acc.stmtBlocks)
+    }
     result.push(entry)
   }
   return result
+}
+
+// mergeStmtBlocks merges entry's statement blocks (if any) into target, keeping the max hit
+// count per block and the larger statement count if they ever disagree.
+function mergeStmtBlocks(target: Map<string, {count: number; hit: number}>, entry: Entry): void {
+  if (!entry.statements) return
+  for (const block of entry.statements.blocks) {
+    const existing = target.get(block.key)
+    if (existing) {
+      existing.hit = Math.max(existing.hit, block.hit)
+      existing.count = Math.max(existing.count, block.count)
+    } else {
+      target.set(block.key, {count: block.count, hit: block.hit})
+    }
+  }
+}
+
+// statementsFromBlocks builds an Entry's statements field from accumulated per-block data,
+// sorting blocks by key for deterministic output.
+function statementsFromBlocks(blocks: Map<string, {count: number; hit: number}>): {
+  found: number
+  hit: number
+  blocks: {key: string; count: number; hit: number}[]
+} {
+  const blockList = Array.from(blocks.entries())
+    .map(([key, {count, hit}]) => ({key, count, hit}))
+    .sort((a, b) => a.key.localeCompare(b.key))
+  const found = blockList.reduce((acc, b) => acc + b.count, 0)
+  const hit = blockList.reduce((acc, b) => acc + (b.hit > 0 ? b.count : 0), 0)
+  return {found, hit, blocks: blockList}
 }
 
 export function filterByFile(coverage: Parsed): File[] {
@@ -169,14 +207,15 @@ export function intersectRanges(a: Range[], b: Range[]): Range[] {
   return result
 }
 
-// correctTotals recalculates found/hit from details.
+// correctTotals recalculates found/hit from details (and statements.found/hit from
+// statements.blocks, when present).
 export function correctTotals(coverage: Parsed): Parsed {
   return coverage.map(item => {
     let hit = 0
     for (const detail of item.lines.details) {
       if (detail.hit > 0) hit++
     }
-    return {
+    const result: Entry = {
       ...item,
       lines: {
         ...item.lines,
@@ -184,6 +223,14 @@ export function correctTotals(coverage: Parsed): Parsed {
         hit
       }
     }
+    if (item.statements) {
+      result.statements = {
+        ...item.statements,
+        found: item.statements.blocks.reduce((acc, b) => acc + b.count, 0),
+        hit: item.statements.blocks.reduce((acc, b) => acc + (b.hit > 0 ? b.count : 0), 0)
+      }
+    }
+    return result
   })
 }
 
@@ -199,6 +246,15 @@ export type Entry = {
       hit: number
       name?: string
     }[]
+  }
+  // statements holds per-block statement coverage. Present only for formats that
+  // carry statement counts (Go); absent for lcov/cobertura/simplecov.
+  statements?: {
+    found: number // sum of numStmts across all blocks
+    hit: number // sum of numStmts across blocks with hitCount > 0
+    // blocks is per-block detail keyed by the block's coordinate string
+    // (e.g. "57.54,59.16"), retained so multi-file merges take max hit per block.
+    blocks: {key: string; count: number; hit: number}[]
   }
 }
 
@@ -226,5 +282,50 @@ if (import.meta.vitest) {
     {from: 2, to: 3, exec: [1, 2, 3], expected: true} // adjacent, no gap
   ])('canBridgeGap($from, $to) = $expected', ({from, to, exec, expected}) => {
     expect(canBridgeGap(from, to, new Set(exec))).toBe(expected)
+  })
+
+  test('mergeByFile merges statement blocks, taking max hit across runs', () => {
+    const cov: Parsed = [
+      {
+        file: 'pkg/file.go',
+        title: 'file.go',
+        lines: {found: 0, hit: 0, details: []},
+        statements: {
+          found: 3,
+          hit: 0,
+          blocks: [{key: '1.1,2.1', count: 3, hit: 0}]
+        }
+      },
+      {
+        file: 'pkg/file.go',
+        title: 'file.go',
+        lines: {found: 0, hit: 0, details: []},
+        statements: {
+          found: 3,
+          hit: 3,
+          blocks: [{key: '1.1,2.1', count: 3, hit: 1}]
+        }
+      }
+    ]
+
+    const [merged] = mergeByFile(cov)
+    expect(merged!.statements).toEqual({
+      found: 3,
+      hit: 3,
+      blocks: [{key: '1.1,2.1', count: 3, hit: 1}]
+    })
+  })
+
+  test('mergeByFile leaves entries without statements statement-free', () => {
+    const cov: Parsed = [
+      {
+        file: 'src/foo.ts',
+        title: 'foo',
+        lines: {found: 1, hit: 1, details: [{line: 1, hit: 1}]}
+      }
+    ]
+
+    const [merged] = mergeByFile(cov)
+    expect(merged!.statements).toBeUndefined()
   })
 }

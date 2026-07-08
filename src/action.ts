@@ -63,6 +63,9 @@ export interface BaselineOps {
       coveragePercentage: string
       totalLines: number
       coveredLines: number
+      totalStatements?: number
+      coveredStatements?: number
+      statementPercentage?: string
     },
     options: Partial<gitnotes.Options>
   ): Promise<boolean>
@@ -100,6 +103,10 @@ interface CoverageResult {
   totalLines: number
   coveredLines: number
   coveragePercentage: string
+  // statement aggregates; statementPercentage === '' when no format carried statements.
+  totalStatements: number
+  coveredStatements: number
+  statementPercentage: string
 }
 
 // calculateDiffStats computes coverage statistics for lines in the PR diff.
@@ -145,13 +152,17 @@ function generateSummary(
     coveredLines: entry.lines.hit,
     package: entry.package ?? ''
   }))
+  const useStatements = cov.statementPercentage !== ''
   return summary.generate({
     coverage: {
-      percentage: cov.coveragePercentage,
+      percentage: useStatements ? cov.statementPercentage : cov.coveragePercentage,
       totalLines: cov.totalLines,
       coveredLines: cov.coveredLines,
       filesAnalyzed: cov.parsedCov.length,
-      files: fileStats
+      files: fileStats,
+      secondaryPercentage: useStatements ? cov.coveragePercentage : '',
+      primaryLabel: useStatements ? 'statements' : '',
+      secondaryLabel: useStatements ? 'lines' : ''
     },
     baseline: baselineInfo,
     diff: diffStats,
@@ -203,7 +214,24 @@ async function parseCoverageFiles(
   const coveragePercentage =
     totalLines > 0 ? ((coveredLines / totalLines) * 100).toFixed(2) : '0.00'
 
-  return {parsedCov, totalLines, coveredLines, coveragePercentage}
+  // Calculate statement totals (Go only; other formats never set entry.statements).
+  const hasStatements = parsedCov.some(e => e.statements)
+  const totalStatements = parsedCov.reduce((acc, e) => acc + (e.statements?.found ?? 0), 0)
+  const coveredStatements = parsedCov.reduce((acc, e) => acc + (e.statements?.hit ?? 0), 0)
+  const statementPercentage =
+    hasStatements && totalStatements > 0
+      ? ((coveredStatements / totalStatements) * 100).toFixed(2)
+      : ''
+
+  return {
+    parsedCov,
+    totalLines,
+    coveredLines,
+    coveragePercentage,
+    totalStatements,
+    coveredStatements,
+    statementPercentage
+  }
 }
 
 // play is the entry point of the GitHub Action.
@@ -266,7 +294,13 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
 
     // Set basic outputs
     core.setOutput('coverage_percentage', cov.coveragePercentage)
+    core.setOutput('statement_percentage', cov.statementPercentage)
     core.setOutput('files_analyzed', cov.parsedCov.length)
+
+    // Primary metric drives the delta, sparkline, and baseline comparison: statements for
+    // Go (matching `go tool cover -func`), lines for every other format.
+    const useStatements = cov.statementPercentage !== ''
+    const currentPrimary = useStatements ? cov.statementPercentage : cov.coveragePercentage
 
     // Baseline info for delta calculation (empty = not computed)
     const baselineInfo: summary.BaselineInfo = {delta: '', percentage: '', history: []}
@@ -282,7 +316,14 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
           {
             coveragePercentage: cov.coveragePercentage,
             totalLines: cov.totalLines,
-            coveredLines: cov.coveredLines
+            coveredLines: cov.coveredLines,
+            ...(useStatements
+              ? {
+                  totalStatements: cov.totalStatements,
+                  coveredStatements: cov.coveredStatements,
+                  statementPercentage: cov.statementPercentage
+                }
+              : {})
           },
           {cwd: workspacePath, namespace}
         )
@@ -316,12 +357,15 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
       })
 
       if (baselineResult.baseline) {
-        baselineInfo.percentage = baselineResult.baseline.coveragePercentage
-        baselineInfo.delta = baseline.delta(
-          cov.coveragePercentage,
-          baselineInfo.percentage,
-          deltaPrecision
-        )
+        const bl = baselineResult.baseline
+        // Compare against the baseline's statement figure, falling back to its line figure
+        // for pre-statement baselines (a one-time ~0.7pp step in history — the accepted cost
+        // of statements-primary).
+        const baselinePrimary = useStatements
+          ? (bl.statementPercentage ?? bl.coveragePercentage)
+          : bl.coveragePercentage
+        baselineInfo.percentage = baselinePrimary
+        baselineInfo.delta = baseline.delta(currentPrimary, baselinePrimary, deltaPrecision)
         core.info(`Coverage delta: ${baselineInfo.delta}`)
         core.setOutput('coverage_delta', baselineInfo.delta)
         core.setOutput('baseline_percentage', baselineInfo.percentage)
@@ -337,9 +381,13 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
               namespace
             }
           )
-          baselineInfo.history = history.map(h => parseFloat(h.coveragePercentage))
+          baselineInfo.history = history.map(h =>
+            parseFloat(
+              useStatements ? (h.statementPercentage ?? h.coveragePercentage) : h.coveragePercentage
+            )
+          )
           // Add current coverage as the newest point
-          baselineInfo.history.push(parseFloat(cov.coveragePercentage))
+          baselineInfo.history.push(parseFloat(currentPrimary))
           core.info(`Collected ${baselineInfo.history.length} data points for sparkline`)
         }
       } else {

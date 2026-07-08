@@ -36,6 +36,19 @@ A single-row table with all key metrics:
 - **Baseline**: Omitted when no baseline is available
 - **Diff**: Coverage of lines changed in the PR (omitted on non-PR events)
 
+### Go: Dual-Metric Headline
+
+When statement coverage is available (Go format only), the Coverage cell shows **both**
+metrics, with the sparkline and delta pinned to statements (the primary metric) and line
+coverage appended as secondary text:
+
+```
+`▃▄▆` 72.26% (↑1.26%) statements · 72.97% lines
+```
+
+The package table and the Covered/Uncovered/Total columns remain line-based for every format,
+including Go.
+
 ### 3. Coverage by Package (Collapsible)
 
 Wrapped in `<details>` for a compact display:
