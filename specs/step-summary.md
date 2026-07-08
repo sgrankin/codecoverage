@@ -36,18 +36,23 @@ A single-row table with all key metrics:
 - **Baseline**: Omitted when no baseline is available
 - **Diff**: Coverage of lines changed in the PR (omitted on non-PR events)
 
-### Go: Dual-Metric Headline
+### Go: Statement-Based Report
 
-When statement coverage is available (Go format only), the Coverage cell shows **both**
-metrics, with the sparkline and delta pinned to statements (the primary metric) and line
-coverage appended as secondary text:
+When statement coverage is available (Go format only), every count in the report —
+the headline percentage, delta, sparkline, Covered/Uncovered/Total columns, and the
+package table — uses statements as the unit, matching `go tool cover -func`. A
+footnote under the metrics table names the unit and carries the line figure:
 
 ```
-`▃▄▆` 72.26% (↑1.26%) statements · 72.97% lines
+`▃▄▆` 72.26% (↑1.26%) | ... | 723 | 277 | 1,000 | 1 |
+
+<sub>Statement coverage; line coverage is 72.97%.</sub>
 ```
 
-The package table and the Covered/Uncovered/Total columns remain line-based for every format,
-including Go.
+The footnote appears only when statements are the primary unit. The Diff Only column
+and annotations remain line-based for every format (the diff intersection is inherently
+per-line). In a mixed-format merge, entries without statement data contribute their
+line counts to the table.
 
 ### 3. Coverage by Package (Collapsible)
 
@@ -57,8 +62,8 @@ Wrapped in `<details>` for a compact display:
 <details>
 <summary>Coverage by Package</summary>
 
-| Package | Files | Total Lines | Covered | Coverage |
-| ------- | ----: | ----------: | ------: | -------: |
+| Package | Files | Total | Covered | Coverage |
+| ------- | ----: | ----: | ------: | -------: |
 | src | 5 | 500 | 425 | 85.0% |
 | src/utils | 3 | 300 | 270 | 90.0% |
 
@@ -90,8 +95,8 @@ Package is derived from the file's directory path:
 <details>
 <summary>Coverage by Package</summary>
 
-| Package | Files | Total Lines | Covered | Coverage |
-| ------- | ----: | ----------: | ------: | -------: |
+| Package | Files | Total | Covered | Coverage |
+| ------- | ----: | ----: | ------: | -------: |
 | src | 5 | 500 | 425 | 85.0% |
 | src/utils | 3 | 300 | 270 | 90.0% |
 | lib | 2 | 200 | 160 | 80.0% |

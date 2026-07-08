@@ -27,8 +27,9 @@ The action supports four coverage file formats:
 **Statement coverage**: Go cover profiles carry a per-block statement count
 (`file.go:startLine.startCol,endLine.endCol numStmts hitCount`). The parser records these as
 `Entry.statements` and reports statement coverage as the **primary** metric — the headline
-percentage, delta, and sparkline all track statements, matching `go tool cover -func`. Line
-coverage is still computed and shown as secondary text. Annotations (which lines are flagged
+percentage, delta, sparkline, count columns, and package table all use statements, matching
+`go tool cover -func`. Line coverage is still computed (exposed as `coverage_percentage`
+and named in a footnote under the report table). Annotations (which lines are flagged
 uncovered in the PR diff) remain line-based regardless of format.
 
 ### 4. SimpleCov (Ruby)

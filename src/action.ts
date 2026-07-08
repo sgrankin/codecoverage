@@ -146,23 +146,26 @@ function generateSummary(
   diffStats: summary.DiffStats,
   headerText: string
 ): string {
+  const useStatements = cov.statementPercentage !== ''
+  // All counts in the report use the primary unit: statements for Go, lines
+  // otherwise. Entries without statement data (mixed-format merges) fall back
+  // to their line counts.
   const fileStats: summary.FileCoverage[] = cov.parsedCov.map(entry => ({
     file: entry.file,
-    totalLines: entry.lines.found,
-    coveredLines: entry.lines.hit,
+    total: useStatements && entry.statements ? entry.statements.found : entry.lines.found,
+    covered: useStatements && entry.statements ? entry.statements.hit : entry.lines.hit,
     package: entry.package ?? ''
   }))
-  const useStatements = cov.statementPercentage !== ''
   return summary.generate({
     coverage: {
       percentage: useStatements ? cov.statementPercentage : cov.coveragePercentage,
-      totalLines: cov.totalLines,
-      coveredLines: cov.coveredLines,
+      total: useStatements ? cov.totalStatements : cov.totalLines,
+      covered: useStatements ? cov.coveredStatements : cov.coveredLines,
       filesAnalyzed: cov.parsedCov.length,
       files: fileStats,
-      secondaryPercentage: useStatements ? cov.coveragePercentage : '',
-      primaryLabel: useStatements ? 'statements' : '',
-      secondaryLabel: useStatements ? 'lines' : ''
+      footnote: useStatements
+        ? `Statement coverage; line coverage is ${cov.coveragePercentage}%.`
+        : ''
     },
     baseline: baselineInfo,
     diff: diffStats,
