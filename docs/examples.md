@@ -150,6 +150,31 @@ jobs:
           pr_comment: "true"
 ```
 
+### Tracking a branch other than main
+
+Baselines are stored on pushes to `main` by default. To track a different
+branch (a `master` default branch, or a long-running feature branch), trigger
+the workflow on pushes to that branch and set `main_branch`:
+
+```yaml
+on:
+  pull_request:
+  push:
+    branches: [go-port]
+
+# ...
+
+      - name: Code Coverage
+        uses: sgrankin/codecoverage@v1
+        with:
+          github_token: ${{secrets.GITHUB_TOKEN}}
+          coverage_file_path: coverage/lcov.info
+          main_branch: go-port
+```
+
+Baselines are namespaced per branch (`refs/notes/coverage/go-port`), and PRs
+targeting that branch compare against its baseline.
+
 ## Mode Override
 
 Manually control the operating mode:

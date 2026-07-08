@@ -153,6 +153,56 @@ test('stores baseline on push to main branch', async () => {
   expect(capture.output()).toContain('Storing baseline with namespace')
 })
 
+test('stores baseline on push to custom main_branch', async () => {
+  const capture = captureStdout()
+  const lcovPath = getFixturePath('lcov.info')
+  ;(github.context as any).eventName = 'push'
+  ;(github.context as any).ref = 'refs/heads/go-port'
+
+  setInputs({
+    github_token: 'test-token',
+    coverage_file_path: lcovPath,
+    coverage_format: 'lcov',
+    main_branch: 'go-port'
+  })
+
+  let storeNamespace = ''
+  const fakeDeps = createFakeDeps({
+    onStore: (_data, opts) => {
+      storeNamespace = (opts as {namespace: string}).namespace
+    }
+  })
+
+  await play(fakeDeps)
+  expect(storeNamespace).toBe('coverage/go-port')
+  expect(capture.output()).toContain('Storing baseline with namespace: coverage/go-port')
+})
+
+test('skips baseline storage on push to a branch other than main_branch', async () => {
+  const capture = captureStdout()
+  const lcovPath = getFixturePath('lcov.info')
+  ;(github.context as any).eventName = 'push'
+  ;(github.context as any).ref = 'refs/heads/feature/thing'
+
+  setInputs({
+    github_token: 'test-token',
+    coverage_file_path: lcovPath,
+    coverage_format: 'lcov',
+    main_branch: 'go-port'
+  })
+
+  let storeCalled = false
+  const fakeDeps = createFakeDeps({
+    onStore: () => {
+      storeCalled = true
+    }
+  })
+
+  await play(fakeDeps)
+  expect(storeCalled).toBe(false)
+  expect(capture.output()).toContain('Skipping baseline storage')
+})
+
 test('calculates delta when baseline exists in PR mode', async () => {
   const capture = captureStdout()
   const lcovPath = getFixturePath('lcov.info')

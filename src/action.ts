@@ -249,6 +249,7 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
       required: true
     })
     const modeOverride = core.getInput('mode')
+    const mainBranch = core.getInput('main_branch') || 'main'
     const calculateDeltaInput = core.getInput('calculate_delta') !== 'false'
     const noteNamespace = core.getInput('note_namespace') || 'coverage'
     const deltaPrecision = parseInt(core.getInput('delta_precision') || '2', 10)
@@ -269,7 +270,7 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
     core.info(`Workspace: ${workspacePath}`)
 
     // Detect operating mode
-    const ctx = mode.detect(modeOverride)
+    const ctx = mode.detect(modeOverride, mainBranch)
     core.info(`Mode: ${ctx.mode} (event: ${ctx.eventName})`)
     core.setOutput('mode', ctx.mode)
 

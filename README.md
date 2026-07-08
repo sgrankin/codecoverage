@@ -38,6 +38,7 @@ See [docs/examples.md](docs/examples.md) for language-specific setup and advance
 | `max_lookback` | no | `50` | Max ancestor commits to search for baseline |
 | `sparkline_count` | no | `10` | Historical data points in coverage sparkline (0 to disable) |
 | `mode` | no | auto | `pr-check` or `store-baseline` (see below) |
+| `main_branch` | no | `main` | Branch whose pushes store coverage baselines |
 | `calculate_delta` | no | `true` | Calculate coverage delta against baseline |
 | `github_base_url` | no | `https://api.github.com` | API URL for GitHub Enterprise |
 
@@ -61,6 +62,8 @@ Track coverage changes over time using git notes:
 
 1. **Push to main** → stores coverage as baseline
 2. **Pull request** → compares against baseline, shows delta
+
+To track a branch other than `main` (a different default branch, or a long-running feature branch), set `main_branch`; baselines are namespaced per branch, and PRs targeting that branch compare against its baseline.
 
 Requires `contents: write` permission and `fetch-depth: 0`:
 

@@ -54,8 +54,8 @@ The action automatically detects which mode to run in:
 | Event | Branch | Mode |
 |-------|--------|------|
 | `pull_request` | any | `pr-check` |
-| `push` | main | `store-baseline` |
-| `push` | feature/* | `store-baseline` (no storage) |
+| `push` | `main_branch` (default `main`) | `store-baseline` |
+| `push` | any other | `store-baseline` (no storage) |
 | `workflow_dispatch` | any | `store-baseline` |
 | `schedule` | any | `store-baseline` |
 
@@ -114,6 +114,7 @@ Set `max_lookback: 0` to disable lookback and only check the merge-base.
 | Input | Default | Description |
 |-------|---------|-------------|
 | `mode` | auto | Force `pr-check` or `store-baseline` |
+| `main_branch` | `main` | Branch whose pushes store baselines |
 | `calculate_delta` | `true` | Enable/disable delta calculation |
 | `max_lookback` | `50` | Max ancestors to search for baseline |
 | `note_namespace` | `coverage` | Base namespace for notes |

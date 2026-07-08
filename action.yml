@@ -41,6 +41,10 @@ inputs:
   mode:
     required: false
     description: "Operating mode: 'pr-check' (calculate delta against baseline) or 'store-baseline' (store coverage as baseline). Auto-detected if not specified."
+  main_branch:
+    required: false
+    description: "Branch whose pushes store coverage baselines. Set this when tracking a branch other than 'main' (e.g. 'master' or a long-running feature branch); baselines are namespaced per branch."
+    default: 'main'
   calculate_delta:
     required: false
     description: "Enable coverage delta calculation. Set to 'false' to disable."
