@@ -3,9 +3,5 @@
     "commit": "",
     "pr": "",
     "sessionUrl": false
-  },
-  "env": {
-    "GIT_AUTHOR_NAME": "Sergey Grankin",
-    "GIT_AUTHOR_EMAIL": "sgrankin@gmail.com"
   }
 }
