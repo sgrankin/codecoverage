@@ -53,7 +53,7 @@ See [docs/examples.md](docs/examples.md) for language-specific setup and advance
 | `annotation_count` | Annotations created for uncovered lines |
 | `mode` | Operating mode used |
 
-For Go coverage, the headline/delta/sparkline use **statement coverage** (matching `go tool cover -func`), while line coverage is still reported via `coverage_percentage` and shown as secondary text.
+For Go coverage, the report uses **statement coverage** throughout (matching `go tool cover -func`) — headline, delta, sparkline, counts, and package table — with a footnote noting the line figure. Line coverage is still reported via `coverage_percentage`.
 
 ## Coverage Delta
 

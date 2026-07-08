@@ -1,27 +1,27 @@
 import * as baseline from './baseline.ts'
 import * as sparkline from './sparkline.ts'
 
-// FileCoverage is the coverage data for a single file.
+// FileCoverage is the coverage data for a single file. Counts are in the
+// report's primary unit: statements for Go, lines otherwise.
 export interface FileCoverage {
   file: string
-  totalLines: number
-  coveredLines: number
+  total: number
+  covered: number
   // package is the package name (empty string = derive from path).
   package: string
 }
 
-// CoverageStats contains aggregate coverage statistics for display.
+// CoverageStats contains aggregate coverage statistics for display. Counts are
+// in the report's primary unit: statements for Go, lines otherwise.
 export interface CoverageStats {
-  percentage: string // PRIMARY metric percentage (statements for Go, lines otherwise)
-  totalLines: number
-  coveredLines: number
+  percentage: string
+  total: number
+  covered: number
   filesAnalyzed: number
   files: FileCoverage[]
-  // secondaryPercentage is the non-primary headline metric ('' = none, line-only formats).
-  secondaryPercentage: string
-  // primaryLabel/secondaryLabel name the two metrics ('' = no labels, legacy line-only display).
-  primaryLabel: string
-  secondaryLabel: string
+  // footnote is small print rendered under the metrics table ('' = none).
+  // Used to name the primary unit when it isn't lines.
+  footnote: string
 }
 
 // BaselineInfo contains baseline comparison data.
@@ -45,8 +45,8 @@ export interface DiffStats {
 // PackageCoverage is the aggregate coverage data for a package.
 interface PackageCoverage {
   package: string
-  totalLines: number
-  coveredLines: number
+  total: number
+  covered: number
   files: FileCoverage[]
 }
 
@@ -85,12 +85,12 @@ function groupByPackage(files: FileCoverage[]): PackageCoverage[] {
 
   const packages: PackageCoverage[] = []
   for (const [pkg, pkgFiles] of packageMap) {
-    const totalLines = pkgFiles.reduce((acc, f) => acc + f.totalLines, 0)
-    const coveredLines = pkgFiles.reduce((acc, f) => acc + f.coveredLines, 0)
+    const total = pkgFiles.reduce((acc, f) => acc + f.total, 0)
+    const covered = pkgFiles.reduce((acc, f) => acc + f.covered, 0)
     packages.push({
       package: pkg,
-      totalLines,
-      coveredLines,
+      total,
+      covered,
       files: pkgFiles.sort((a, b) => a.file.localeCompare(b.file))
     })
   }
@@ -102,7 +102,7 @@ function groupByPackage(files: FileCoverage[]): PackageCoverage[] {
 export function generate(params: Params): string {
   const {coverage, baseline: baselineInfo, diff, headerText} = params
   const header = headerText || 'Code Coverage Report'
-  const uncoveredLines = coverage.totalLines - coverage.coveredLines
+  const uncovered = coverage.total - coverage.covered
 
   // Status emoji: if we have a delta, use it to determine color (encourage improvement).
   // Otherwise fall back to absolute coverage thresholds.
@@ -126,13 +126,6 @@ export function generate(params: Params): string {
   if (baselineInfo.history && baselineInfo.history.length >= 2) {
     coverageDisplay = `\`${sparkline.render(baselineInfo.history)}\` ${coverageDisplay}`
   }
-  // Dual-metric headline: append the primary label, then the secondary metric clause.
-  if (coverage.primaryLabel) {
-    coverageDisplay = `${coverageDisplay} ${coverage.primaryLabel}`
-  }
-  if (coverage.secondaryPercentage) {
-    coverageDisplay = `${coverageDisplay} · ${coverage.secondaryPercentage}% ${coverage.secondaryLabel}`
-  }
 
   // Group files by package
   const packages = groupByPackage(coverage.files)
@@ -140,9 +133,8 @@ export function generate(params: Params): string {
   // Build package coverage table
   const packageRows = packages
     .map(pkg => {
-      const pct =
-        pkg.totalLines > 0 ? ((pkg.coveredLines / pkg.totalLines) * 100).toFixed(1) : '0.0'
-      return `| ${pkg.package} | ${pkg.files.length} | ${pkg.totalLines.toLocaleString()} | ${pkg.coveredLines.toLocaleString()} | ${pct}% |`
+      const pct = pkg.total > 0 ? ((pkg.covered / pkg.total) * 100).toFixed(1) : '0.0'
+      return `| ${pkg.package} | ${pkg.files.length} | ${pkg.total.toLocaleString()} | ${pkg.covered.toLocaleString()} | ${pct}% |`
     })
     .join('\n')
 
@@ -164,24 +156,26 @@ export function generate(params: Params): string {
     coverageDisplay,
     ...(baselineInfo.percentage ? [`${baselineInfo.percentage}%`] : []),
     ...(diffCoverageDisplay ? [diffCoverageDisplay] : []),
-    coverage.coveredLines.toLocaleString(),
-    uncoveredLines.toLocaleString(),
-    coverage.totalLines.toLocaleString(),
+    coverage.covered.toLocaleString(),
+    uncovered.toLocaleString(),
+    coverage.total.toLocaleString(),
     coverage.filesAnalyzed.toLocaleString()
   ]
   const alignRow = headerCols.map(() => '----:').join(' | ')
+
+  const footnote = coverage.footnote ? `\n<sub>${coverage.footnote}</sub>\n` : ''
 
   return `## ${statusEmoji} ${header}
 
 | ${headerCols.join(' | ')} |
 | ${alignRow} |
 | ${dataCols.join(' | ')} |
-
+${footnote}
 <details>
 <summary>Coverage by Package</summary>
 
-| Package | Files | Total Lines | Covered | Coverage |
-| ------- | ----: | ----------: | ------: | -------: |
+| Package | Files | Total | Covered | Coverage |
+| ------- | ----: | ----: | ------: | -------: |
 ${packageRows}
 
 </details>

@@ -5,8 +5,8 @@ import * as summary from '../../src/utils/summary.ts'
 // Helper to build Params from flat test data
 function makeParams(opts: {
   coveragePercentage: string
-  totalLines: number
-  coveredLines: number
+  total: number
+  covered: number
   filesAnalyzed: number
   files: Omit<FileCoverage, 'package'>[]
   coverageDelta?: string
@@ -15,19 +15,15 @@ function makeParams(opts: {
   diffTotalLines?: number
   coverageHistory?: number[]
   headerText?: string
-  secondaryPercentage?: string
-  primaryLabel?: string
-  secondaryLabel?: string
+  footnote?: string
 }): summary.Params {
   const coverage: CoverageStats = {
     percentage: opts.coveragePercentage,
-    totalLines: opts.totalLines,
-    coveredLines: opts.coveredLines,
+    total: opts.total,
+    covered: opts.covered,
     filesAnalyzed: opts.filesAnalyzed,
     files: opts.files.map(f => ({...f, package: (f as FileCoverage).package ?? ''})),
-    secondaryPercentage: opts.secondaryPercentage ?? '',
-    primaryLabel: opts.primaryLabel ?? '',
-    secondaryLabel: opts.secondaryLabel ?? ''
+    footnote: opts.footnote ?? ''
   }
   const baseline: BaselineInfo = {
     delta: opts.coverageDelta ?? '',
@@ -46,12 +42,12 @@ const testCases = [
     name: 'high coverage',
     input: {
       coveragePercentage: '85.50',
-      totalLines: 1000,
-      coveredLines: 855,
+      total: 1000,
+      covered: 855,
       filesAnalyzed: 2,
       files: [
-        {file: 'src/utils.ts', totalLines: 500, coveredLines: 450},
-        {file: 'src/main.ts', totalLines: 500, coveredLines: 405}
+        {file: 'src/utils.ts', total: 500, covered: 450},
+        {file: 'src/main.ts', total: 500, covered: 405}
       ]
     },
     expected: `## 🟢 Code Coverage Report
@@ -63,8 +59,8 @@ const testCases = [
 <details>
 <summary>Coverage by Package</summary>
 
-| Package | Files | Total Lines | Covered | Coverage |
-| ------- | ----: | ----------: | ------: | -------: |
+| Package | Files | Total | Covered | Coverage |
+| ------- | ----: | ----: | ------: | -------: |
 | src | 2 | 1,000 | 855 | 85.5% |
 
 </details>
@@ -74,10 +70,10 @@ const testCases = [
     name: 'medium coverage',
     input: {
       coveragePercentage: '65.00',
-      totalLines: 100,
-      coveredLines: 65,
+      total: 100,
+      covered: 65,
       filesAnalyzed: 1,
-      files: [{file: 'src/app.ts', totalLines: 100, coveredLines: 65}]
+      files: [{file: 'src/app.ts', total: 100, covered: 65}]
     },
     expected: `## 🟡 Code Coverage Report
 
@@ -88,8 +84,8 @@ const testCases = [
 <details>
 <summary>Coverage by Package</summary>
 
-| Package | Files | Total Lines | Covered | Coverage |
-| ------- | ----: | ----------: | ------: | -------: |
+| Package | Files | Total | Covered | Coverage |
+| ------- | ----: | ----: | ------: | -------: |
 | src | 1 | 100 | 65 | 65.0% |
 
 </details>
@@ -99,10 +95,10 @@ const testCases = [
     name: 'low coverage',
     input: {
       coveragePercentage: '45.00',
-      totalLines: 100,
-      coveredLines: 45,
+      total: 100,
+      covered: 45,
       filesAnalyzed: 1,
-      files: [{file: 'src/app.ts', totalLines: 100, coveredLines: 45}]
+      files: [{file: 'src/app.ts', total: 100, covered: 45}]
     },
     expected: `## 🔴 Code Coverage Report
 
@@ -113,8 +109,8 @@ const testCases = [
 <details>
 <summary>Coverage by Package</summary>
 
-| Package | Files | Total Lines | Covered | Coverage |
-| ------- | ----: | ----------: | ------: | -------: |
+| Package | Files | Total | Covered | Coverage |
+| ------- | ----: | ----: | ------: | -------: |
 | src | 1 | 100 | 45 | 45.0% |
 
 </details>
@@ -124,13 +120,13 @@ const testCases = [
     name: 'files grouped by package and sorted',
     input: {
       coveragePercentage: '80.00',
-      totalLines: 300,
-      coveredLines: 240,
+      total: 300,
+      covered: 240,
       filesAnalyzed: 3,
       files: [
-        {file: 'src/utils/zebra.ts', totalLines: 100, coveredLines: 80},
-        {file: 'src/alpha.ts', totalLines: 100, coveredLines: 80},
-        {file: 'lib/beta.ts', totalLines: 100, coveredLines: 80}
+        {file: 'src/utils/zebra.ts', total: 100, covered: 80},
+        {file: 'src/alpha.ts', total: 100, covered: 80},
+        {file: 'lib/beta.ts', total: 100, covered: 80}
       ]
     },
     expected: `## 🟢 Code Coverage Report
@@ -142,8 +138,8 @@ const testCases = [
 <details>
 <summary>Coverage by Package</summary>
 
-| Package | Files | Total Lines | Covered | Coverage |
-| ------- | ----: | ----------: | ------: | -------: |
+| Package | Files | Total | Covered | Coverage |
+| ------- | ----: | ----: | ------: | -------: |
 | lib | 1 | 100 | 80 | 80.0% |
 | src | 1 | 100 | 80 | 80.0% |
 | src/utils | 1 | 100 | 80 | 80.0% |
@@ -155,12 +151,12 @@ const testCases = [
     name: 'uses explicit package when provided (cobertura)',
     input: {
       coveragePercentage: '75.00',
-      totalLines: 200,
-      coveredLines: 150,
+      total: 200,
+      covered: 150,
       filesAnalyzed: 2,
       files: [
-        {file: 'src/foo.ts', totalLines: 100, coveredLines: 80, package: 'com.example.foo'},
-        {file: 'src/bar.ts', totalLines: 100, coveredLines: 70, package: 'com.example.bar'}
+        {file: 'src/foo.ts', total: 100, covered: 80, package: 'com.example.foo'},
+        {file: 'src/bar.ts', total: 100, covered: 70, package: 'com.example.bar'}
       ]
     },
     expected: `## 🟡 Code Coverage Report
@@ -172,8 +168,8 @@ const testCases = [
 <details>
 <summary>Coverage by Package</summary>
 
-| Package | Files | Total Lines | Covered | Coverage |
-| ------- | ----: | ----------: | ------: | -------: |
+| Package | Files | Total | Covered | Coverage |
+| ------- | ----: | ----: | ------: | -------: |
 | com.example.bar | 1 | 100 | 70 | 70.0% |
 | com.example.foo | 1 | 100 | 80 | 80.0% |
 
@@ -184,10 +180,10 @@ const testCases = [
     name: 'coverage with positive delta',
     input: {
       coveragePercentage: '85.50',
-      totalLines: 1000,
-      coveredLines: 855,
+      total: 1000,
+      covered: 855,
       filesAnalyzed: 1,
-      files: [{file: 'src/main.ts', totalLines: 1000, coveredLines: 855}],
+      files: [{file: 'src/main.ts', total: 1000, covered: 855}],
       coverageDelta: '+2.50',
       baselinePercentage: '83.00'
     },
@@ -200,8 +196,8 @@ const testCases = [
 <details>
 <summary>Coverage by Package</summary>
 
-| Package | Files | Total Lines | Covered | Coverage |
-| ------- | ----: | ----------: | ------: | -------: |
+| Package | Files | Total | Covered | Coverage |
+| ------- | ----: | ----: | ------: | -------: |
 | src | 1 | 1,000 | 855 | 85.5% |
 
 </details>
@@ -211,10 +207,10 @@ const testCases = [
     name: 'coverage with negative delta',
     input: {
       coveragePercentage: '78.00',
-      totalLines: 1000,
-      coveredLines: 780,
+      total: 1000,
+      covered: 780,
       filesAnalyzed: 1,
-      files: [{file: 'src/main.ts', totalLines: 1000, coveredLines: 780}],
+      files: [{file: 'src/main.ts', total: 1000, covered: 780}],
       coverageDelta: '-2.00',
       baselinePercentage: '80.00'
     },
@@ -227,8 +223,8 @@ const testCases = [
 <details>
 <summary>Coverage by Package</summary>
 
-| Package | Files | Total Lines | Covered | Coverage |
-| ------- | ----: | ----------: | ------: | -------: |
+| Package | Files | Total | Covered | Coverage |
+| ------- | ----: | ----: | ------: | -------: |
 | src | 1 | 1,000 | 780 | 78.0% |
 
 </details>
@@ -238,10 +234,10 @@ const testCases = [
     name: 'coverage with zero delta',
     input: {
       coveragePercentage: '75.00',
-      totalLines: 1000,
-      coveredLines: 750,
+      total: 1000,
+      covered: 750,
       filesAnalyzed: 1,
-      files: [{file: 'src/main.ts', totalLines: 1000, coveredLines: 750}],
+      files: [{file: 'src/main.ts', total: 1000, covered: 750}],
       coverageDelta: '+0.00',
       baselinePercentage: '75.00'
     },
@@ -254,8 +250,8 @@ const testCases = [
 <details>
 <summary>Coverage by Package</summary>
 
-| Package | Files | Total Lines | Covered | Coverage |
-| ------- | ----: | ----------: | ------: | -------: |
+| Package | Files | Total | Covered | Coverage |
+| ------- | ----: | ----: | ------: | -------: |
 | src | 1 | 1,000 | 750 | 75.0% |
 
 </details>
@@ -265,10 +261,10 @@ const testCases = [
     name: 'low coverage but improving (chart up)',
     input: {
       coveragePercentage: '45.00',
-      totalLines: 1000,
-      coveredLines: 450,
+      total: 1000,
+      covered: 450,
       filesAnalyzed: 1,
-      files: [{file: 'src/main.ts', totalLines: 1000, coveredLines: 450}],
+      files: [{file: 'src/main.ts', total: 1000, covered: 450}],
       coverageDelta: '+5.00',
       baselinePercentage: '40.00'
     },
@@ -281,8 +277,8 @@ const testCases = [
 <details>
 <summary>Coverage by Package</summary>
 
-| Package | Files | Total Lines | Covered | Coverage |
-| ------- | ----: | ----------: | ------: | -------: |
+| Package | Files | Total | Covered | Coverage |
+| ------- | ----: | ----: | ------: | -------: |
 | src | 1 | 1,000 | 450 | 45.0% |
 
 </details>
@@ -292,10 +288,10 @@ const testCases = [
     name: 'with diff coverage',
     input: {
       coveragePercentage: '80.00',
-      totalLines: 1000,
-      coveredLines: 800,
+      total: 1000,
+      covered: 800,
       filesAnalyzed: 1,
-      files: [{file: 'src/main.ts', totalLines: 1000, coveredLines: 800}],
+      files: [{file: 'src/main.ts', total: 1000, covered: 800}],
       diffCoveredLines: 45,
       diffTotalLines: 50
     },
@@ -308,8 +304,8 @@ const testCases = [
 <details>
 <summary>Coverage by Package</summary>
 
-| Package | Files | Total Lines | Covered | Coverage |
-| ------- | ----: | ----------: | ------: | -------: |
+| Package | Files | Total | Covered | Coverage |
+| ------- | ----: | ----: | ------: | -------: |
 | src | 1 | 1,000 | 800 | 80.0% |
 
 </details>
@@ -319,10 +315,10 @@ const testCases = [
     name: 'with baseline and diff coverage',
     input: {
       coveragePercentage: '85.00',
-      totalLines: 1000,
-      coveredLines: 850,
+      total: 1000,
+      covered: 850,
       filesAnalyzed: 1,
-      files: [{file: 'src/main.ts', totalLines: 1000, coveredLines: 850}],
+      files: [{file: 'src/main.ts', total: 1000, covered: 850}],
       coverageDelta: '+5.00',
       baselinePercentage: '80.00',
       diffCoveredLines: 100,
@@ -337,8 +333,8 @@ const testCases = [
 <details>
 <summary>Coverage by Package</summary>
 
-| Package | Files | Total Lines | Covered | Coverage |
-| ------- | ----: | ----------: | ------: | -------: |
+| Package | Files | Total | Covered | Coverage |
+| ------- | ----: | ----: | ------: | -------: |
 | src | 1 | 1,000 | 850 | 85.0% |
 
 </details>
@@ -348,10 +344,10 @@ const testCases = [
     name: 'custom header text',
     input: {
       coveragePercentage: '85.00',
-      totalLines: 1000,
-      coveredLines: 850,
+      total: 1000,
+      covered: 850,
       filesAnalyzed: 1,
-      files: [{file: 'src/main.ts', totalLines: 1000, coveredLines: 850}],
+      files: [{file: 'src/main.ts', total: 1000, covered: 850}],
       headerText: 'Test Coverage Summary'
     },
     expected: `## 🟢 Test Coverage Summary
@@ -363,67 +359,67 @@ const testCases = [
 <details>
 <summary>Coverage by Package</summary>
 
-| Package | Files | Total Lines | Covered | Coverage |
-| ------- | ----: | ----------: | ------: | -------: |
+| Package | Files | Total | Covered | Coverage |
+| ------- | ----: | ----: | ------: | -------: |
 | src | 1 | 1,000 | 850 | 85.0% |
 
 </details>
 `
   },
   {
-    name: 'Go dual-metric display without baseline',
+    name: 'footnote without baseline (Go statement coverage)',
     input: {
-      coveragePercentage: '72.26',
-      totalLines: 1000,
-      coveredLines: 723,
+      coveragePercentage: '45.00',
+      total: 20,
+      covered: 9,
       filesAnalyzed: 1,
-      files: [{file: 'pkg/main.go', totalLines: 1000, coveredLines: 723}],
-      secondaryPercentage: '72.97',
-      primaryLabel: 'statements',
-      secondaryLabel: 'lines'
+      files: [{file: 'pkg/main.go', total: 20, covered: 9}],
+      footnote: 'Statement coverage; line coverage is 43.33%.'
     },
-    expected: `## 🟡 Code Coverage Report
+    expected: `## 🔴 Code Coverage Report
 
 | Coverage | Covered | Uncovered | Total | Files |
 | ----: | ----: | ----: | ----: | ----: |
-| 72.26% statements · 72.97% lines | 723 | 277 | 1,000 | 1 |
+| 45.00% | 9 | 11 | 20 | 1 |
+
+<sub>Statement coverage; line coverage is 43.33%.</sub>
 
 <details>
 <summary>Coverage by Package</summary>
 
-| Package | Files | Total Lines | Covered | Coverage |
-| ------- | ----: | ----------: | ------: | -------: |
-| pkg | 1 | 1,000 | 723 | 72.3% |
+| Package | Files | Total | Covered | Coverage |
+| ------- | ----: | ----: | ------: | -------: |
+| pkg | 1 | 20 | 9 | 45.0% |
 
 </details>
 `
   },
   {
-    name: 'Go dual-metric display with delta and sparkline',
+    name: 'footnote with delta and sparkline (Go statement coverage)',
     input: {
       coveragePercentage: '72.26',
-      totalLines: 1000,
-      coveredLines: 723,
+      total: 1000,
+      covered: 723,
       filesAnalyzed: 1,
-      files: [{file: 'pkg/main.go', totalLines: 1000, coveredLines: 723}],
+      files: [{file: 'pkg/main.go', total: 1000, covered: 723}],
       coverageDelta: '+1.26',
       baselinePercentage: '71.00',
       coverageHistory: [70, 71, 72.26],
-      secondaryPercentage: '72.97',
-      primaryLabel: 'statements',
-      secondaryLabel: 'lines'
+      footnote: 'Statement coverage; line coverage is 72.97%.'
     },
     expected: `## 📈 Code Coverage Report
 
 | Coverage | Baseline | Covered | Uncovered | Total | Files |
 | ----: | ----: | ----: | ----: | ----: | ----: |
-| \`▃▄▆\` 72.26% (↑1.26%) statements · 72.97% lines | 71.00% | 723 | 277 | 1,000 | 1 |
+| \`▃▄▆\` 72.26% (↑1.26%) | 71.00% | 723 | 277 | 1,000 | 1 |
+
+<sub>Statement coverage; line coverage is 72.97%.</sub>
 
 <details>
 <summary>Coverage by Package</summary>
 
-| Package | Files | Total Lines | Covered | Coverage |
-| ------- | ----: | ----------: | ------: | -------: |
+| Package | Files | Total | Covered | Coverage |
+| ------- | ----: | ----: | ------: | -------: |
 | pkg | 1 | 1,000 | 723 | 72.3% |
 
 </details>
@@ -473,10 +469,10 @@ test.each(sparklineTestCases)('sparkline: $name', ({coverageHistory, expectedSpa
   const result = summary.generate(
     makeParams({
       coveragePercentage: '85.00',
-      totalLines: 1000,
-      coveredLines: 850,
+      total: 1000,
+      covered: 850,
       filesAnalyzed: 1,
-      files: [{file: 'src/main.ts', totalLines: 1000, coveredLines: 850}],
+      files: [{file: 'src/main.ts', total: 1000, covered: 850}],
       coverageDelta: '+5.00',
       baselinePercentage: '80.00',
       coverageHistory: coverageHistory as number[]
