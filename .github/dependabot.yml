@@ -4,6 +4,10 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    # Wait for releases to age before proposing them, so compromised
+    # packages are likely caught and unpublished before we pick them up.
+    cooldown:
+      default-days: 7
     groups:
       actions:
         patterns:
@@ -13,6 +17,9 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
     groups:
       all:
         patterns:
