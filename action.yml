@@ -30,6 +30,10 @@ inputs:
     required: false
     description: "Post coverage summary as a PR comment. Updates existing comment on re-runs. Set to 'true' to enable."
     default: 'false'
+  comment_id:
+    required: false
+    description: "Namespace for the PR comment marker. Jobs with different ids maintain separate comments on the same PR (e.g. one per coverage format); re-runs with the same id update in place. Empty uses the default shared comment."
+    default: ''
   report_header:
     required: false
     description: "Custom header text for coverage reports (PR comments and step summary)."

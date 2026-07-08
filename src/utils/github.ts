@@ -3,8 +3,12 @@ import * as github from '@actions/github'
 import * as diff from './diff.ts'
 import * as coverage from './general.ts'
 
-// COMMENT_MARKER identifies comments created by this action.
-const COMMENT_MARKER = '<!-- codecoverage-action -->'
+// commentMarker returns the hidden marker identifying comments created by this
+// action. A non-empty id namespaces the marker so multiple jobs (e.g. one per
+// coverage format) can each maintain their own comment on the same PR.
+function commentMarker(id: string): string {
+  return id ? `<!-- codecoverage-action:${id} -->` : '<!-- codecoverage-action -->'
+}
 
 export type Annotation = {
   path: string
@@ -176,12 +180,15 @@ export class Client {
   }
 
   // upsertComment creates or updates the coverage comment on the PR.
+  // commentID namespaces the comment marker: jobs with different ids maintain
+  // separate comments, while re-runs with the same id update in place.
   // Returns true if successful, false if the comment could not be posted.
-  async upsertComment(body: string): Promise<boolean> {
-    const markedBody = `${COMMENT_MARKER}\n${body}`
+  async upsertComment(body: string, commentID = ''): Promise<boolean> {
+    const marker = commentMarker(commentID)
+    const markedBody = `${marker}\n${body}`
     try {
       const comments = await this.commentOps.list()
-      const existing = comments.find(c => c.body.includes(COMMENT_MARKER))
+      const existing = comments.find(c => c.body.includes(marker))
       if (existing) {
         await this.commentOps.update(existing.id, markedBody)
         core.info('Updated existing coverage comment')
