@@ -155,10 +155,13 @@ gh release create v1.6.0 --title "v1.6.0" --notes "..."
 
 Users can reference `@v1` to always get the latest v1.x release.
 
-Alternatively, run the **Release** workflow (Actions → Release → Run workflow)
-with the version number. It creates the version tag, moves the floating major
-tag, and creates the GitHub release — useful from environments that can push
-branches but not tags (e.g. Claude Code remote sessions).
+Alternatively, run the **Release** workflow: dispatch it (Actions → Release →
+Run workflow) with the version number, or push a branch named
+`release/<version>` at the commit to release. It creates the version tag,
+moves the floating major tag, and creates the GitHub release (using
+`docs/releases/<version>.md` as notes when present) — useful from
+environments that can push branches but not tags (e.g. Claude Code remote
+sessions).
 
 ## Updating README Screenshots
 

@@ -1,8 +1,16 @@
 name: Release
 
-# Cuts a release from the current main: creates the version tag, moves the
-# floating major tag (e.g. v1), and creates the GitHub release. Complements
-# the local jj/gh recipe in CLAUDE.md for environments that can't push tags.
+# Cuts a release: creates the version tag, moves the floating major tag
+# (e.g. v1), and creates the GitHub release. Complements the local jj/gh
+# recipe in CLAUDE.md for environments that can't push tags.
+#
+# Two ways to trigger:
+#   - workflow_dispatch with a version input (tags the head of the chosen ref)
+#   - push a branch named release/<version> at the commit to release; the
+#     workflow tags that commit and deletes the branch when done
+#
+# Release notes come from docs/releases/<version>.md when that file exists
+# at the released commit; otherwise GitHub auto-generates them.
 
 on:
   workflow_dispatch:
@@ -10,10 +18,9 @@ on:
       version:
         description: 'Version to release (e.g. v1.10.0)'
         required: true
-      notes:
-        description: 'Release notes (markdown). Auto-generated when empty.'
-        required: false
-        default: ''
+  push:
+    branches:
+      - 'release/v*'
 
 permissions: {}
 
@@ -28,9 +35,9 @@ jobs:
       - name: Create tags and release
         env:
           GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ inputs.version }}
-          NOTES: ${{ inputs.notes }}
+          VERSION: ${{ github.event_name == 'push' && github.ref_name || inputs.version }}
         run: |
+          VERSION="${VERSION#release/}"
           if ! echo "$VERSION" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
             echo "version must look like v1.2.3, got: $VERSION"
             exit 1
@@ -42,8 +49,12 @@ jobs:
           git push origin "refs/tags/$VERSION"
           git push -f origin "refs/tags/$major"
 
-          if [ -n "$NOTES" ]; then
-            gh release create "$VERSION" --title "$VERSION" --notes "$NOTES"
+          if [ -f "docs/releases/$VERSION.md" ]; then
+            gh release create "$VERSION" --title "$VERSION" --notes-file "docs/releases/$VERSION.md"
           else
             gh release create "$VERSION" --title "$VERSION" --generate-notes
           fi
+
+      - name: Delete release branch
+        if: github.event_name == 'push'
+        run: git push origin ":${GITHUB_REF}"
