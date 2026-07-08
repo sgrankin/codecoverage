@@ -15,13 +15,19 @@ function makeParams(opts: {
   diffTotalLines?: number
   coverageHistory?: number[]
   headerText?: string
+  secondaryPercentage?: string
+  primaryLabel?: string
+  secondaryLabel?: string
 }): summary.Params {
   const coverage: CoverageStats = {
     percentage: opts.coveragePercentage,
     totalLines: opts.totalLines,
     coveredLines: opts.coveredLines,
     filesAnalyzed: opts.filesAnalyzed,
-    files: opts.files.map(f => ({...f, package: (f as FileCoverage).package ?? ''}))
+    files: opts.files.map(f => ({...f, package: (f as FileCoverage).package ?? ''})),
+    secondaryPercentage: opts.secondaryPercentage ?? '',
+    primaryLabel: opts.primaryLabel ?? '',
+    secondaryLabel: opts.secondaryLabel ?? ''
   }
   const baseline: BaselineInfo = {
     delta: opts.coverageDelta ?? '',
@@ -360,6 +366,65 @@ const testCases = [
 | Package | Files | Total Lines | Covered | Coverage |
 | ------- | ----: | ----------: | ------: | -------: |
 | src | 1 | 1,000 | 850 | 85.0% |
+
+</details>
+`
+  },
+  {
+    name: 'Go dual-metric display without baseline',
+    input: {
+      coveragePercentage: '72.26',
+      totalLines: 1000,
+      coveredLines: 723,
+      filesAnalyzed: 1,
+      files: [{file: 'pkg/main.go', totalLines: 1000, coveredLines: 723}],
+      secondaryPercentage: '72.97',
+      primaryLabel: 'statements',
+      secondaryLabel: 'lines'
+    },
+    expected: `## 🟡 Code Coverage Report
+
+| Coverage | Covered | Uncovered | Total | Files |
+| ----: | ----: | ----: | ----: | ----: |
+| 72.26% statements · 72.97% lines | 723 | 277 | 1,000 | 1 |
+
+<details>
+<summary>Coverage by Package</summary>
+
+| Package | Files | Total Lines | Covered | Coverage |
+| ------- | ----: | ----------: | ------: | -------: |
+| pkg | 1 | 1,000 | 723 | 72.3% |
+
+</details>
+`
+  },
+  {
+    name: 'Go dual-metric display with delta and sparkline',
+    input: {
+      coveragePercentage: '72.26',
+      totalLines: 1000,
+      coveredLines: 723,
+      filesAnalyzed: 1,
+      files: [{file: 'pkg/main.go', totalLines: 1000, coveredLines: 723}],
+      coverageDelta: '+1.26',
+      baselinePercentage: '71.00',
+      coverageHistory: [70, 71, 72.26],
+      secondaryPercentage: '72.97',
+      primaryLabel: 'statements',
+      secondaryLabel: 'lines'
+    },
+    expected: `## 📈 Code Coverage Report
+
+| Coverage | Baseline | Covered | Uncovered | Total | Files |
+| ----: | ----: | ----: | ----: | ----: | ----: |
+| \`▃▄▆\` 72.26% (↑1.26%) statements · 72.97% lines | 71.00% | 723 | 277 | 1,000 | 1 |
+
+<details>
+<summary>Coverage by Package</summary>
+
+| Package | Files | Total Lines | Covered | Coverage |
+| ------- | ----: | ----------: | ------: | -------: |
+| pkg | 1 | 1,000 | 723 | 72.3% |
 
 </details>
 `

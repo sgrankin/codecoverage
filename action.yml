@@ -67,15 +67,17 @@ inputs:
     default: 'true'
 outputs:
   coverage_percentage:
-    description: 'Overall code coverage percentage'
+    description: 'Overall code coverage percentage (line coverage; always set)'
+  statement_percentage:
+    description: 'Statement coverage percentage (Go coverage only; empty otherwise)'
   files_analyzed:
     description: 'Number of files with coverage data'
   annotation_count:
     description: 'Number of annotations created for uncovered lines in the PR'
   coverage_delta:
-    description: 'Change in coverage percentage compared to baseline (e.g., "+2.5" or "-1.2")'
+    description: 'Change in the primary coverage metric compared to baseline (statement coverage for Go, line coverage otherwise), e.g. "+2.5" or "-1.2"'
   baseline_percentage:
-    description: 'Baseline coverage percentage (from git notes)'
+    description: 'Baseline percentage for the primary coverage metric (from git notes; statement coverage for Go, line coverage otherwise)'
   mode:
     description: 'The operating mode used (pr-check or store-baseline)'
 runs:

@@ -582,6 +582,55 @@ test('does not post PR comment in store-baseline mode', async () => {
   expect(capture.output()).toContain('Mode: store-baseline')
 })
 
+test('Go format reports statement coverage alongside line coverage', async () => {
+  const capture = captureStdout()
+  const goCoveragePath = getFixturePath('gocoverage.out')
+  const workingDirectory = path.dirname(getFixturePath('go.mod'))
+
+  setInputs({
+    github_token: 'test-token',
+    coverage_file_path: goCoveragePath,
+    coverage_format: 'go',
+    working_directory: workingDirectory,
+    github_base_url: 'https://api.github.com',
+    step_summary: 'false'
+  })
+
+  await play(createFakeDeps())
+  expect(mockSetFailed).not.toHaveBeenCalled()
+
+  // Statement coverage is set and distinct from (line) coverage_percentage.
+  expect(mockSetOutput).toHaveBeenCalledWith('statement_percentage', expect.any(String))
+  const statementCall = mockSetOutput.mock.calls.find(call => call[0] === 'statement_percentage')
+  const linePercentageCall = mockSetOutput.mock.calls.find(
+    call => call[0] === 'coverage_percentage'
+  )
+  expect(statementCall?.[1]).not.toBe('')
+  expect(Number(statementCall?.[1])).toBeGreaterThan(0)
+  expect(linePercentageCall?.[1]).toBeTruthy()
+
+  void capture
+})
+
+test('non-Go formats leave statement_percentage empty', async () => {
+  const capture = captureStdout()
+  const lcovPath = getFixturePath('lcov.info')
+
+  setInputs({
+    github_token: 'test-token',
+    coverage_file_path: lcovPath,
+    coverage_format: 'lcov',
+    github_base_url: 'https://api.github.com',
+    step_summary: 'false'
+  })
+
+  await play(createFakeDeps())
+  expect(mockSetOutput).toHaveBeenCalledWith('statement_percentage', '')
+  expect(mockSetOutput).toHaveBeenCalledWith('coverage_percentage', '34.78')
+
+  void capture
+})
+
 test('summary stats include all files, not just PR diff files', async () => {
   // This test validates that summary statistics include coverage from ALL files,
   // not just the ones in the PR diff.

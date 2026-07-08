@@ -12,11 +12,16 @@ export interface FileCoverage {
 
 // CoverageStats contains aggregate coverage statistics for display.
 export interface CoverageStats {
-  percentage: string
+  percentage: string // PRIMARY metric percentage (statements for Go, lines otherwise)
   totalLines: number
   coveredLines: number
   filesAnalyzed: number
   files: FileCoverage[]
+  // secondaryPercentage is the non-primary headline metric ('' = none, line-only formats).
+  secondaryPercentage: string
+  // primaryLabel/secondaryLabel name the two metrics ('' = no labels, legacy line-only display).
+  primaryLabel: string
+  secondaryLabel: string
 }
 
 // BaselineInfo contains baseline comparison data.
@@ -120,6 +125,13 @@ export function generate(params: Params): string {
   }
   if (baselineInfo.history && baselineInfo.history.length >= 2) {
     coverageDisplay = `\`${sparkline.render(baselineInfo.history)}\` ${coverageDisplay}`
+  }
+  // Dual-metric headline: append the primary label, then the secondary metric clause.
+  if (coverage.primaryLabel) {
+    coverageDisplay = `${coverageDisplay} ${coverage.primaryLabel}`
+  }
+  if (coverage.secondaryPercentage) {
+    coverageDisplay = `${coverageDisplay} · ${coverage.secondaryPercentage}% ${coverage.secondaryLabel}`
   }
 
   // Group files by package

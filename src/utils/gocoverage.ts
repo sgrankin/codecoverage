@@ -7,6 +7,9 @@ interface FileAccumulator {
   title: string
   file: string
   lineHits: Map<number, number>
+  // stmtBlocks holds per-block statement coverage, keyed by the block's coordinate string
+  // (e.g. "57.54,59.16").
+  stmtBlocks: Map<string, {count: number; hit: number}>
 }
 
 // parseContent parses Go coverage file content.
@@ -41,7 +44,8 @@ function parseContent(text: string, moduleName: string, pathPrefix = ''): covera
         file = {
           title: nameParts.at(-1) ?? filePath,
           file: filePath,
-          lineHits: new Map()
+          lineHits: new Map(),
+          stmtBlocks: new Map()
         }
         files.push(file)
       }
@@ -49,12 +53,24 @@ function parseContent(text: string, moduleName: string, pathPrefix = ''): covera
       // Parse line range and hit count: "startLine.col,endLine.col numStatements hitCount"
       const startLine = Number(values.split(',')[0]?.split('.')[0])
       const endLine = Number(values.split(',')[1]?.split('.')[0])
+      const coords = values.split(' ')[0] ?? ''
+      const numStmts = Number(values.split(' ')[1])
       const hitCount = Number(values.split(' ')[2])
 
       // Accumulate hits using Map for O(1) lookup
       for (let lineNumber = startLine; lineNumber <= endLine; lineNumber++) {
         const existing = file.lineHits.get(lineNumber) ?? 0
         file.lineHits.set(lineNumber, existing + hitCount)
+      }
+
+      // Accumulate per-block statement counts, taking the max hit count seen for a block.
+      if (coords && Number.isFinite(numStmts)) {
+        const prev = file.stmtBlocks.get(coords)
+        if (prev) {
+          prev.hit = Math.max(prev.hit, hitCount)
+        } else {
+          file.stmtBlocks.set(coords, {count: numStmts, hit: hitCount})
+        }
       }
     }
   }
@@ -66,7 +82,7 @@ function parseContent(text: string, moduleName: string, pathPrefix = ''): covera
     const details = Array.from(file.lineHits.entries())
       .map(([line, hit]) => ({line, hit}))
       .sort((a, b) => a.line - b.line)
-    return {
+    const entry: coverage.Entry = {
       title: file.title,
       file: relativeFile,
       lines: {
@@ -75,6 +91,17 @@ function parseContent(text: string, moduleName: string, pathPrefix = ''): covera
         details
       }
     }
+    if (file.stmtBlocks.size > 0) {
+      const blocks = Array.from(file.stmtBlocks.entries())
+        .map(([key, {count, hit}]) => ({key, count, hit}))
+        .sort((a, b) => a.key.localeCompare(b.key))
+      entry.statements = {
+        found: blocks.reduce((acc, b) => acc + b.count, 0),
+        hit: blocks.reduce((acc, b) => acc + (b.hit > 0 ? b.count : 0), 0),
+        blocks
+      }
+    }
+    return entry
   })
 }
 
@@ -163,5 +190,21 @@ example.com/pkg/file.go:1.1,1.1 1 1`
 
     const result = parseContent(input, 'example.com', '.')
     expect(result[0]!.file).toBe('pkg/file.go')
+  })
+
+  test('parseContent parses statement counts into a statements field', () => {
+    const input = `mode: set
+example.com/pkg/file.go:10.1,12.1 3 1
+example.com/pkg/file.go:15.1,15.1 1 0`
+
+    const result = parseContent(input, 'example.com')
+    expect(result[0]!.statements).toEqual({
+      found: 4,
+      hit: 3,
+      blocks: [
+        {key: '10.1,12.1', count: 3, hit: 1},
+        {key: '15.1,15.1', count: 1, hit: 0}
+      ]
+    })
   })
 }
