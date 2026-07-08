@@ -155,6 +155,11 @@ gh release create v1.6.0 --title "v1.6.0" --notes "..."
 
 Users can reference `@v1` to always get the latest v1.x release.
 
+Alternatively, run the **Release** workflow (Actions → Release → Run workflow)
+with the version number. It creates the version tag, moves the floating major
+tag, and creates the GitHub release — useful from environments that can push
+branches but not tags (e.g. Claude Code remote sessions).
+
 ## Updating README Screenshots
 
 The README includes screenshots showing annotations and the coverage summary comment. To update them:

@@ -1,0 +1,49 @@
+name: Release
+
+# Cuts a release from the current main: creates the version tag, moves the
+# floating major tag (e.g. v1), and creates the GitHub release. Complements
+# the local jj/gh recipe in CLAUDE.md for environments that can't push tags.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g. v1.10.0)'
+        required: true
+      notes:
+        description: 'Release notes (markdown). Auto-generated when empty.'
+        required: false
+        default: ''
+
+permissions: {}
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Create tags and release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+          NOTES: ${{ inputs.notes }}
+        run: |
+          if ! echo "$VERSION" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "version must look like v1.2.3, got: $VERSION"
+            exit 1
+          fi
+          major="${VERSION%%.*}"
+
+          git tag "$VERSION"
+          git tag -f "$major"
+          git push origin "refs/tags/$VERSION"
+          git push -f origin "refs/tags/$major"
+
+          if [ -n "$NOTES" ]; then
+            gh release create "$VERSION" --title "$VERSION" --notes "$NOTES"
+          else
+            gh release create "$VERSION" --title "$VERSION" --generate-notes
+          fi
