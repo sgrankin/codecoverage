@@ -31,6 +31,7 @@ See [docs/examples.md](docs/examples.md) for language-specific setup and advance
 | `coverage_format` | no | `lcov` | Format: `lcov`, `cobertura`, `go`, or `simplecov` |
 | `working_directory` | no | `.` | Project directory relative to workspace root. For `go` format, locates `go.mod` and prefixes entry paths to match PR diff paths. |
 | `pr_comment` | no | `false` | Post coverage summary as PR comment |
+| `comment_id` | no | `''` | Namespace for the PR comment; jobs with different ids keep separate comments |
 | `report_header` | no | `Code Coverage Report` | Custom header text for coverage reports |
 | `step_summary` | no | `true` | Write summary to GitHub Actions step summary |
 | `max_annotations` | no | `10` | Maximum annotations to emit |

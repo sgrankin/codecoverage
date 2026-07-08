@@ -63,7 +63,7 @@ function createFakeDeps(
     // onLoad tracks calls to baseline.load.
     onLoad?: (branch: string, opts: unknown) => void
     // onUpsertComment tracks calls to upsertComment.
-    onUpsertComment?: (body: string) => void
+    onUpsertComment?: (body: string, commentID: string) => void
     // upsertCommentResult is the return value for upsertComment.
     upsertCommentResult?: boolean
   } = {}
@@ -72,8 +72,8 @@ function createFakeDeps(
     createGitHub: (): GitHubOps => ({
       getPullRequestDiff: async () => options.diffResponse ?? {},
       buildAnnotations: () => options.annotations ?? [],
-      upsertComment: async (body: string) => {
-        options.onUpsertComment?.(body)
+      upsertComment: async (body: string, commentID: string) => {
+        options.onUpsertComment?.(body, commentID)
         return options.upsertCommentResult ?? true
       }
     }),
@@ -527,6 +527,35 @@ test('posts PR comment when pr_comment is true', async () => {
   expect(commentBody).toContain('Code Coverage Report')
   expect(commentBody).toContain('Coverage by Package')
   // Suppress unused capture warning
+  void capture
+})
+
+test.each([
+  {name: 'default empty', inputID: '', wantID: ''},
+  {name: 'namespaced', inputID: 'go', wantID: 'go'}
+])('passes comment_id "$inputID" through to upsertComment', async ({inputID, wantID}) => {
+  const capture = captureStdout()
+  const lcovPath = getFixturePath('lcov.info')
+
+  setInputs({
+    github_token: 'test-token',
+    coverage_file_path: lcovPath,
+    coverage_format: 'lcov',
+    github_base_url: 'https://api.github.com',
+    step_summary: 'false',
+    pr_comment: 'true',
+    comment_id: inputID
+  })
+
+  let gotID = 'unset'
+  const fakeDeps = createFakeDeps({
+    onUpsertComment: (_body, commentID) => {
+      gotID = commentID
+    }
+  })
+
+  await play(fakeDeps)
+  expect(gotID).toBe(wantID)
   void capture
 })
 

@@ -43,13 +43,14 @@ jobs:
           pr_comment: "true"
 
   # Dogfood the Go coverage format against the sample module in
-  # testdata/go-sample, which has deliberate coverage gaps. pr_comment stays
-  # off: the comment marker is shared, so a second commenting job would fight
-  # the cobertura job over the same comment.
+  # testdata/go-sample, which has deliberate coverage gaps. comment_id keeps
+  # this job's PR comment separate from the cobertura job's, and
+  # note_namespace keeps its baseline out of the cobertura job's git notes.
   dogfood-go:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v6
         with:
@@ -74,6 +75,10 @@ jobs:
           coverage_file_path: testdata/go-sample/coverage.out
           coverage_format: go
           working_directory: testdata/go-sample
+          pr_comment: "true"
+          comment_id: go
+          report_header: Go Sample Coverage Report
+          note_namespace: coverage-go
 
       - name: Validate statement coverage output
         env:

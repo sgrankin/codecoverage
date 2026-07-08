@@ -53,7 +53,7 @@ export interface GitHubOps {
     coverageFiles: coverage.File[],
     pullRequestFiles: github.PullRequestFiles
   ): github.Annotation[]
-  upsertComment(body: string): Promise<boolean>
+  upsertComment(body: string, commentID: string): Promise<boolean>
 }
 
 // BaselineOps defines baseline storage and retrieval operations.
@@ -467,7 +467,7 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
       const prComment = core.getInput('pr_comment')
       if (prComment === 'true') {
         const summaryText = generateSummary(cov, baselineInfo, diffStats, reportHeader)
-        await gh.upsertComment(summaryText)
+        await gh.upsertComment(summaryText, core.getInput('comment_id'))
       }
     } else {
       core.setOutput('annotation_count', 0)

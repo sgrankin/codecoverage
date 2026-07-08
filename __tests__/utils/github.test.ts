@@ -395,6 +395,71 @@ test('upsertComment updates existing comment', async () => {
   expect(capture.output()).toContain('Updated existing coverage comment')
 })
 
+test('upsertComment with comment id creates a namespaced comment', async () => {
+  const capture = captureStdout()
+  const fakeComments = createFakeCommentOps()
+  const client = new github.Client(
+    '1234',
+    'https://api.github.com',
+    createFakeFetchDiff({}),
+    fakeComments
+  )
+
+  const result = await client.upsertComment('## Go Report', 'go')
+
+  expect(result).toBe(true)
+  expect(fakeComments.comments).toHaveLength(1)
+  expect(fakeComments.comments[0]!.body).toContain('<!-- codecoverage-action:go -->')
+  void capture
+})
+
+test('upsertComment with comment id leaves other comments alone', async () => {
+  const capture = captureStdout()
+  const fakeComments = createFakeCommentOps({
+    initialComments: [
+      {id: 100, body: '<!-- codecoverage-action -->\n## Default Report'},
+      {id: 200, body: '<!-- codecoverage-action:go -->\n## Old Go Report'},
+      {id: 300, body: '<!-- codecoverage-action:go2 -->\n## Other Report'}
+    ]
+  })
+  const client = new github.Client(
+    '1234',
+    'https://api.github.com',
+    createFakeFetchDiff({}),
+    fakeComments
+  )
+
+  const result = await client.upsertComment('## New Go Report', 'go')
+
+  expect(result).toBe(true)
+  expect(fakeComments.comments).toHaveLength(3)
+  expect(fakeComments.comments[0]!.body).toContain('## Default Report') // unchanged
+  expect(fakeComments.comments[1]!.body).toContain('## New Go Report') // updated
+  expect(fakeComments.comments[2]!.body).toContain('## Other Report') // unchanged
+  void capture
+})
+
+test('upsertComment without comment id ignores namespaced comments', async () => {
+  const capture = captureStdout()
+  const fakeComments = createFakeCommentOps({
+    initialComments: [{id: 100, body: '<!-- codecoverage-action:go -->\n## Go Report'}]
+  })
+  const client = new github.Client(
+    '1234',
+    'https://api.github.com',
+    createFakeFetchDiff({}),
+    fakeComments
+  )
+
+  const result = await client.upsertComment('## Default Report')
+
+  expect(result).toBe(true)
+  expect(fakeComments.comments).toHaveLength(2)
+  expect(fakeComments.comments[0]!.body).toContain('## Go Report') // unchanged
+  expect(fakeComments.comments[1]!.body).toContain('<!-- codecoverage-action -->')
+  void capture
+})
+
 const commentErrorTestCases = [
   {name: '403 forbidden', error: {status: 403, message: 'Forbidden'}},
   {name: '404 not found (PR closed)', error: {status: 404, message: 'Not Found'}},

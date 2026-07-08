@@ -8,6 +8,7 @@ The action can post a coverage summary as a comment on the pull request, providi
 
 - **Input**: `pr_comment` (default: `false`)
 - Set to `true` to enable PR comments
+- **Input**: `comment_id` (default: `''`) — namespaces the comment marker
 - Requires `pull-requests: write` permission
 
 ## Behavior
@@ -28,6 +29,21 @@ Comments are identified by a hidden HTML marker:
 ```
 
 The action searches for this marker when deciding whether to create or update.
+
+### Comment Namespacing
+
+A non-empty `comment_id` namespaces the marker:
+
+```html
+<!-- codecoverage-action:go -->
+```
+
+Jobs with different ids maintain separate comments on the same PR (e.g. one
+comment per coverage format in a multi-job workflow); re-runs with the same id
+update their own comment in place. Marker matching is exact — the trailing
+` -->` delimiter means one id can never match another's comment (`go` does not
+match `go2`), and the default un-namespaced marker never matches a namespaced
+one.
 
 ### Error Handling
 
