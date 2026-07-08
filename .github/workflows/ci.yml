@@ -41,3 +41,52 @@ jobs:
           COVERAGE_FILE_PATH: "./coverage/cobertura-coverage.xml"
           COVERAGE_FORMAT: "cobertura"
           pr_comment: "true"
+
+  # Dogfood the Go coverage format against the sample module in
+  # testdata/go-sample, which has deliberate coverage gaps. pr_comment stays
+  # off: the comment marker is shared, so a second commenting job would fight
+  # the cobertura job over the same comment.
+  dogfood-go:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+
+      - name: Generate Go coverage
+        id: gotest
+        working-directory: testdata/go-sample
+        run: |
+          go test -coverprofile=coverage.out ./...
+          echo "want=$(go tool cover -func=coverage.out | awk '/^total:/ {gsub(/%/, "", $3); print $3}')" >> "$GITHUB_OUTPUT"
+
+      - name: Dogfood coverage action (Go)
+        id: gocov
+        uses: ./
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          coverage_file_path: testdata/go-sample/coverage.out
+          coverage_format: go
+          working_directory: testdata/go-sample
+
+      - name: Validate statement coverage output
+        env:
+          GOT: ${{ steps.gocov.outputs.statement_percentage }}
+          WANT: ${{ steps.gotest.outputs.want }}
+          LINES: ${{ steps.gocov.outputs.coverage_percentage }}
+        run: |
+          echo "statement_percentage=${GOT} (go tool cover says ${WANT}); line coverage_percentage=${LINES}"
+          if [ -z "${GOT}" ]; then
+            echo "statement_percentage output is empty for Go coverage"
+            exit 1
+          fi
+          if [ "$(printf '%.1f' "${GOT}")" != "$(printf '%.1f' "${WANT}")" ]; then
+            echo "statement_percentage disagrees with go tool cover -func"
+            exit 1
+          fi

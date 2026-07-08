@@ -26,6 +26,8 @@ codecoverage/
 ├── docs/                 # Documentation
 │   └── examples.md       # Workflow examples
 ├── specs/                # Design specifications
+├── testdata/
+│   └── go-sample/        # Go module with deliberate coverage gaps, dogfooded by CI
 └── .github/workflows/    # CI configuration
 ```
 
