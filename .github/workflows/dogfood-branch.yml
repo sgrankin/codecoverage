@@ -1,0 +1,74 @@
+# Throwaway dogfood for main_branch tracking (v1.11.0). Lives only on the
+# dogfood-branch-tracking branch; delete the branch when done.
+#
+# Push run: stores a baseline for this branch and asserts the note landed on
+# exactly refs/notes/coverage-dogfood/dogfood-branch-tracking (and nowhere
+# else in that namespace — i.e. not on main).
+# PR run (PR targeting this branch): asserts pr-check loaded that baseline
+# (non-empty baseline_percentage and coverage_delta).
+name: Dogfood branch tracking
+
+on:
+  push:
+    branches: [dogfood-branch-tracking]
+  pull_request:
+    branches: [dogfood-branch-tracking]
+
+jobs:
+  dogfood:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: stable
+
+      - name: Generate Go coverage
+        working-directory: testdata/go-sample
+        run: go test -coverprofile=coverage.out ./...
+
+      - name: Coverage action (branch-tracked)
+        id: cov
+        uses: ./
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          coverage_file_path: testdata/go-sample/coverage.out
+          coverage_format: go
+          working_directory: testdata/go-sample
+          main_branch: dogfood-branch-tracking
+          note_namespace: coverage-dogfood
+          pr_comment: "true"
+          comment_id: dogfood
+          report_header: Dogfood Branch Tracking Report
+
+      - name: Verify notes ref targeting (push)
+        if: github.event_name == 'push'
+        env:
+          MODE: ${{ steps.cov.outputs.mode }}
+        run: |
+          echo "mode=$MODE"
+          [ "$MODE" = "store-baseline" ]
+          refs=$(git ls-remote origin 'refs/notes/coverage-dogfood/*' | awk '{print $2}')
+          echo "coverage-dogfood refs on origin: $refs"
+          [ "$refs" = "refs/notes/coverage-dogfood/dogfood-branch-tracking" ]
+          git fetch -q origin refs/notes/coverage-dogfood/dogfood-branch-tracking:refs/notes/verify
+          git notes --ref=verify show HEAD
+          git notes --ref=verify show HEAD | head -1 | grep -q statementPercentage
+
+      - name: Verify branch baseline was loaded (PR)
+        if: github.event_name == 'pull_request'
+        env:
+          MODE: ${{ steps.cov.outputs.mode }}
+          BASELINE: ${{ steps.cov.outputs.baseline_percentage }}
+          DELTA: ${{ steps.cov.outputs.coverage_delta }}
+        run: |
+          echo "mode=$MODE baseline=$BASELINE delta=$DELTA"
+          [ "$MODE" = "pr-check" ]
+          [ -n "$BASELINE" ]
+          [ -n "$DELTA" ]
