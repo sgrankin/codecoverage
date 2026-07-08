@@ -193,6 +193,11 @@ Manually control the operating mode:
     # ...
 ```
 
+On push, schedule, and dispatch runs, a forced `store-baseline` stores only
+when the run's ref is the tracked branch (`main_branch`, default `main`) —
+e.g. a nightly `schedule` run on `main`; runs on other refs skip storage.
+On a `pull_request` event it stores under the PR's target branch.
+
 ## Monorepo: Multiple Coverage Histories
 
 For monorepos with multiple independent codebases, use `note_namespace` to track coverage history separately for each project:

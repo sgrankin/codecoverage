@@ -132,6 +132,39 @@ describe('mode detection', () => {
         expect(result.baseBranch).toBe('main') // Still available from payload
       })
 
+      test('store-baseline override stores on scheduled runs on the main branch', () => {
+        const ctx = createFakeContext({
+          eventName: 'schedule',
+          ref: 'refs/heads/main'
+        })
+
+        const result = mode.detect('store-baseline', 'main', ctx)
+        expect(result.mode).toBe('store-baseline')
+        expect(result.baseBranch).toBe('main')
+      })
+
+      test('store-baseline override honors a custom main branch', () => {
+        const ctx = createFakeContext({
+          eventName: 'workflow_dispatch',
+          ref: 'refs/heads/go-port'
+        })
+
+        const result = mode.detect('store-baseline', 'go-port', ctx)
+        expect(result.mode).toBe('store-baseline')
+        expect(result.baseBranch).toBe('go-port')
+      })
+
+      test('store-baseline override still skips other branches', () => {
+        const ctx = createFakeContext({
+          eventName: 'push',
+          ref: 'refs/heads/feature/test'
+        })
+
+        const result = mode.detect('store-baseline', 'main', ctx)
+        expect(result.mode).toBe('store-baseline')
+        expect(result.baseBranch).toBe('')
+      })
+
       test('invalid override throws error', () => {
         const ctx = createFakeContext({
           eventName: 'push',

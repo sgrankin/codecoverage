@@ -35,7 +35,11 @@ export interface GithubContext {
 }
 
 // detect detects the operating mode based on GitHub context.
-// PR events use 'pr-check' mode; push to main uses 'store-baseline' mode.
+// PR events use 'pr-check' mode; other events use 'store-baseline' mode.
+// baseBranch — which gates baseline storage and names the notes namespace —
+// is the PR's target branch for PR events. Otherwise it is mainBranch when
+// the triggering ref is that branch: via a push, or via any event (schedule,
+// workflow_dispatch) when store-baseline mode is explicitly forced.
 export function detect(
   modeOverride?: string,
   mainBranch = 'main',
@@ -43,39 +47,31 @@ export function detect(
 ): Context {
   const eventName = ctx.eventName
   const ref = ctx.ref
+  const isPullRequest = eventName === 'pull_request'
 
-  // Handle manual override
+  let mode: Mode
   if (modeOverride) {
-    const mode = modeOverride as Mode
-    if (mode !== 'pr-check' && mode !== 'store-baseline') {
+    if (modeOverride !== 'pr-check' && modeOverride !== 'store-baseline') {
       throw new Error(
         `Invalid mode override: ${modeOverride}. Must be 'pr-check' or 'store-baseline'`
       )
     }
-
-    const isPullRequest = eventName === 'pull_request'
-    const baseBranch = isPullRequest ? (ctx.payload.pull_request?.base?.ref ?? '') : ''
-
-    return {mode, baseBranch, isPullRequest, eventName, ref}
+    mode = modeOverride
+  } else {
+    mode = isPullRequest ? 'pr-check' : 'store-baseline'
   }
 
-  // Auto-detect based on event type
-  if (eventName === 'pull_request') {
-    const baseBranch = ctx.payload.pull_request?.base?.ref ?? ''
-    return {mode: 'pr-check', baseBranch, isPullRequest: true, eventName, ref}
+  let baseBranch = ''
+  if (isPullRequest) {
+    baseBranch = ctx.payload.pull_request?.base?.ref ?? ''
+  } else if (mode === 'store-baseline') {
+    const isMainRef = ref === `refs/heads/${mainBranch}` || ref === mainBranch
+    if (isMainRef && (eventName === 'push' || modeOverride === 'store-baseline')) {
+      baseBranch = mainBranch
+    }
   }
 
-  // For push events or other triggers
-  const isPushToMain =
-    eventName === 'push' && (ref === `refs/heads/${mainBranch}` || ref === mainBranch)
-
-  return {
-    mode: 'store-baseline',
-    baseBranch: isPushToMain ? mainBranch : '',
-    isPullRequest: false,
-    eventName,
-    ref
-  }
+  return {mode, baseBranch, isPullRequest, eventName, ref}
 }
 
 // namespaceForBranch returns the namespace for coverage notes based on the branch.

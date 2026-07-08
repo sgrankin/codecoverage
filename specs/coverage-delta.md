@@ -56,8 +56,8 @@ The action automatically detects which mode to run in:
 | `pull_request` | any | `pr-check` |
 | `push` | `main_branch` (default `main`) | `store-baseline` |
 | `push` | any other | `store-baseline` (no storage) |
-| `workflow_dispatch` | any | `store-baseline` |
-| `schedule` | any | `store-baseline` |
+| `workflow_dispatch` | any | `store-baseline` (stores only with explicit `mode: store-baseline` on `main_branch`) |
+| `schedule` | any | `store-baseline` (stores only with explicit `mode: store-baseline` on `main_branch`) |
 
 ### PR Check Mode (`pr-check`)
 
