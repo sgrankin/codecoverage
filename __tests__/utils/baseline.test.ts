@@ -474,6 +474,33 @@ describe('baseline', () => {
       expect(history).toHaveLength(3)
     })
 
+    test('scanDepth reaches notes beyond the default 3x-maxCount scan', async () => {
+      // Old note, then 7 commits without notes, then a note on HEAD.
+      await baseline.store(
+        {coveragePercentage: '80.00', totalLines: 100, coveredLines: 80},
+        {cwd: repo.repoDir}
+      )
+      for (let i = 0; i < 7; i++) {
+        await repo.createCommit(`No coverage commit ${i + 1}`)
+      }
+      await baseline.store(
+        {coveragePercentage: '85.00', totalLines: 100, coveredLines: 85},
+        {cwd: repo.repoDir}
+      )
+
+      const head = await gitnotes.headCommit({cwd: repo.repoDir})
+
+      // Default depth for maxCount=2 is 6 ancestors: the old note (8 back) is missed.
+      const shallow = await baseline.collectHistory(head, 2, {cwd: repo.repoDir})
+      expect(shallow).toHaveLength(1)
+      expect(shallow[0]!.coveragePercentage).toBe('85.00')
+
+      const deep = await baseline.collectHistory(head, 2, {cwd: repo.repoDir, scanDepth: 50})
+      expect(deep).toHaveLength(2)
+      expect(deep[0]!.coveragePercentage).toBe('80.00')
+      expect(deep[1]!.coveragePercentage).toBe('85.00')
+    })
+
     test('returns empty array when maxCount is 0', async () => {
       await baseline.store(
         {coveragePercentage: '80.00', totalLines: 100, coveredLines: 80},

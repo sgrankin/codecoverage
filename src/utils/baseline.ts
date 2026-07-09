@@ -241,11 +241,16 @@ export interface HistoryEntry {
 }
 
 // HistoryOptions configures history collection.
-export type HistoryOptions = BaseOptions
+export interface HistoryOptions extends BaseOptions {
+  // scanDepth is how many ancestor commits to scan for notes.
+  // Default is maxCount * 3 (not every commit carries a note).
+  scanDepth?: number
+}
 
 // collectHistory walks ancestors from startCommit and collects coverage data.
 // Returns entries in chronological order (oldest first) for sparkline rendering.
-// Stops when maxCount entries are found or no more ancestors exist.
+// Stops when maxCount entries are found, scanDepth ancestors have been
+// scanned, or no more ancestors exist.
 export async function collectHistory(
   startCommit: string,
   maxCount: number,
@@ -256,8 +261,7 @@ export async function collectHistory(
     return []
   }
 
-  // Over-fetch ancestors since not all commits will have notes
-  const ancestors = await git.listAncestors(startCommit, maxCount * 3, options)
+  const ancestors = await git.listAncestors(startCommit, options.scanDepth ?? maxCount * 3, options)
   const entries: HistoryEntry[] = []
 
   for (const commit of ancestors) {

@@ -60,7 +60,7 @@ For Go coverage, the report uses **statement coverage** throughout (matching `go
 
 Track coverage changes over time using git notes:
 
-1. **Push to main** → stores coverage as baseline
+1. **Push to main** → stores coverage as baseline; the job summary shows the delta and sparkline against the stored history
 2. **Pull request** → compares against baseline, shows delta
 
 To track a branch other than `main` (a different default branch, or a long-running feature branch), set `main_branch`; baselines are namespaced per branch, and PRs targeting that branch compare against its baseline.

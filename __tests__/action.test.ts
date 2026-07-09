@@ -1,6 +1,7 @@
 import * as fs from 'node:fs'
 import * as os from 'node:os'
 import * as path from 'node:path'
+import * as core from '@actions/core'
 import * as github from '@actions/github'
 import {afterEach, beforeEach, expect, test, vi} from 'vitest'
 import type {Dependencies, GitHubOps} from '../src/action.ts'
@@ -58,10 +59,14 @@ function createFakeDeps(
     annotations?: github.Annotation[]
     baselineData?: baseline.Data | null
     storeResult?: boolean
+    // historyEntries is what collectHistory returns (oldest first).
+    historyEntries?: baseline.HistoryEntry[]
     // onStore tracks calls to baseline.store.
     onStore?: (data: unknown, opts: unknown) => void
     // onLoad tracks calls to baseline.load.
     onLoad?: (branch: string, opts: unknown) => void
+    // onCollectHistory tracks calls to baseline.collectHistory.
+    onCollectHistory?: (startCommit: string, maxCount: number, opts: unknown) => void
     // onUpsertComment tracks calls to upsertComment.
     onUpsertComment?: (body: string, commentID: string) => void
     // upsertCommentResult is the return value for upsertComment.
@@ -88,6 +93,10 @@ function createFakeDeps(
           baseline: options.baselineData ?? null,
           commit: options.baselineData ? 'abc123' : null
         }
+      },
+      collectHistory: async (startCommit, maxCount, opts) => {
+        options.onCollectHistory?.(startCommit, maxCount, opts)
+        return options.historyEntries ?? []
       }
     }
   }
@@ -103,6 +112,11 @@ let savedContext: {
 beforeEach(() => {
   process.env.GITHUB_WORKSPACE = '/workspace'
   delete process.env.GITHUB_STEP_SUMMARY
+  // core.summary is a singleton that caches the resolved GITHUB_STEP_SUMMARY
+  // path and buffers unwritten content; reset both so each test's env var
+  // takes effect regardless of test order.
+  ;(core.summary as unknown as {_filePath?: string})._filePath = undefined
+  core.summary.emptyBuffer()
   vi.clearAllMocks()
 
   // Save context
@@ -203,6 +217,157 @@ test('skips baseline storage on push to a branch other than main_branch', async 
   expect(capture.output()).toContain('Skipping baseline storage')
 })
 
+test('step summary on push includes sparkline and delta from stored history', async () => {
+  const capture = captureStdout()
+  const lcovPath = getFixturePath('lcov.info')
+  const summaryFile = path.join(os.tmpdir(), `test-summary-push-${Date.now()}.md`)
+  fs.writeFileSync(summaryFile, '')
+  process.env.GITHUB_STEP_SUMMARY = summaryFile
+  ;(github.context as any).eventName = 'push'
+  ;(github.context as any).ref = 'refs/heads/main'
+
+  setInputs({
+    github_token: 'test-token',
+    coverage_file_path: lcovPath,
+    coverage_format: 'lcov',
+    step_summary: 'true'
+  })
+
+  let collectArgs: {
+    startCommit: string
+    maxCount: number
+    namespace: string
+    scanDepth: number
+  } | null = null
+  const fakeDeps = createFakeDeps({
+    // Newest last; the newest entry is the note just stored for HEAD.
+    historyEntries: [
+      {commit: 'c1', coveragePercentage: '70.00', timestamp: '2024-01-01T00:00:00Z'},
+      {commit: 'c2', coveragePercentage: '75.00', timestamp: '2024-01-02T00:00:00Z'},
+      {commit: 'c3', coveragePercentage: '80.00', timestamp: '2024-01-03T00:00:00Z'}
+    ],
+    onCollectHistory: (startCommit, maxCount, opts) => {
+      const o = opts as {namespace: string; scanDepth: number}
+      collectArgs = {startCommit, maxCount, namespace: o.namespace, scanDepth: o.scanDepth}
+    }
+  })
+
+  await play(fakeDeps)
+  expect(mockSetFailed).not.toHaveBeenCalled()
+  // scanDepth is max(max_lookback=50, sparkline_count*3=30).
+  expect(collectArgs).toEqual({
+    startCommit: 'HEAD',
+    maxCount: 10,
+    namespace: 'coverage/main',
+    scanDepth: 50
+  })
+  expect(capture.output()).toContain('Collected 3 data points for sparkline')
+  // Delta compares current coverage (fixture: 34.78%) against the
+  // second-newest stored note.
+  expect(mockSetOutput).toHaveBeenCalledWith('baseline_percentage', '75.00')
+  expect(mockSetOutput).toHaveBeenCalledWith('coverage_delta', '-40.22')
+
+  const content = fs.readFileSync(summaryFile, 'utf8')
+  expect(content).toMatch(/[▁▂▃▄▅▆▇█]{3}/)
+  expect(content).toContain('Baseline')
+  expect(content).toContain('75.00%')
+
+  fs.unlinkSync(summaryFile)
+})
+
+test('push delta is still computed when sparklines are disabled', async () => {
+  const capture = captureStdout()
+  const lcovPath = getFixturePath('lcov.info')
+  const summaryFile = path.join(os.tmpdir(), `test-summary-nospark-${Date.now()}.md`)
+  fs.writeFileSync(summaryFile, '')
+  process.env.GITHUB_STEP_SUMMARY = summaryFile
+  ;(github.context as any).eventName = 'push'
+  ;(github.context as any).ref = 'refs/heads/main'
+
+  setInputs({
+    github_token: 'test-token',
+    coverage_file_path: lcovPath,
+    coverage_format: 'lcov',
+    sparkline_count: '0',
+    step_summary: 'true'
+  })
+
+  let collectedMax = 0
+  let collectedDepth = 0
+  const fakeDeps = createFakeDeps({
+    historyEntries: [
+      {commit: 'c1', coveragePercentage: '75.00', timestamp: '2024-01-01T00:00:00Z'},
+      {commit: 'c2', coveragePercentage: '80.00', timestamp: '2024-01-02T00:00:00Z'}
+    ],
+    onCollectHistory: (_startCommit, maxCount, opts) => {
+      collectedMax = maxCount
+      collectedDepth = (opts as {scanDepth: number}).scanDepth
+    }
+  })
+
+  await play(fakeDeps)
+  expect(mockSetFailed).not.toHaveBeenCalled()
+  expect(collectedMax).toBe(2)
+  // The previous baseline must be findable within max_lookback even with
+  // sparklines disabled — not just within the default 3x-maxCount scan.
+  expect(collectedDepth).toBe(50)
+  expect(capture.output()).not.toContain('data points for sparkline')
+  expect(mockSetOutput).toHaveBeenCalledWith('baseline_percentage', '75.00')
+
+  const content = fs.readFileSync(summaryFile, 'utf8')
+  expect(content).not.toMatch(/[▁▂▃▄▅▆▇█]/)
+  expect(content).toContain('Baseline')
+
+  fs.unlinkSync(summaryFile)
+})
+
+test('push does not collect history when calculate_delta is false', async () => {
+  const lcovPath = getFixturePath('lcov.info')
+  ;(github.context as any).eventName = 'push'
+  ;(github.context as any).ref = 'refs/heads/main'
+
+  setInputs({
+    github_token: 'test-token',
+    coverage_file_path: lcovPath,
+    coverage_format: 'lcov',
+    calculate_delta: 'false',
+    step_summary: 'false'
+  })
+
+  let collectCalled = false
+  const fakeDeps = createFakeDeps({
+    onCollectHistory: () => {
+      collectCalled = true
+    }
+  })
+
+  await play(fakeDeps)
+  expect(collectCalled).toBe(false)
+})
+
+test('push to a branch other than main_branch does not collect history', async () => {
+  const lcovPath = getFixturePath('lcov.info')
+  ;(github.context as any).eventName = 'push'
+  ;(github.context as any).ref = 'refs/heads/feature/thing'
+
+  setInputs({
+    github_token: 'test-token',
+    coverage_file_path: lcovPath,
+    coverage_format: 'lcov',
+    step_summary: 'false'
+  })
+
+  let collectCalled = false
+  const fakeDeps = createFakeDeps({
+    onCollectHistory: () => {
+      collectCalled = true
+    }
+  })
+
+  await play(fakeDeps)
+  expect(collectCalled).toBe(false)
+})
+
 test('calculates delta when baseline exists in PR mode', async () => {
   const capture = captureStdout()
   const lcovPath = getFixturePath('lcov.info')
@@ -217,10 +382,12 @@ test('calculates delta when baseline exists in PR mode', async () => {
     github_token: 'test-token',
     coverage_file_path: lcovPath,
     coverage_format: 'lcov',
-    calculate_delta: 'true'
+    calculate_delta: 'true',
+    step_summary: 'false'
   })
 
   let loadCalled = false
+  let scanDepth = 0
   const fakeDeps = createFakeDeps({
     baselineData: {
       coveragePercentage: '80.00',
@@ -231,11 +398,17 @@ test('calculates delta when baseline exists in PR mode', async () => {
     },
     onLoad: () => {
       loadCalled = true
+    },
+    onCollectHistory: (_startCommit, _maxCount, opts) => {
+      scanDepth = (opts as {scanDepth: number}).scanDepth
     }
   })
 
   await play(fakeDeps)
+  expect(mockSetFailed).not.toHaveBeenCalled()
   expect(loadCalled).toBe(true)
+  // Sparkline history search is bounded by max_lookback, same as the push path.
+  expect(scanDepth).toBe(50)
   expect(capture.output()).toContain('Coverage delta:')
   expect(mockSetOutput).toHaveBeenCalledWith('coverage_delta', expect.any(String))
   expect(mockSetOutput).toHaveBeenCalledWith('baseline_percentage', '80.00')

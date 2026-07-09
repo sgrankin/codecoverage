@@ -2,7 +2,7 @@
 
 ## Overview
 
-Add a visual coverage history sparkline to PR summaries:
+Add a visual coverage history sparkline to coverage summaries:
 
 ```
 Coverage: 85.5% (↑2.1%) ▂▃▅▄▆█
@@ -10,6 +10,13 @@ Coverage: 85.5% (↑2.1%) ▂▃▅▄▆█
 
 The sparkline shows recent coverage trends at a glance, helping reviewers understand
 if coverage is generally improving, declining, or stable.
+
+It appears in both modes. In pr-check mode the history is collected from the
+baseline commit's ancestors, with current coverage appended as the newest
+point. In store-baseline mode (push runs), the note for HEAD has just been
+stored, so the history is collected by walking ancestors from HEAD — the
+newest entry is the current run and the delta compares against the
+second-newest.
 
 ---
 

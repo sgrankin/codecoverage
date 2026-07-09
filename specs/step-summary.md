@@ -33,7 +33,9 @@ A single-row table with all key metrics:
 | ----: | ----: | ----: | ----: | ----: | ----: | ----: |
 | 85.50% (↑2.50%) | 83.00% | 92.5% | 855 | 145 | 1,000 | 10 |
 
-- **Baseline**: Omitted when no baseline is available
+- **Baseline**: Omitted when no baseline is available. On push runs
+  (store-baseline mode) it is the previous stored baseline, so the summary
+  shows how this push moved coverage.
 - **Diff**: Coverage of lines changed in the PR (omitted on non-PR events)
 
 ### Go: Statement-Based Report

@@ -73,7 +73,7 @@ export interface BaselineOps {
   collectHistory(
     startCommit: string,
     maxCount: number,
-    options: Partial<gitnotes.Options>
+    options: baseline.HistoryOptions
   ): Promise<baseline.HistoryEntry[]>
 }
 
@@ -137,6 +137,19 @@ function calculateDiffStats(
   }
 
   return {coveredLines, totalLines}
+}
+
+// primaryPercentage returns a stored note's value for the report's primary
+// metric: statements when the current report uses statements, falling back to
+// lines for pre-statement notes (a one-time ~0.7pp step in history — the
+// accepted cost of statements-primary).
+function primaryPercentage(
+  note: {coveragePercentage: string; statementPercentage?: string},
+  useStatements: boolean
+): string {
+  return useStatements
+    ? (note.statementPercentage ?? note.coveragePercentage)
+    : note.coveragePercentage
 }
 
 // generateSummary creates the coverage summary markdown.
@@ -337,6 +350,41 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
 
       // In store-baseline mode on non-PR events, we're done (no annotations)
       if (!ctx.isPullRequest) {
+        // The summary's delta and sparkline come from stored notes: HEAD's
+        // note was just stored (and writeAndPush fetched the notes ref), so
+        // walking ancestors from HEAD yields current coverage plus its
+        // history, newest last. Fetch at least 2 entries so the delta can be
+        // computed even when sparklines are disabled.
+        if (calculateDeltaInput && ctx.baseBranch) {
+          const namespace = mode.namespaceForBranch(ctx.baseBranch, noteNamespace)
+          // Scan at least max_lookback ancestors — the default 3-per-note
+          // heuristic is only 6 commits when sparklines are disabled, and
+          // batch pushes or note gaps would silently lose the delta.
+          const entries = await deps.baseline.collectHistory('HEAD', Math.max(sparklineCount, 2), {
+            cwd: workspacePath,
+            namespace,
+            scanDepth: Math.max(maxLookback, sparklineCount * 3)
+          })
+          if (sparklineCount > 0) {
+            baselineInfo.history = entries
+              .slice(-sparklineCount)
+              .map(h => parseFloat(primaryPercentage(h, useStatements)))
+            core.info(`Collected ${baselineInfo.history.length} data points for sparkline`)
+          }
+          // Delta vs the previous stored baseline (the second-newest entry).
+          if (entries.length >= 2) {
+            baselineInfo.percentage = primaryPercentage(entries[entries.length - 2]!, useStatements)
+            baselineInfo.delta = baseline.delta(
+              currentPrimary,
+              baselineInfo.percentage,
+              deltaPrecision
+            )
+            core.info(`Coverage delta: ${baselineInfo.delta}`)
+            core.setOutput('coverage_delta', baselineInfo.delta)
+            core.setOutput('baseline_percentage', baselineInfo.percentage)
+          }
+        }
+
         // Write summary if enabled
         const stepSummary = core.getInput('step_summary')
         if (stepSummary !== 'false') {
@@ -362,12 +410,7 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
 
       if (baselineResult.baseline) {
         const bl = baselineResult.baseline
-        // Compare against the baseline's statement figure, falling back to its line figure
-        // for pre-statement baselines (a one-time ~0.7pp step in history — the accepted cost
-        // of statements-primary).
-        const baselinePrimary = useStatements
-          ? (bl.statementPercentage ?? bl.coveragePercentage)
-          : bl.coveragePercentage
+        const baselinePrimary = primaryPercentage(bl, useStatements)
         baselineInfo.percentage = baselinePrimary
         baselineInfo.delta = baseline.delta(currentPrimary, baselinePrimary, deltaPrecision)
         core.info(`Coverage delta: ${baselineInfo.delta}`)
@@ -382,14 +425,11 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
             sparklineCount - 1,
             {
               cwd: workspacePath,
-              namespace
+              namespace,
+              scanDepth: Math.max(maxLookback, sparklineCount * 3)
             }
           )
-          baselineInfo.history = history.map(h =>
-            parseFloat(
-              useStatements ? (h.statementPercentage ?? h.coveragePercentage) : h.coveragePercentage
-            )
-          )
+          baselineInfo.history = history.map(h => parseFloat(primaryPercentage(h, useStatements)))
           // Add current coverage as the newest point
           baselineInfo.history.push(parseFloat(currentPrimary))
           core.info(`Collected ${baselineInfo.history.length} data points for sparkline`)

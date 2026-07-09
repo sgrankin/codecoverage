@@ -76,7 +76,11 @@ The action automatically detects which mode to run in:
 2. Create JSONL baseline data
 3. Attach to HEAD: `git notes --ref=coverage/main add -m "$DATA" HEAD`
 4. Push to origin: `git push origin refs/notes/coverage/main`
-5. Report absolute coverage (no delta)
+5. Walk ancestors from HEAD (which now carries the freshest note) to collect
+   stored history, scanning up to `max_lookback` commits (or 3 per sparkline
+   point, whichever is more); report delta against the previous stored
+   baseline and a sparkline of the history in the step summary. With no prior
+   notes, report absolute coverage only.
 
 ## Retry Logic
 
