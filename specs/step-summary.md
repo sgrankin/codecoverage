@@ -58,16 +58,25 @@ line counts to the table.
 
 ### 3. Coverage by Package (Collapsible)
 
-Wrapped in `<details>` for a compact display:
+Wrapped in `<details>` for a compact display. A one-line hotspot strip names
+the packages with the most uncovered statements (top 5; omitted when nothing
+is uncovered). Each row's Coverage cell carries a size-scaled stacked bar — a
+1-D treemap: bar length ∝ the package's statement count (largest package = 24
+chars), solid = covered, light = uncovered. Light runs are directly comparable
+across rows, so large coverage holes stand out while scanning; small nonzero
+segments never round away. The column is right-aligned, so light runs share a
+right anchor next to the percent.
 
 ```html
 <details>
 <summary>Coverage by Package</summary>
 
+**Most uncovered:** src (75) · src/utils (30)
+
 | Package | Files | Total | Covered | Coverage |
 | ------- | ----: | ----: | ------: | -------: |
-| src | 5 | 500 | 425 | 85.0% |
-| src/utils | 3 | 300 | 270 | 90.0% |
+| src | 5 | 500 | 425 | `████████████████████░░░░` 85.0% |
+| src/utils | 3 | 300 | 270 | `█████████████░` 90.0% |
 
 </details>
 ```

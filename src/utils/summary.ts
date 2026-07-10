@@ -59,6 +59,46 @@ export interface Params {
   headerText: string
 }
 
+// PACKAGE_BAR_WIDTH is the bar length (in characters) of the largest package
+// in the table; every other bar is scaled against it.
+const PACKAGE_BAR_WIDTH = 24
+
+// packageBar renders a package's coverage as a stacked bar whose length is
+// proportional to its statement count (a 1-D treemap): solid = covered,
+// light = uncovered. Light runs are directly comparable across rows — a long
+// light run IS a large coverage hole. quantum is statements per character.
+function packageBar(covered: number, total: number, quantum: number): string {
+  if (total <= 0 || quantum <= 0) {
+    return ''
+  }
+  const uncovered = total - covered
+  // Never round a nonzero segment out of existence: a small hole must stay
+  // visible, and a sliver of coverage must not render as 0%.
+  const minSolid = covered > 0 ? 1 : 0
+  const minLight = uncovered > 0 ? 1 : 0
+  // Fix the bar width first and derive the light segment from it — rounding
+  // both segments independently lets two .5s round up and overshoot the width.
+  const width = Math.max(Math.round(total / quantum), minSolid + minLight)
+  const solid = Math.min(Math.max(Math.round(covered / quantum), minSolid), width - minLight)
+  return `\`${'█'.repeat(solid)}${'░'.repeat(width - solid)}\``
+}
+
+// mostUncoveredLine renders a one-line hotspot strip naming the packages with
+// the most uncovered statements, or '' when nothing is uncovered.
+function mostUncoveredLine(packages: PackageCoverage[]): string {
+  const offenders = packages
+    .filter(p => p.total - p.covered > 0)
+    .sort(
+      (a, b) => b.total - b.covered - (a.total - a.covered) || a.package.localeCompare(b.package)
+    )
+    .slice(0, 5)
+  if (offenders.length === 0) {
+    return ''
+  }
+  const items = offenders.map(p => `${p.package} (${(p.total - p.covered).toLocaleString()})`)
+  return `**Most uncovered:** ${items.join(' · ')}`
+}
+
 // getPackageFromPath extracts the package name from a file path (directory path, or '.' for root).
 function getPackageFromPath(filePath: string): string {
   const lastSlash = filePath.lastIndexOf('/')
@@ -131,12 +171,17 @@ export function generate(params: Params): string {
   const packages = groupByPackage(coverage.files)
 
   // Build package coverage table
+  const quantum = Math.max(0, ...packages.map(p => p.total)) / PACKAGE_BAR_WIDTH
   const packageRows = packages
     .map(pkg => {
       const pct = pkg.total > 0 ? ((pkg.covered / pkg.total) * 100).toFixed(1) : '0.0'
-      return `| ${pkg.package} | ${pkg.files.length} | ${pkg.total.toLocaleString()} | ${pkg.covered.toLocaleString()} | ${pct}% |`
+      const bar = packageBar(pkg.covered, pkg.total, quantum)
+      const display = bar ? `${bar} ${pct}%` : `${pct}%`
+      return `| ${pkg.package} | ${pkg.files.length} | ${pkg.total.toLocaleString()} | ${pkg.covered.toLocaleString()} | ${display} |`
     })
     .join('\n')
+  const hotspots = mostUncoveredLine(packages)
+  const hotspotsBlock = hotspots ? `\n${hotspots}\n` : ''
 
   // Compute diff coverage percentage if we have diff data
   const diffCoverageDisplay =
@@ -173,7 +218,7 @@ export function generate(params: Params): string {
 ${footnote}
 <details>
 <summary>Coverage by Package</summary>
-
+${hotspotsBlock}
 | Package | Files | Total | Covered | Coverage |
 | ------- | ----: | ----: | ------: | -------: |
 ${packageRows}

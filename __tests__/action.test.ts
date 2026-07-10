@@ -268,7 +268,9 @@ test('step summary on push includes sparkline and delta from stored history', as
   expect(mockSetOutput).toHaveBeenCalledWith('coverage_delta', '-40.22')
 
   const content = fs.readFileSync(summaryFile, 'utf8')
-  expect(content).toMatch(/[▁▂▃▄▅▆▇█]{3}/)
+  // Partial blocks only appear in the history sparkline — the per-package
+  // coverage bars use full/light blocks (█░), so this can't false-positive.
+  expect(content).toMatch(/[▁▂▃▄▅▆▇]/)
   expect(content).toContain('Baseline')
   expect(content).toContain('75.00%')
 
@@ -315,7 +317,8 @@ test('push delta is still computed when sparklines are disabled', async () => {
   expect(mockSetOutput).toHaveBeenCalledWith('baseline_percentage', '75.00')
 
   const content = fs.readFileSync(summaryFile, 'utf8')
-  expect(content).not.toMatch(/[▁▂▃▄▅▆▇█]/)
+  // No history sparkline (per-package bars still use full/light blocks █░).
+  expect(content).not.toMatch(/[▁▂▃▄▅▆▇]/)
   expect(content).toContain('Baseline')
 
   fs.unlinkSync(summaryFile)

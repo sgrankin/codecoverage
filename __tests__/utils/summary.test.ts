@@ -59,9 +59,11 @@ const testCases = [
 <details>
 <summary>Coverage by Package</summary>
 
+**Most uncovered:** src (145)
+
 | Package | Files | Total | Covered | Coverage |
 | ------- | ----: | ----: | ------: | -------: |
-| src | 2 | 1,000 | 855 | 85.5% |
+| src | 2 | 1,000 | 855 | \`█████████████████████░░░\` 85.5% |
 
 </details>
 `
@@ -84,9 +86,11 @@ const testCases = [
 <details>
 <summary>Coverage by Package</summary>
 
+**Most uncovered:** src (35)
+
 | Package | Files | Total | Covered | Coverage |
 | ------- | ----: | ----: | ------: | -------: |
-| src | 1 | 100 | 65 | 65.0% |
+| src | 1 | 100 | 65 | \`████████████████░░░░░░░░\` 65.0% |
 
 </details>
 `
@@ -109,9 +113,11 @@ const testCases = [
 <details>
 <summary>Coverage by Package</summary>
 
+**Most uncovered:** src (55)
+
 | Package | Files | Total | Covered | Coverage |
 | ------- | ----: | ----: | ------: | -------: |
-| src | 1 | 100 | 45 | 45.0% |
+| src | 1 | 100 | 45 | \`███████████░░░░░░░░░░░░░\` 45.0% |
 
 </details>
 `
@@ -138,11 +144,13 @@ const testCases = [
 <details>
 <summary>Coverage by Package</summary>
 
+**Most uncovered:** lib (20) · src (20) · src/utils (20)
+
 | Package | Files | Total | Covered | Coverage |
 | ------- | ----: | ----: | ------: | -------: |
-| lib | 1 | 100 | 80 | 80.0% |
-| src | 1 | 100 | 80 | 80.0% |
-| src/utils | 1 | 100 | 80 | 80.0% |
+| lib | 1 | 100 | 80 | \`███████████████████░░░░░\` 80.0% |
+| src | 1 | 100 | 80 | \`███████████████████░░░░░\` 80.0% |
+| src/utils | 1 | 100 | 80 | \`███████████████████░░░░░\` 80.0% |
 
 </details>
 `
@@ -168,10 +176,12 @@ const testCases = [
 <details>
 <summary>Coverage by Package</summary>
 
+**Most uncovered:** com.example.bar (30) · com.example.foo (20)
+
 | Package | Files | Total | Covered | Coverage |
 | ------- | ----: | ----: | ------: | -------: |
-| com.example.bar | 1 | 100 | 70 | 70.0% |
-| com.example.foo | 1 | 100 | 80 | 80.0% |
+| com.example.bar | 1 | 100 | 70 | \`█████████████████░░░░░░░\` 70.0% |
+| com.example.foo | 1 | 100 | 80 | \`███████████████████░░░░░\` 80.0% |
 
 </details>
 `
@@ -196,9 +206,11 @@ const testCases = [
 <details>
 <summary>Coverage by Package</summary>
 
+**Most uncovered:** src (145)
+
 | Package | Files | Total | Covered | Coverage |
 | ------- | ----: | ----: | ------: | -------: |
-| src | 1 | 1,000 | 855 | 85.5% |
+| src | 1 | 1,000 | 855 | \`█████████████████████░░░\` 85.5% |
 
 </details>
 `
@@ -223,9 +235,11 @@ const testCases = [
 <details>
 <summary>Coverage by Package</summary>
 
+**Most uncovered:** src (220)
+
 | Package | Files | Total | Covered | Coverage |
 | ------- | ----: | ----: | ------: | -------: |
-| src | 1 | 1,000 | 780 | 78.0% |
+| src | 1 | 1,000 | 780 | \`███████████████████░░░░░\` 78.0% |
 
 </details>
 `
@@ -250,9 +264,11 @@ const testCases = [
 <details>
 <summary>Coverage by Package</summary>
 
+**Most uncovered:** src (250)
+
 | Package | Files | Total | Covered | Coverage |
 | ------- | ----: | ----: | ------: | -------: |
-| src | 1 | 1,000 | 750 | 75.0% |
+| src | 1 | 1,000 | 750 | \`██████████████████░░░░░░\` 75.0% |
 
 </details>
 `
@@ -277,9 +293,11 @@ const testCases = [
 <details>
 <summary>Coverage by Package</summary>
 
+**Most uncovered:** src (550)
+
 | Package | Files | Total | Covered | Coverage |
 | ------- | ----: | ----: | ------: | -------: |
-| src | 1 | 1,000 | 450 | 45.0% |
+| src | 1 | 1,000 | 450 | \`███████████░░░░░░░░░░░░░\` 45.0% |
 
 </details>
 `
@@ -304,9 +322,11 @@ const testCases = [
 <details>
 <summary>Coverage by Package</summary>
 
+**Most uncovered:** src (200)
+
 | Package | Files | Total | Covered | Coverage |
 | ------- | ----: | ----: | ------: | -------: |
-| src | 1 | 1,000 | 800 | 80.0% |
+| src | 1 | 1,000 | 800 | \`███████████████████░░░░░\` 80.0% |
 
 </details>
 `
@@ -333,9 +353,11 @@ const testCases = [
 <details>
 <summary>Coverage by Package</summary>
 
+**Most uncovered:** src (150)
+
 | Package | Files | Total | Covered | Coverage |
 | ------- | ----: | ----: | ------: | -------: |
-| src | 1 | 1,000 | 850 | 85.0% |
+| src | 1 | 1,000 | 850 | \`████████████████████░░░░\` 85.0% |
 
 </details>
 `
@@ -359,9 +381,11 @@ const testCases = [
 <details>
 <summary>Coverage by Package</summary>
 
+**Most uncovered:** src (150)
+
 | Package | Files | Total | Covered | Coverage |
 | ------- | ----: | ----: | ------: | -------: |
-| src | 1 | 1,000 | 850 | 85.0% |
+| src | 1 | 1,000 | 850 | \`████████████████████░░░░\` 85.0% |
 
 </details>
 `
@@ -387,9 +411,11 @@ const testCases = [
 <details>
 <summary>Coverage by Package</summary>
 
+**Most uncovered:** pkg (11)
+
 | Package | Files | Total | Covered | Coverage |
 | ------- | ----: | ----: | ------: | -------: |
-| pkg | 1 | 20 | 9 | 45.0% |
+| pkg | 1 | 20 | 9 | \`███████████░░░░░░░░░░░░░\` 45.0% |
 
 </details>
 `
@@ -418,9 +444,11 @@ const testCases = [
 <details>
 <summary>Coverage by Package</summary>
 
+**Most uncovered:** pkg (277)
+
 | Package | Files | Total | Covered | Coverage |
 | ------- | ----: | ----: | ------: | -------: |
-| pkg | 1 | 1,000 | 723 | 72.3% |
+| pkg | 1 | 1,000 | 723 | \`█████████████████░░░░░░░\` 72.3% |
 
 </details>
 `
@@ -464,6 +492,109 @@ const sparklineTestCases = [
     expectedSparkline: ''
   }
 ]
+
+test('package bar: tiny nonzero segments never round away', () => {
+  const result = summary.generate(
+    makeParams({
+      coveragePercentage: '99.90',
+      total: 1000,
+      covered: 999,
+      filesAnalyzed: 2,
+      files: [
+        {file: 'big/a.ts', total: 999, covered: 999},
+        {file: 'tiny/b.ts', total: 1, covered: 0}
+      ]
+    })
+  )
+  // 1 uncovered statement in tiny/ rounds to a visible 1-char hole; its 0
+  // covered statements produce no solid segment.
+  expect(result).toContain('| tiny | 1 | 1 | 0 | `░` 0.0% |')
+  // big/ is fully covered: no light run.
+  expect(result).toContain('| big | 1 | 999 | 999 | `████████████████████████` 100.0% |')
+  expect(result).toContain('**Most uncovered:** tiny (1)')
+})
+
+test.each([
+  // Both segments landing on .5 boundaries must not round up past the width.
+  {total: 16, covered: 1, bar: `${'█'.repeat(2)}${'░'.repeat(22)}`},
+  {total: 48, covered: 25, bar: `${'█'.repeat(13)}${'░'.repeat(11)}`}
+])('package bar: largest package is exactly 24 chars (total=$total covered=$covered)', ({
+  total,
+  covered,
+  bar
+}) => {
+  const result = summary.generate(
+    makeParams({
+      coveragePercentage: '50.00',
+      total,
+      covered,
+      filesAnalyzed: 1,
+      files: [{file: 'src/a.ts', total, covered}]
+    })
+  )
+  expect(result).toContain(`\`${bar}\``)
+})
+
+test('package bar: covered exceeding total renders a full bar instead of crashing', () => {
+  const result = summary.generate(
+    makeParams({
+      coveragePercentage: '150.00',
+      total: 100,
+      covered: 150,
+      filesAnalyzed: 1,
+      files: [{file: 'src/a.ts', total: 100, covered: 150}]
+    })
+  )
+  expect(result).toContain(`\`${'█'.repeat(24)}\` 150.0%`)
+})
+
+test('package bar: zero-total package renders percent only', () => {
+  const result = summary.generate(
+    makeParams({
+      coveragePercentage: '100.00',
+      total: 10,
+      covered: 10,
+      filesAnalyzed: 2,
+      files: [
+        {file: 'src/a.ts', total: 10, covered: 10},
+        {file: 'empty/b.ts', total: 0, covered: 0}
+      ]
+    })
+  )
+  expect(result).toContain('| empty | 1 | 0 | 0 | 0.0% |')
+})
+
+test('most-uncovered strip: caps at five packages, ordered by hole size', () => {
+  const files = [1, 2, 3, 4, 5, 6, 7].map(n => ({
+    file: `p${n}/a.ts`,
+    total: 100,
+    covered: 100 - n * 10
+  }))
+  const result = summary.generate(
+    makeParams({
+      coveragePercentage: '60.00',
+      total: 700,
+      covered: 420,
+      filesAnalyzed: 7,
+      files
+    })
+  )
+  expect(result).toContain('**Most uncovered:** p7 (70) · p6 (60) · p5 (50) · p4 (40) · p3 (30)')
+  expect(result).not.toContain('p2 (20)')
+})
+
+test('most-uncovered strip: absent when everything is covered', () => {
+  const result = summary.generate(
+    makeParams({
+      coveragePercentage: '100.00',
+      total: 100,
+      covered: 100,
+      filesAnalyzed: 1,
+      files: [{file: 'src/a.ts', total: 100, covered: 100}]
+    })
+  )
+  expect(result).not.toContain('Most uncovered')
+})
 
 test.each(sparklineTestCases)('sparkline: $name', ({coverageHistory, expectedSparkline}) => {
   const result = summary.generate(
