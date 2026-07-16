@@ -175,6 +175,52 @@ on:
 Baselines are namespaced per branch (`refs/notes/coverage/go-port`), and PRs
 targeting that branch compare against its baseline.
 
+## GitHub Coverage API
+
+Upload the report to GitHub's native
+[code coverage feature](https://docs.github.com/en/code-security/how-tos/maintain-quality-code/set-up-code-coverage)
+(public preview) alongside the action's own annotations and comments. The
+report is converted to Cobertura XML regardless of the input format. Requires
+the `code-quality: write` permission, and the workflow must run on both
+`pull_request` and pushes to the default branch (pushes establish GitHub's
+comparison baseline):
+
+```yaml
+name: Tests
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write       # Required for git notes
+      pull-requests: write  # Required for PR comments
+      code-quality: write   # Required for the coverage API upload
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run tests with coverage
+        run: npm test -- --coverage
+
+      - name: Code Coverage
+        uses: sgrankin/codecoverage@v1
+        with:
+          github_token: ${{secrets.GITHUB_TOKEN}}
+          coverage_file_path: coverage/lcov.info
+          coverage_api: "true"
+          coverage_api_language: TypeScript
+          coverage_api_label: code-coverage/jest
+```
+
+Merge queue runs and fork PRs are skipped automatically. Upload failures
+(e.g. code quality not enabled on the repository) log a warning without
+failing the run.
+
 ## Mode Override
 
 Manually control the operating mode:

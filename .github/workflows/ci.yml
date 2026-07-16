@@ -13,6 +13,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      code-quality: write  # Dogfood the coverage API upload
     steps:
       - uses: actions/checkout@v7
         with:
@@ -41,6 +42,9 @@ jobs:
           COVERAGE_FILE_PATH: "./coverage/cobertura-coverage.xml"
           COVERAGE_FORMAT: "cobertura"
           pr_comment: "true"
+          coverage_api: "true"
+          coverage_api_language: "TypeScript"
+          coverage_api_label: "code-coverage/vitest"
 
   # Dogfood the Go coverage format against the sample module in
   # testdata/go-sample, which has deliberate coverage gaps. comment_id keeps

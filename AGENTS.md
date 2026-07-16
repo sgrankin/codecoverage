@@ -108,6 +108,7 @@ The `specs/` directory contains design documentation:
 | `step-summary.md` | Summary format, package grouping |
 | `pr-comment.md` | PR comment posting, upsert logic |
 | `coverage-delta.md` | Git notes, baseline storage, delta calculation |
+| `coverage-api.md` | Upload to GitHub's code coverage API |
 
 ### Keeping Specs Updated
 

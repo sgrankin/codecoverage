@@ -32,6 +32,69 @@ function toArray<T>(val: T | T[] | undefined): T[] {
   return Array.isArray(val) ? val : [val]
 }
 
+// escapeAttr escapes a string for use in an XML attribute value.
+function escapeAttr(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
+// lineRate formats covered/total as a Cobertura line-rate attribute value.
+function lineRate(covered: number, total: number): string {
+  if (total === 0) return '0'
+  return (covered / total).toFixed(4)
+}
+
+// generate serializes parsed coverage as Cobertura XML, the format accepted
+// by GitHub's code coverage API. Entries are grouped into packages by their
+// package name, falling back to the file's directory. Output is deterministic
+// (timestamp fixed at 0, packages and files in input order).
+export function generate(parsed: coverage.Parsed): string {
+  const packages = new Map<string, coverage.Entry[]>()
+  for (const entry of parsed) {
+    const pkg = entry.package || path.dirname(entry.file)
+    const entries = packages.get(pkg) ?? []
+    entries.push(entry)
+    packages.set(pkg, entries)
+  }
+
+  const covered = (e: coverage.Entry) => e.lines.details.filter(d => d.hit > 0).length
+  const totalValid = parsed.reduce((acc, e) => acc + e.lines.details.length, 0)
+  const totalCovered = parsed.reduce((acc, e) => acc + covered(e), 0)
+
+  const xml: string[] = [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    `<coverage line-rate="${lineRate(totalCovered, totalValid)}" branch-rate="0" lines-valid="${totalValid}" lines-covered="${totalCovered}" branches-valid="0" branches-covered="0" complexity="0" version="0" timestamp="0">`,
+    '  <sources><source>.</source></sources>',
+    '  <packages>'
+  ]
+  for (const [pkg, entries] of packages) {
+    const pkgValid = entries.reduce((acc, e) => acc + e.lines.details.length, 0)
+    const pkgCovered = entries.reduce((acc, e) => acc + covered(e), 0)
+    xml.push(
+      `    <package name="${escapeAttr(pkg)}" line-rate="${lineRate(pkgCovered, pkgValid)}" branch-rate="0" complexity="0">`,
+      '      <classes>'
+    )
+    for (const entry of entries) {
+      const name = entry.title || path.basename(entry.file)
+      xml.push(
+        `        <class name="${escapeAttr(name)}" filename="${escapeAttr(entry.file)}" line-rate="${lineRate(covered(entry), entry.lines.details.length)}" branch-rate="0" complexity="0">`,
+        '          <methods/>',
+        '          <lines>'
+      )
+      for (const detail of entry.lines.details) {
+        xml.push(`            <line number="${detail.line}" hits="${detail.hit}" branch="false"/>`)
+      }
+      xml.push('          </lines>', '        </class>')
+    }
+    xml.push('      </classes>', '    </package>')
+  }
+  xml.push('  </packages>', '</coverage>', '')
+  return xml.join('\n')
+}
+
 // parse parses a Cobertura XML file and returns coverage data.
 export async function parse(
   coberturaPath: string,
