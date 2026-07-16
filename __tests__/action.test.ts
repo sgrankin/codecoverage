@@ -6,6 +6,7 @@ import * as github from '@actions/github'
 import {afterEach, beforeEach, expect, test, vi} from 'vitest'
 import type {Dependencies, GitHubOps} from '../src/action.ts'
 import type * as baseline from '../src/utils/baseline.ts'
+import type * as coverageapi from '../src/utils/coverageapi.ts'
 import {captureStdout} from './fixtures/capture-stdout.ts'
 import {getFixturePath} from './fixtures/util.ts'
 
@@ -44,7 +45,8 @@ vi.mock('@actions/github', () => ({
     },
     issue: {number: 123},
     repo: {owner: 'test-owner', repo: 'test-repo'},
-    ref: 'refs/heads/main'
+    ref: 'refs/heads/main',
+    sha: 'test-sha'
   }
 }))
 
@@ -71,6 +73,10 @@ function createFakeDeps(
     onUpsertComment?: (body: string, commentID: string) => void
     // upsertCommentResult is the return value for upsertComment.
     upsertCommentResult?: boolean
+    // onUploadCoverage tracks calls to uploadCoverage.
+    onUploadCoverage?: (opts: coverageapi.Options) => void
+    // uploadCoverageError makes uploadCoverage throw when set.
+    uploadCoverageError?: Error
   } = {}
 ): Dependencies {
   return {
@@ -98,6 +104,10 @@ function createFakeDeps(
         options.onCollectHistory?.(startCommit, maxCount, opts)
         return options.historyEntries ?? []
       }
+    },
+    uploadCoverage: async opts => {
+      options.onUploadCoverage?.(opts)
+      if (options.uploadCoverageError) throw options.uploadCoverageError
     }
   }
 }
@@ -884,6 +894,180 @@ test('non-Go formats leave statement_percentage empty', async () => {
   expect(mockSetOutput).toHaveBeenCalledWith('coverage_percentage', '34.78')
 
   void capture
+})
+
+test('uploads to the coverage API on PR events when coverage_api is true', async () => {
+  const capture = captureStdout()
+  const lcovPath = getFixturePath('lcov.info')
+  // Keep fixture paths as-is so the generated XML uses them verbatim.
+  process.env.GITHUB_WORKSPACE = ''
+  ;(github.context as any).payload = {
+    pull_request: {
+      number: 123,
+      head: {sha: 'headsha', ref: 'feature-branch', repo: {full_name: 'test-owner/test-repo'}},
+      base: {ref: 'main'}
+    }
+  }
+
+  setInputs({
+    github_token: 'test-token',
+    coverage_file_path: lcovPath,
+    coverage_format: 'lcov',
+    github_base_url: 'https://api.github.com',
+    step_summary: 'false',
+    coverage_api: 'true',
+    coverage_api_language: 'TypeScript',
+    coverage_api_label: 'code-coverage/vitest'
+  })
+
+  const uploads: coverageapi.Options[] = []
+  const fakeDeps = createFakeDeps({
+    onUploadCoverage: opts => uploads.push(opts)
+  })
+
+  await play(fakeDeps)
+  expect(mockSetFailed).not.toHaveBeenCalled()
+  expect(uploads).toHaveLength(1)
+  expect(uploads[0]).toMatchObject({
+    token: 'test-token',
+    baseURL: 'https://api.github.com',
+    repo: {owner: 'test-owner', repo: 'test-repo'},
+    language: 'TypeScript',
+    label: 'code-coverage/vitest',
+    commitOID: 'headsha',
+    pullRequestNumber: 123,
+    ref: ''
+  })
+  expect(uploads[0]!.xml).toContain('<coverage ')
+  expect(uploads[0]!.xml).toContain('filename="src/utils/general.ts"')
+  void capture
+})
+
+test('uploads to the coverage API with the ref on push events', async () => {
+  const capture = captureStdout()
+  const lcovPath = getFixturePath('lcov.info')
+  ;(github.context as any).eventName = 'push'
+  ;(github.context as any).ref = 'refs/heads/main'
+
+  setInputs({
+    github_token: 'test-token',
+    coverage_file_path: lcovPath,
+    coverage_format: 'lcov',
+    step_summary: 'false',
+    coverage_api: 'true',
+    coverage_api_language: 'TypeScript'
+  })
+
+  const uploads: coverageapi.Options[] = []
+  const fakeDeps = createFakeDeps({
+    onUploadCoverage: opts => uploads.push(opts)
+  })
+
+  await play(fakeDeps)
+  expect(uploads).toHaveLength(1)
+  expect(uploads[0]).toMatchObject({
+    commitOID: 'test-sha',
+    pullRequestNumber: 0,
+    ref: 'refs/heads/main',
+    label: 'code-coverage' // default label
+  })
+  void capture
+})
+
+test('does not upload to the coverage API by default', async () => {
+  const capture = captureStdout()
+  const lcovPath = getFixturePath('lcov.info')
+
+  setInputs({
+    github_token: 'test-token',
+    coverage_file_path: lcovPath,
+    coverage_format: 'lcov',
+    step_summary: 'false'
+  })
+
+  let uploadCalled = false
+  const fakeDeps = createFakeDeps({
+    onUploadCoverage: () => {
+      uploadCalled = true
+    }
+  })
+
+  await play(fakeDeps)
+  expect(uploadCalled).toBe(false)
+  void capture
+})
+
+test('fails when coverage_api is enabled without a language', async () => {
+  const lcovPath = getFixturePath('lcov.info')
+
+  setInputs({
+    github_token: 'test-token',
+    coverage_file_path: lcovPath,
+    coverage_format: 'lcov',
+    step_summary: 'false',
+    coverage_api: 'true'
+  })
+
+  await play(createFakeDeps())
+  expect(mockSetFailed).toHaveBeenCalledWith(
+    'coverage_api_language is required when coverage_api is enabled'
+  )
+})
+
+test('coverage API upload failure warns instead of failing the run', async () => {
+  const capture = captureStdout()
+  const lcovPath = getFixturePath('lcov.info')
+
+  setInputs({
+    github_token: 'test-token',
+    coverage_file_path: lcovPath,
+    coverage_format: 'lcov',
+    step_summary: 'false',
+    coverage_api: 'true',
+    coverage_api_language: 'TypeScript'
+  })
+
+  const fakeDeps = createFakeDeps({
+    uploadCoverageError: new Error('HTTP 403: not authorized')
+  })
+
+  await play(fakeDeps)
+  expect(mockSetFailed).not.toHaveBeenCalled()
+  expect(capture.output()).toContain('Coverage API upload failed: HTTP 403: not authorized')
+})
+
+test('skips coverage API upload for fork PRs', async () => {
+  const capture = captureStdout()
+  const lcovPath = getFixturePath('lcov.info')
+  ;(github.context as any).payload = {
+    pull_request: {
+      number: 123,
+      head: {sha: 'headsha', ref: 'feature-branch', repo: {full_name: 'fork-owner/test-repo'}},
+      base: {ref: 'main'}
+    }
+  }
+
+  setInputs({
+    github_token: 'test-token',
+    coverage_file_path: lcovPath,
+    coverage_format: 'lcov',
+    step_summary: 'false',
+    coverage_api: 'true',
+    coverage_api_language: 'TypeScript'
+  })
+
+  let uploadCalled = false
+  const fakeDeps = createFakeDeps({
+    onUploadCoverage: () => {
+      uploadCalled = true
+    }
+  })
+
+  await play(fakeDeps)
+  expect(uploadCalled).toBe(false)
+  expect(capture.output()).toContain(
+    'Skipping coverage API upload: fork pull request from fork-owner/test-repo'
+  )
 })
 
 test('summary stats include all files, not just PR diff files', async () => {

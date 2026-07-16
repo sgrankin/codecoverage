@@ -73,6 +73,18 @@ inputs:
     required: false
     description: "Enable debug output showing PR diff and coverage data."
     default: 'true'
+  coverage_api:
+    required: false
+    description: "Upload the coverage report to GitHub's code coverage API (public preview). Requires 'code-quality: write' permission. Set to 'true' to enable."
+    default: 'false'
+  coverage_api_language:
+    required: false
+    description: "Linguist language name for the coverage API upload (e.g. 'TypeScript', 'Go', 'Python'). Required when coverage_api is enabled."
+    default: ''
+  coverage_api_label:
+    required: false
+    description: "Label identifying the report uploaded to the coverage API (e.g. 'code-coverage/vitest')."
+    default: 'code-coverage'
 outputs:
   coverage_percentage:
     description: 'Overall code coverage percentage (line coverage; always set)'

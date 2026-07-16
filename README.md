@@ -41,6 +41,9 @@ See [docs/examples.md](docs/examples.md) for language-specific setup and advance
 | `main_branch` | no | `main` | Branch whose pushes store coverage baselines |
 | `calculate_delta` | no | `true` | Calculate coverage delta against baseline |
 | `github_base_url` | no | `https://api.github.com` | API URL for GitHub Enterprise |
+| `coverage_api` | no | `false` | Upload the report to GitHub's code coverage API (see below) |
+| `coverage_api_language` | no | - | Linguist language name (e.g. `TypeScript`). Required when `coverage_api` is enabled. |
+| `coverage_api_label` | no | `code-coverage` | Label identifying the uploaded report |
 
 ## Outputs
 
@@ -76,6 +79,34 @@ steps:
     with:
       fetch-depth: 0
 ```
+
+## GitHub Coverage API
+
+GitHub can show coverage results natively on pull requests via its
+[code coverage feature](https://docs.github.com/en/code-security/how-tos/maintain-quality-code/set-up-code-coverage)
+(public preview, part of GitHub Code Quality). Set `coverage_api: true` and
+this action uploads the parsed report there too — converted to Cobertura XML
+regardless of the input format, so it works with lcov, Go, and SimpleCov
+coverage as well.
+
+```yaml
+permissions:
+  code-quality: write
+steps:
+  - name: Code Coverage
+    uses: sgrankin/codecoverage@v1
+    with:
+      github_token: ${{secrets.GITHUB_TOKEN}}
+      coverage_file_path: coverage/lcov.info
+      coverage_api: true
+      coverage_api_language: TypeScript
+```
+
+Run the workflow on both `pull_request` and pushes to the default branch —
+GitHub compares PR uploads against the default branch's baseline. Merge queue
+runs and fork PRs are skipped automatically, and upload failures (e.g. the
+repository doesn't have code quality enabled) log a warning without failing
+the run.
 
 ## Contributing
 

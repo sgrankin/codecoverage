@@ -4,6 +4,7 @@ import {env} from 'node:process'
 import * as core from '@actions/core'
 import * as baseline from './utils/baseline.ts'
 import * as cobertura from './utils/cobertura.ts'
+import * as coverageapi from './utils/coverageapi.ts'
 import * as files from './utils/files.ts'
 import * as coverage from './utils/general.ts'
 import * as github from './utils/github.ts'
@@ -83,6 +84,8 @@ export interface Dependencies {
   createGitHub: (token: string, baseURL: string) => GitHubOps
   // baseline provides baseline storage/retrieval operations.
   baseline: BaselineOps
+  // uploadCoverage sends a coverage report to GitHub's code coverage API.
+  uploadCoverage: coverageapi.Upload
 }
 
 // defaultDeps returns the production dependencies.
@@ -93,7 +96,8 @@ function defaultDeps(): Dependencies {
       store: baseline.store,
       load: baseline.load,
       collectHistory: baseline.collectHistory
-    }
+    },
+    uploadCoverage: coverageapi.upload
   }
 }
 
@@ -313,6 +317,39 @@ export async function play(deps: Dependencies = defaultDeps()): Promise<void> {
     core.setOutput('coverage_percentage', cov.coveragePercentage)
     core.setOutput('statement_percentage', cov.statementPercentage)
     core.setOutput('files_analyzed', cov.parsedCov.length)
+
+    // Upload the report to GitHub's code coverage API if enabled. Runs for
+    // both PR and push events (pushes to the default branch establish the
+    // comparison baseline on GitHub's side). Failures warn instead of failing
+    // the run: the upload is auxiliary to annotations, and the API is in
+    // public preview.
+    if (core.getInput('coverage_api') === 'true') {
+      const language = core.getInput('coverage_api_language')
+      if (!language) {
+        throw new Error('coverage_api_language is required when coverage_api is enabled')
+      }
+      const label = core.getInput('coverage_api_label') || 'code-coverage'
+      const target = coverageapi.resolveTarget()
+      if (target.skip) {
+        core.info(`Skipping coverage API upload: ${target.skip}`)
+      } else {
+        try {
+          await deps.uploadCoverage({
+            token: githubToken,
+            baseURL: githubBaseURL,
+            repo: target.repo,
+            xml: cobertura.generate(cov.parsedCov),
+            language,
+            label,
+            commitOID: target.commitOID,
+            pullRequestNumber: target.pullRequestNumber,
+            ref: target.ref
+          })
+        } catch (error) {
+          core.warning(`Coverage API upload failed: ${(error as Error).message}`)
+        }
+      }
+    }
 
     // Primary metric drives the delta, sparkline, and baseline comparison: statements for
     // Go (matching `go tool cover -func`), lines for every other format.

@@ -11,3 +11,4 @@ Design decisions and specifications for the codecoverage GitHub Action.
 - [Step Summary](step-summary.md) - GitHub Actions step summary format
 - [PR Comment](pr-comment.md) - PR comment posting and updates
 - [Coverage Delta](coverage-delta.md) - Tracking coverage changes via git notes
+- [Coverage API](coverage-api.md) - Uploading reports to GitHub's coverage API

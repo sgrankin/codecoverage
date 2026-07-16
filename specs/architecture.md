@@ -10,7 +10,8 @@ codecoverage/
 │   ├── types/            # Type declarations for npm packages
 │   └── utils/
 │       ├── baseline.ts   # Baseline storage and delta calculation
-│       ├── cobertura.ts  # Cobertura XML parser
+│       ├── cobertura.ts  # Cobertura XML parser and generator
+│       ├── coverageapi.ts # GitHub code coverage API upload
 │       ├── diff.ts       # PR diff parsing
 │       ├── files.ts      # File path expansion (globs)
 │       ├── general.ts    # Shared types and utilities
@@ -50,13 +51,13 @@ codecoverage/
 │ CoverageParsed  │  (normalized internal format)
 └────────┬────────┘
          │
-         ├──────────────────┬──────────────────┬──────────────────┐
-         │                  │                  │                  │
-         ▼                  ▼                  ▼                  ▼
-┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
-│ PR Diff         │ │ Step Summary    │ │ PR Comment      │ │ Git Notes       │
-│ (GitHub API)    │ │ (collapsible)   │ │ (upsert)        │ │ (baseline)      │
-└────────┬────────┘ └─────────────────┘ └─────────────────┘ └────────┬────────┘
+         ├──────────────────┬──────────────────┬──────────────────┬──────────────────┐
+         │                  │                  │                  │                  │
+         ▼                  ▼                  ▼                  ▼                  ▼
+┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+│ PR Diff         │ │ Step Summary    │ │ PR Comment      │ │ Git Notes       │ │ Coverage API    │
+│ (GitHub API)    │ │ (collapsible)   │ │ (upsert)        │ │ (baseline)      │ │ (Cobertura PUT) │
+└────────┬────────┘ └─────────────────┘ └─────────────────┘ └────────┬────────┘ └─────────────────┘
          │                                                          │
          ▼                                                          ▼
 ┌─────────────────┐                                      ┌─────────────────┐
