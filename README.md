@@ -104,9 +104,10 @@ steps:
 
 Run the workflow on both `pull_request` and pushes to the default branch —
 GitHub compares PR uploads against the default branch's baseline. Merge queue
-runs and fork PRs are skipped automatically, and upload failures (e.g. the
-repository doesn't have code quality enabled) log a warning without failing
-the run.
+runs and fork PRs are skipped automatically. Upload failures log a warning
+without failing the run; a repository without code quality enabled logs an
+info message instead, so it's safe to turn this on before the feature is
+available to you.
 
 ## Contributing
 

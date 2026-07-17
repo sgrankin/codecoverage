@@ -217,9 +217,9 @@ jobs:
           coverage_api_label: code-coverage/jest
 ```
 
-Merge queue runs and fork PRs are skipped automatically. Upload failures
-(e.g. code quality not enabled on the repository) log a warning without
-failing the run.
+Merge queue runs and fork PRs are skipped automatically. Upload failures log
+a warning without failing the run; a repository without code quality enabled
+logs an info message instead.
 
 ## Mode Override
 

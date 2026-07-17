@@ -75,7 +75,10 @@ Go statement blocks are not representable in Cobertura).
 Upload failures emit a `core.warning` and do not fail the run: the upload is
 auxiliary to the action's primary job (annotations), and the API is in public
 preview so repositories may not have it enabled. A 403 response appends a
-hint about the `code-quality: write` permission.
+hint about the `code-quality: write` permission. A 404 — the API's answer
+when code quality is not enabled on the repository (currently org-only during
+the preview) — logs at info level rather than warning, so repos that opt in
+before they have access don't get a warning annotation on every run.
 
 Unlike the official action, there is no post-upload processing-status polling;
 the action logs the report id returned by the API and moves on.
