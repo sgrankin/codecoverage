@@ -166,6 +166,16 @@ test('upload strips trailing slashes from the base URL', async () => {
   void capture
 })
 
+test('upload treats 404 as code quality not enabled, without throwing', async () => {
+  const capture = captureStdout()
+  const {fetcher} = fakeFetch(404, '{"message": "Not Found"}')
+
+  await coverageapi.upload(makeOptions(), fetcher)
+  expect(capture.output()).toContain(
+    'Coverage API upload skipped: code quality is not enabled on this repository (HTTP 404).'
+  )
+})
+
 test('upload throws with the API message on failure', async () => {
   const {fetcher} = fakeFetch(422, '{"message": "commit not found"}')
 

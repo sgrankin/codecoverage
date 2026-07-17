@@ -126,6 +126,9 @@ export type Upload = (opts: Options) => Promise<void>
 
 // upload PUTs the report to GitHub's code coverage API and throws on any
 // non-2xx response, surfacing the API's error message when one is present.
+// A 404 is the API's answer when code quality is not enabled on the
+// repository (currently org-only, in public preview), so it logs at info
+// level and returns instead of throwing.
 export async function upload(opts: Options, fetcher: FetchLike = fetch): Promise<void> {
   const report = buildReport(opts)
   const url = `${opts.baseURL.replace(/\/+$/, '')}/repos/${opts.repo.owner}/${opts.repo.repo}/code-coverage/report`
@@ -139,6 +142,12 @@ export async function upload(opts: Options, fetcher: FetchLike = fetch): Promise
     body: JSON.stringify(report)
   })
   const body = await response.text()
+  if (response.status === 404) {
+    core.info(
+      'Coverage API upload skipped: code quality is not enabled on this repository (HTTP 404).'
+    )
+    return
+  }
   if (response.status < 200 || response.status >= 300) {
     const hint =
       response.status === 403
