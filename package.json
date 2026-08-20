@@ -28,15 +28,15 @@
     "@actions/core": "^3.0.1",
     "@actions/github": "^9.1.1",
     "@actions/glob": "^0.7.0",
-    "fast-xml-parser": "^5.9.3"
+    "fast-xml-parser": "^5.10.1"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.2",
-    "@types/node": "^25.9.4",
-    "@typescript/native-preview": "^7.0.0-dev.20260701.1",
-    "@vitest/coverage-v8": "^4.1.9",
-    "esbuild": "^0.28.1",
-    "typescript": "^6.0.3",
+    "@biomejs/biome": "^2.5.8",
+    "@types/node": "^26.1.2",
+    "@typescript/native-preview": "^7.0.0-dev.20260707.2",
+    "@vitest/coverage-v8": "^4.1.10",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2",
     "vitest": "^4.1.9"
   }
 }
